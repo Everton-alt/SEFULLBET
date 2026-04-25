@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeFull Bet | Inteligencia em Odds</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #00ff88; --bg: #0b0e14; --card-bg: #161b22; --text: #ffffff; --accent: #6e40ff; --vip: #ffd700; --premium: #00ddeb; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 30%, #1c2128 0%, #0b0e14 100%); z-index: -1; }
+        header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(110,64,255,0.2); }
+        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); letter-spacing: 2px; }
+        .logo span { color: #fff; }
+        .hero { padding: 80px 5% 60px; text-align: center; max-width: 1000px; margin: 0 auto; }
+        .hero-badge { background: rgba(110,64,255,0.1); color: var(--primary); padding: 8px 20px; border-radius: 50px; font-size: 0.8rem; font-weight: bold; border: 1px solid var(--primary); display: inline-block; margin-bottom: 20px; }
+        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); line-height: 1.1; margin-bottom: 20px; font-weight: 900; }
+        .hero h1 span { background: linear-gradient(to right, var(--primary), var(--premium)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { color: #8b949e; font-size: 1.1rem; margin-bottom: 40px; max-width: 800px; margin-inline: auto; }
+        .btn-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary { background: var(--primary); color: #000; padding: 18px 35px; border-radius: 12px; text-decoration: none; font-weight: 800; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,255,136,0.2); }
+        .btn-secondary { background: transparent; color: #fff; padding: 18px 35px; border-radius: 12px; text-decoration: none; font-weight: 800; border: 1px solid #30363d; transition: 0.3s; }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,255,136,0.4); }
+        .feature-box { margin: 50px auto; background: linear-gradient(135deg, #161b22 0%, #0b0e14 100%); border: 1px solid #30363d; border-radius: 24px; padding: 35px; max-width: 850px; display: flex; align-items: center; gap: 25px; text-align: left; }
+        .feature-icon { font-size: 2.5rem; color: var(--primary); background: rgba(0,255,136,0.05); min-width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: 1px solid rgba(0,255,136,0.2); }
+        .plans-container { padding: 60px 5%; max-width: 1200px; margin: 0 auto; }
+        .grid-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
+        .card-plan { background: var(--card-bg); border-radius: 24px; padding: 45px 30px; border: 1px solid #30363d; position: relative; transition: 0.4s; display: flex; flex-direction: column; }
+        .card-plan:hover { border-color: var(--accent); background: #1c2128; }
+        .card-plan.highlight { border: 2px solid var(--vip); transform: scale(1.03); }
+        .price { font-size: 2.8rem; font-weight: 800; margin: 20px 0; }
+        .price span { font-size: 1rem; color: #8b949e; font-weight: 400; }
+        .features-list { list-style: none; margin-bottom: 35px; flex-grow: 1; }
+        .features-list li { margin-bottom: 15px; font-size: 0.95rem; color: #c9d1d9; display: flex; align-items: flex-start; }
+        .features-list li i { color: var(--primary); margin-right: 12px; margin-top: 5px; font-size: 0.8rem; }
+        .tag-promo { position: absolute; top: -15px; right: 30px; background: var(--vip); color: #000; padding: 6px 18px; border-radius: 50px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; }
+        footer { padding: 60px 5%; text-align: center; border-top: 1px solid #30363d; color: #8b949e; font-size: 0.85rem; }
+        @media (max-width: 768px) { .feature-box { flex-direction: column; text-align: center; } .hero h1 { font-size: 2.4rem; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">SEFULL<span>BET</span></div>
+        <a href="/login.html" class="btn-secondary" style="padding:10px 25px;font-size:0.9rem;border-radius:8px;">LOGIN</a>
+    </header>
+
+    <section class="hero">
+        <div class="hero-badge">INTELIGENCIA MATEMATICA APLICADA</div>
+        <h1>Chega de Palpites. <br><span>Opere com Dados.</span></h1>
+        <p>Nossa tecnologia varre o mercado global em busca de distorcoes estatisticas. O <b>SeFull Bet</b> analisa as ODDs e gera as 3 melhores entradas automaticas para o jogo que voce escolher.</p>
+        <div class="btn-group">
+            <a href="/cadastro.html" class="btn-primary">TESTAR ANALISADOR GRATIS</a>
+            <a href="/feed.html" class="btn-secondary">RESULTADOS EM TEMPO REAL</a>
+        </div>
+        <div class="feature-box">
+            <div class="feature-icon"><i class="fas fa-robot"></i></div>
+            <div>
+                <h3 style="color:var(--primary);margin-bottom:8px;">Analisador de ODDs 3.0</h3>
+                <p style="font-size:0.95rem;color:#b1bac4;">Escolha qualquer partida no mundo. Nosso algoritmo processa os dados e entrega os 3 mercados com maior probabilidade de lucro. <b>Cadastre-se e ganhe 1 credito premium.</b></p>
+            </div>
+        </div>
+    </section>
+
+    <section class="plans-container">
+        <div class="grid-plans">
+            <div class="card-plan">
+                <h3>FREE</h3>
+                <div class="price">R$ 0<span>/mes</span></div>
+                <ul class="features-list">
+                    <li><i class="fas fa-circle"></i><b>1 Analise do Analisador</b></li>
+                    <li><i class="fas fa-circle"></i>1 Palpite Gratis Diario</li>
+                    <li><i class="fas fa-circle"></i>Acompanha Assertividade</li>
+                    <li><i class="fas fa-circle"></i>Historico de Greens</li>
+                </ul>
+                <a href="/cadastro.html" class="btn-secondary" style="display:block;text-align:center;">CRIAR CONTA</a>
+            </div>
+            <div class="card-plan highlight">
+                <div class="tag-promo">MAIS VENDIDO</div>
+                <h3 style="color:var(--vip);">VIP GOLD</h3>
+                <div class="price">R$ 49<span>/mes</span></div>
+                <ul class="features-list">
+                    <li><i class="fas fa-star" style="color:var(--vip);"></i><b>30 Analises/Mes</b></li>
+                    <li><i class="fas fa-star" style="color:var(--vip);"></i>Palpites VIP GOLD</li>
+                    <li><i class="fas fa-star" style="color:var(--vip);"></i>Canal Exclusivo Telegram</li>
+                </ul>
+                <a href="/cadastro.html" class="btn-primary" style="display:block;text-align:center;background:var(--vip);">ASSINAR AGORA</a>
+            </div>
+            <div class="card-plan" style="border-color:var(--premium);">
+                <h3 style="color:var(--premium);">PLATINUM</h3>
+                <div class="price">R$ 97<span>/mes</span></div>
+                <ul class="features-list">
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i><b>Analises Ilimitadas</b></li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i>Tudo do VIP GOLD</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i>Suporte Prioritario</li>
+                </ul>
+                <a href="/cadastro.html" class="btn-primary" style="display:block;text-align:center;background:var(--premium);">ADQUIRIR FULL</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 SeFullBet - Tecnologia em Apostas Esportivas.<br>O mercado de renda variavel envolve riscos. Jogue com responsabilidade.</p>
+    </footer>
+</body>
+</html>
