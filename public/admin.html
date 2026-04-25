@@ -581,11 +581,13 @@ function gerarAnaliseCompleta() {
     if (isNaN(c) || isNaN(e) || isNaN(f)) return alert("Preencha as 3 probabilidades para analisar!");
 
     const dadosExcel = baseRaw.map(j => ({
+        // Mantido mapeamento de gols para exibição
         pC: limparNumero(j.placar_casa || j['GOL CASA'] || j['Gol Casa'] || 0), 
         pV: limparNumero(j.placar_visitante || j['GOL FORA'] || j['Gol Fora'] || 0),
-        probC: limparNumero(j.prob_casa || j['ODD CASA'] || j['Odd casa'] || 0), 
-        probE: limparNumero(j.prob_empate || j['ODD EMPATE'] || j['odd empate'] || 0), 
-        probF: limparNumero(j.prob_fora || j['ODD FORA'] || j['Odd Fora'] || 0)
+        // AJUSTADO: Foco exclusivo nas colunas de busca correta
+        probC: limparNumero(j.odd_casa || j['ODD CASA'] || 0), 
+        probE: limparNumero(j.odd_empate || j['ODD EMPATE'] || 0), 
+        probF: limparNumero(j.odd_fora || j['ODD FORA'] || 0)
     }));
 
     let similares = dadosExcel.map(j => {
@@ -680,7 +682,6 @@ function gerarAnaliseCompleta() {
 
     document.getElementById('painel-analise-res').style.display = 'block';
 }
-
 /* ================================================================
    PALPITES, USUÁRIOS, VITÓRIAS, NOTÍCIAS (RESTAURADOS)
 ================================================================ */
