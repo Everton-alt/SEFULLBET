@@ -5,83 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Criar Conta | SeFull Bet</title>
     <style>
-        :root {
-            --primary: #00ff88;
-            --bg: #0b0e14;
-            --card: #161b22;
-            --border: #30363d;
-            --text: #ffffff;
-        }
-
+        :root { --primary: #00ff88; --bg: #0b0e14; --card: #161b22; --border: #30363d; --text: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        
-        body { 
-            background: var(--bg); 
-            color: var(--text); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 50% 0%, #1c2128 0%, #0b0e14 100%);
-            padding: 20px;
-        }
-
-        .register-card {
-            background: var(--card);
-            padding: 35px;
-            border-radius: 15px;
-            border: 1px solid var(--border);
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
+        body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; background-image: radial-gradient(circle at 50% 0%, #1c2128 0%, #0b0e14 100%); padding: 20px; }
+        .register-card { background: var(--card); padding: 35px; border-radius: 15px; border: 1px solid var(--border); width: 100%; max-width: 450px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .logo { font-size: 1.8rem; font-weight: 800; color: var(--primary); text-align: center; margin-bottom: 10px; }
         .logo span { color: #fff; }
         .subtitle { text-align: center; color: #8b949e; font-size: 0.9rem; margin-bottom: 25px; }
-
         .input-group { margin-bottom: 18px; }
         label { display: block; font-size: 0.75rem; color: #8b949e; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; }
-        
-        input, select {
-            width: 100%; padding: 12px; background: var(--bg);
-            border: 1px solid var(--border); border-radius: 8px;
-            color: #fff; outline: none; font-size: 0.95rem;
-        }
-
-        .termo-wrapper {
-            margin: 20px 0; padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px; border: 1px solid var(--border);
-            display: flex; gap: 10px; align-items: center;
-        }
+        input, select { width: 100%; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: #fff; outline: none; font-size: 0.95rem; }
+        .termo-wrapper { margin: 20px 0; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
         .termo-wrapper input { width: auto; cursor: pointer; }
         .termo-link { color: var(--primary); cursor: pointer; text-decoration: underline; font-size: 0.85rem; }
-
-        .btn-register {
-            width: 100%; padding: 14px; background: var(--primary);
-            color: #000; border: none; border-radius: 8px;
-            font-weight: 800; cursor: pointer; font-size: 1rem;
-            transition: opacity 0.3s;
-        }
+        .btn-register { width: 100%; padding: 14px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 1rem; }
         .btn-register:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: none;
-            justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content {
-            background: var(--card); border: 1px solid var(--border);
-            width: 90%; max-width: 600px; padding: 30px; border-radius: 15px;
-            max-height: 85vh; overflow-y: auto;
-        }
+        .erro { color: #ff4d4d; font-size: 0.85rem; margin-top: 10px; display: none; text-align: center; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--card); border: 1px solid var(--border); width: 90%; max-width: 600px; padding: 30px; border-radius: 15px; max-height: 85vh; overflow-y: auto; }
         .modal-text { font-size: 0.9rem; color: #c9d1d9; line-height: 1.6; margin-bottom: 25px; }
-        .btn-confirm {
-            width: 100%; padding: 15px; background: var(--primary);
-            color: #000; border: none; border-radius: 8px;
-            font-weight: bold; cursor: pointer; font-size: 1rem;
-        }
+        .modal-text h2 { color: var(--primary); margin: 20px 0 10px 0; font-size: 1.1rem; }
+        .modal-text h2:first-child { margin-top: 0; }
+        .modal-text b { color: #fff; }
+        .btn-confirm { width: 100%; padding: 15px; background: var(--primary); color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .modal-content::-webkit-scrollbar { width: 6px; }
+        .modal-content::-webkit-scrollbar-track { background: #0b0e14; }
+        .modal-content::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -89,13 +38,19 @@
 <div class="modal-overlay" id="modalTermos">
     <div class="modal-content">
         <div class="modal-text">
-            <h1 style="color: var(--primary); font-size: 1.4rem; margin-bottom: 20px; text-align: center;">Termos e Condições de Uso - SeFull Bet</h1>
-            <h2>1. Natureza do Serviço</h2>
-            <p>A SeFull Bet é uma plataforma de conteúdo informativo e estatístico. <b>Não somos uma casa de apostas</b>.</p>
-            <h2>2. Isenção de Responsabilidade</h2>
-            <p>O mercado de apostas envolve risco. A decisão final é de total responsabilidade do usuário.</p>
-            <h2>3. Ativação de Planos</h2>
-            <p>Planos VIP e Premium requerem ativação manual pelo administrador após a confirmação do cadastro.</p>
+            <h1 style="color: var(--primary); font-size: 1.4rem; margin-bottom: 20px; text-align: center;">Termos e Condicoes de Uso - SeFull Bet</h1>
+            <h2>1. Natureza do Servico</h2>
+            <p>A SeFull Bet e uma plataforma de fornecimento de conteudo informativo, estatistico e de analise probabilistica baseada em algoritmos e dados historicos. <b>Nao somos uma casa de apostas</b>, nao aceitamos depositos de valores para apostas e nao intermediamos transacoes financeiras com esse fim.</p>
+            <h2>2. Isencao de Responsabilidade por Perdas Financeiras</h2>
+            <p>O usuario declara estar ciente de que o mercado de apostas esportivas envolve risco financeiro real. <b>Ausencia de Garantia:</b> A SeFull Bet nao garante lucros. A decisao final de realizar uma aposta e de responsabilidade exclusiva do usuario.</p>
+            <h2>3. Responsabilidade do Usuario</h2>
+            <p>Ao utilizar o site, o usuario compromete-se a: Ser maior de 18 anos; utilizar os dados apenas para fins informativos; assumir total responsabilidade civil e tecnica por suas acoes externas.</p>
+            <h2>4. Limitacao de Responsabilidade Juridica</h2>
+            <p>Em nenhuma circunstancia a SeFull Bet sera responsabilizada por Danos Indiretos, Falhas Tecnicas ou Sancoes Juridicas locais aplicadas ao usuario.</p>
+            <h2>5. Propriedade Intelectual</h2>
+            <p>Todo o conteudo e algoritmos sao de propriedade da SeFull Bet.</p>
+            <h2>6. Modificacoes dos Termos</h2>
+            <p>Reservamo-nos o direito de alterar estes termos a qualquer momento.</p>
         </div>
         <button class="btn-confirm" onclick="confirmarLeitura()">LI E CONCORDO COM OS TERMOS</button>
     </div>
@@ -104,104 +59,81 @@
 <div class="register-card">
     <div class="logo">SEFULL<span>BET</span></div>
     <p class="subtitle">Crie sua conta profissional</p>
-
     <form id="form-cadastro">
+        <div class="input-group"><label>Nome Completo</label><input type="text" id="nome" required></div>
+        <div class="input-group"><label>E-mail</label><input type="email" id="email" required></div>
+        <div class="input-group"><label>Senha</label><input type="password" id="senha" required minlength="6"></div>
         <div class="input-group">
-            <label>Nome Completo</label>
-            <input type="text" id="nome" placeholder="Ex: Henrique Silva" required>
-        </div>
-        <div class="input-group">
-            <label>E-mail</label>
-            <input type="email" id="email" placeholder="seu@email.com" required>
-        </div>
-        <div class="input-group">
-            <label>Senha</label>
-            <input type="password" id="senha" placeholder="••••••••" required>
-        </div>
-        <div class="input-group">
-            <label>Plano Desejado</label>
+            <label>Plano</label>
             <select id="perfil">
-                <option value="gratis">Grátis</option>
+                <option value="gratis">Gratis</option>
                 <option value="vip">VIP</option>
                 <option value="premium">Premium</option>
             </select>
         </div>
-
         <div class="termo-wrapper">
             <input type="checkbox" id="checkTermo" onclick="abrirModal(event)">
-            <label for="checkTermo" class="termo-link">Li e aceito os termos SeFullBet</label>
+            <label for="checkTermo" class="termo-link">Clique para ler e aceitar os termos SeFullBet</label>
         </div>
-
-        <button type="submit" class="btn-register" id="btnSubmit">CRIAR MINHA CONTA</button>
+        <p class="erro" id="msg-erro"></p>
+        <button type="submit" class="btn-register" id="btn-reg">CRIAR MINHA CONTA</button>
     </form>
 </div>
 
 <script>
-    const API_URL = "https://sefullbet.onrender.com";
-    const modal = document.getElementById('modalTermos');
-    const checkbox = document.getElementById('checkTermo');
-    const btnSubmit = document.getElementById('btnSubmit');
+const modal = document.getElementById('modalTermos');
+const checkbox = document.getElementById('checkTermo');
 
-    function abrirModal(e) {
-        if (!checkbox.dataset.lido) {
-            e.preventDefault();
-            modal.style.display = 'flex';
+function abrirModal(e) {
+    if (!checkbox.dataset.lido) { e.preventDefault(); modal.style.display = 'flex'; }
+}
+
+function confirmarLeitura() {
+    checkbox.dataset.lido = "true";
+    checkbox.checked = true;
+    modal.style.display = 'none';
+}
+
+document.getElementById('form-cadastro').onsubmit = async function(e) {
+    e.preventDefault();
+    if (!checkbox.checked) { alert("A leitura dos termos e obrigatoria."); return; }
+
+    const btn = document.getElementById('btn-reg');
+    const erro = document.getElementById('msg-erro');
+    btn.disabled = true;
+    btn.textContent = 'Criando...';
+    erro.style.display = 'none';
+
+    try {
+        const res = await fetch('/api/auth/cadastro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value,
+                senha: document.getElementById('senha').value,
+                perfil: document.getElementById('perfil').value
+            })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+            erro.textContent = data.erro || 'Erro ao criar conta';
+            erro.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'CRIAR MINHA CONTA';
+            return;
         }
+
+        alert('Conta criada com sucesso! ID: ' + data.usuario.id);
+        window.location.href = '/login.html';
+    } catch (err) {
+        erro.textContent = 'Erro de conexao. Tente novamente.';
+        erro.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'CRIAR MINHA CONTA';
     }
-
-    function confirmarLeitura() {
-        checkbox.dataset.lido = "true";
-        checkbox.checked = true;
-        modal.style.display = 'none';
-    }
-
-    document.getElementById('form-cadastro').onsubmit = async function(e) {
-        e.preventDefault();
-        
-        if (!checkbox.checked) { 
-            alert("Você precisa aceitar os termos para continuar."); 
-            return; 
-        }
-
-        btnSubmit.disabled = true;
-        btnSubmit.innerText = "PROCESSANDO...";
-
-        const novoUsuario = {
-            nome: document.getElementById('nome').value.trim(),
-            email: document.getElementById('email').value.toLowerCase().trim(),
-            senha: document.getElementById('senha').value,
-            perfil: document.getElementById('perfil').value,
-            status: "pendente",
-            expiracao: null, // Enviado como null para o banco tratar corretamente
-            termoStatus: "ACEITO",
-            dataCadastro: new Date().toISOString()
-        };
-
-        try {
-            // Ajustado para incluir o prefixo /api que o seu servidor utiliza
-            const response = await fetch(`${API_URL}/api/usuarios`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(novoUsuario)
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                alert("Cadastro realizado! Aguarde a ativação do seu plano pelo administrador.");
-                window.location.href = 'login.html';
-            } else {
-                alert("Erro no cadastro: " + (data.erro || data.message || "E-mail já cadastrado."));
-            }
-
-        } catch (error) {
-            console.error("Erro técnico:", error);
-            alert("Servidor em manutenção. Tente novamente em alguns minutos.");
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.innerText = "CRIAR MINHA CONTA";
-        }
-    };
+};
 </script>
 </body>
 </html>
