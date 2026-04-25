@@ -66,7 +66,6 @@
         }
         .btn-register:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* MODAL / POP-UP */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); display: none;
@@ -78,19 +77,11 @@
             max-height: 85vh; overflow-y: auto;
         }
         .modal-text { font-size: 0.9rem; color: #c9d1d9; line-height: 1.6; margin-bottom: 25px; }
-        .modal-text h2 { color: var(--primary); margin: 20px 0 10px 0; font-size: 1.1rem; }
-        .modal-text h2:first-child { margin-top: 0; }
-        .modal-text b { color: #fff; }
-
         .btn-confirm {
             width: 100%; padding: 15px; background: var(--primary);
             color: #000; border: none; border-radius: 8px;
             font-weight: bold; cursor: pointer; font-size: 1rem;
         }
-
-        .modal-content::-webkit-scrollbar { width: 6px; }
-        .modal-content::-webkit-scrollbar-track { background: #0b0e14; }
-        .modal-content::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -99,15 +90,12 @@
     <div class="modal-content">
         <div class="modal-text">
             <h1 style="color: var(--primary); font-size: 1.4rem; margin-bottom: 20px; text-align: center;">Termos e Condições de Uso - SeFull Bet</h1>
-            
             <h2>1. Natureza do Serviço</h2>
-            <p>A SeFull Bet é uma plataforma de fornecimento de conteúdo informativo, estatístico e de análise probabilística baseada em algoritmos e dados históricos. <b>Não somos uma casa de apostas</b>.</p>
-
+            <p>A SeFull Bet é uma plataforma de conteúdo informativo e estatístico. <b>Não somos uma casa de apostas</b>.</p>
             <h2>2. Isenção de Responsabilidade</h2>
-            <p>O usuário declara estar ciente de que o mercado de apostas esportivas envolve risco financeiro real. A decisão final é de responsabilidade do usuário.</p>
-
-            <h2>3. Responsabilidade do Usuário</h2>
-            <p>Ao utilizar o site, o usuário compromete-se a: Ser maior de 18 anos; utilizar os dados apenas para fins informativos.</p>
+            <p>O mercado de apostas envolve risco. A decisão final é de total responsabilidade do usuário.</p>
+            <h2>3. Ativação de Planos</h2>
+            <p>Planos VIP e Premium requerem ativação manual pelo administrador após a confirmação do cadastro.</p>
         </div>
         <button class="btn-confirm" onclick="confirmarLeitura()">LI E CONCORDO COM OS TERMOS</button>
     </div>
@@ -120,18 +108,18 @@
     <form id="form-cadastro">
         <div class="input-group">
             <label>Nome Completo</label>
-            <input type="text" id="nome" required>
+            <input type="text" id="nome" placeholder="Ex: Henrique Silva" required>
         </div>
         <div class="input-group">
             <label>E-mail</label>
-            <input type="email" id="email" required>
+            <input type="email" id="email" placeholder="seu@email.com" required>
         </div>
         <div class="input-group">
             <label>Senha</label>
-            <input type="password" id="senha" required>
+            <input type="password" id="senha" placeholder="••••••••" required>
         </div>
         <div class="input-group">
-            <label>Plano</label>
+            <label>Plano Desejado</label>
             <select id="perfil">
                 <option value="gratis">Grátis</option>
                 <option value="vip">VIP</option>
@@ -141,7 +129,7 @@
 
         <div class="termo-wrapper">
             <input type="checkbox" id="checkTermo" onclick="abrirModal(event)">
-            <label for="checkTermo" class="termo-link">Clique para ler e aceitar os termos SeFullBet</label>
+            <label for="checkTermo" class="termo-link">Li e aceito os termos SeFullBet</label>
         </div>
 
         <button type="submit" class="btn-register" id="btnSubmit">CRIAR MINHA CONTA</button>
@@ -149,9 +137,7 @@
 </div>
 
 <script>
-    // CONFIGURAÇÃO DA API
     const API_URL = "https://sefullbet.onrender.com";
-
     const modal = document.getElementById('modalTermos');
     const checkbox = document.getElementById('checkTermo');
     const btnSubmit = document.getElementById('btnSubmit');
@@ -173,49 +159,44 @@
         e.preventDefault();
         
         if (!checkbox.checked) { 
-            alert("A leitura dos termos é obrigatória."); 
+            alert("Você precisa aceitar os termos para continuar."); 
             return; 
         }
 
-        // Bloquear botão para evitar cliques duplos
         btnSubmit.disabled = true;
-        btnSubmit.innerText = "CRIANDO CONTA...";
+        btnSubmit.innerText = "PROCESSANDO...";
 
-        const email = document.getElementById('email').value.toLowerCase().trim();
-        
         const novoUsuario = {
-            nome: document.getElementById('nome').value,
-            email: email,
+            nome: document.getElementById('nome').value.trim(),
+            email: document.getElementById('email').value.toLowerCase().trim(),
             senha: document.getElementById('senha').value,
             perfil: document.getElementById('perfil').value,
             status: "pendente",
-            expiracao: "", 
-            termoStatus: "ACEITO INTEGRALMENTE",
+            expiracao: null, // Enviado como null para o banco tratar corretamente
+            termoStatus: "ACEITO",
             dataCadastro: new Date().toISOString()
         };
 
         try {
-            // ENVIO PARA O SERVIDOR NO RENDER
-            const response = await fetch(`${API_URL}/usuarios`, {
+            // Ajustado para incluir o prefixo /api que o seu servidor utiliza
+            const response = await fetch(`${API_URL}/api/usuarios`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novoUsuario)
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                alert("Conta criada com sucesso! Você já pode tentar fazer login.");
+                alert("Cadastro realizado! Aguarde a ativação do seu plano pelo administrador.");
                 window.location.href = 'login.html';
             } else {
-                alert("Erro: " + (data.message || "E-mail já cadastrado ou erro no servidor."));
+                alert("Erro no cadastro: " + (data.erro || data.message || "E-mail já cadastrado."));
             }
 
         } catch (error) {
-            console.error("Erro na requisição:", error);
-            alert("Erro ao conectar com o servidor. Tente novamente em instantes.");
+            console.error("Erro técnico:", error);
+            alert("Servidor em manutenção. Tente novamente em alguns minutos.");
         } finally {
             btnSubmit.disabled = false;
             btnSubmit.innerText = "CRIAR MINHA CONTA";
