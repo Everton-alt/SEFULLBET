@@ -3,104 +3,850 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SeFull Bet | Inteligencia em Odds</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Painel Master v10 | SeFull Bet</title>
+    <!-- ✅ CDN CORRIGIDO: cdnjs é gratuito e confiável -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root { --primary: #00ff88; --bg: #0b0e14; --card-bg: #161b22; --text: #ffffff; --accent: #6e40ff; --vip: #ffd700; --premium: #00ddeb; }
+        :root {
+            --primary: #00ff88;
+            --bg: #0b0e14;
+            --card: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --vip: #ffd700;
+            --danger: #ff4d4d;
+            --accent: #6e40ff;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 30%, #1c2128 0%, #0b0e14 100%); z-index: -1; }
-        header { padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(110,64,255,0.2); }
-        .logo { font-weight: 800; font-size: 1.5rem; color: var(--primary); letter-spacing: 2px; }
-        .logo span { color: #fff; }
-        .hero { padding: 80px 5% 60px; text-align: center; max-width: 1000px; margin: 0 auto; }
-        .hero-badge { background: rgba(110,64,255,0.1); color: var(--primary); padding: 8px 20px; border-radius: 50px; font-size: 0.8rem; font-weight: bold; border: 1px solid var(--primary); display: inline-block; margin-bottom: 20px; }
-        .hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); line-height: 1.1; margin-bottom: 20px; font-weight: 900; }
-        .hero h1 span { background: linear-gradient(to right, var(--primary), var(--premium)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero p { color: #8b949e; font-size: 1.1rem; margin-bottom: 40px; max-width: 800px; margin-inline: auto; }
-        .btn-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .btn-primary { background: var(--primary); color: #000; padding: 18px 35px; border-radius: 12px; text-decoration: none; font-weight: 800; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,255,136,0.2); }
-        .btn-secondary { background: transparent; color: #fff; padding: 18px 35px; border-radius: 12px; text-decoration: none; font-weight: 800; border: 1px solid #30363d; transition: 0.3s; }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,255,136,0.4); }
-        .feature-box { margin: 50px auto; background: linear-gradient(135deg, #161b22 0%, #0b0e14 100%); border: 1px solid #30363d; border-radius: 24px; padding: 35px; max-width: 850px; display: flex; align-items: center; gap: 25px; text-align: left; }
-        .feature-icon { font-size: 2.5rem; color: var(--primary); background: rgba(0,255,136,0.05); min-width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 20px; border: 1px solid rgba(0,255,136,0.2); }
-        .plans-container { padding: 60px 5%; max-width: 1200px; margin: 0 auto; }
-        .grid-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
-        .card-plan { background: var(--card-bg); border-radius: 24px; padding: 45px 30px; border: 1px solid #30363d; position: relative; transition: 0.4s; display: flex; flex-direction: column; }
-        .card-plan:hover { border-color: var(--accent); background: #1c2128; }
-        .card-plan.highlight { border: 2px solid var(--vip); transform: scale(1.03); }
-        .price { font-size: 2.8rem; font-weight: 800; margin: 20px 0; }
-        .price span { font-size: 1rem; color: #8b949e; font-weight: 400; }
-        .features-list { list-style: none; margin-bottom: 35px; flex-grow: 1; }
-        .features-list li { margin-bottom: 15px; font-size: 0.95rem; color: #c9d1d9; display: flex; align-items: flex-start; }
-        .features-list li i { color: var(--primary); margin-right: 12px; margin-top: 5px; font-size: 0.8rem; }
-        .tag-promo { position: absolute; top: -15px; right: 30px; background: var(--vip); color: #000; padding: 6px 18px; border-radius: 50px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; }
-        footer { padding: 60px 5%; text-align: center; border-top: 1px solid #30363d; color: #8b949e; font-size: 0.85rem; }
-        @media (max-width: 768px) { .feature-box { flex-direction: column; text-align: center; } .hero h1 { font-size: 2.4rem; } }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+        nav { width: 260px; background: var(--card); border-right: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+        .nav-logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); margin-bottom: 35px; text-align: center; }
+        
+        .nav-btn { 
+            background: transparent; border: 1px solid transparent; color: #8b949e; 
+            padding: 14px; border-radius: 10px; cursor: pointer; text-align: left; 
+            font-weight: 600; transition: 0.3s; display: flex; align-items: center; gap: 10px;
+        }
+        .nav-btn:hover, .nav-btn.active { background: #21262d; border-color: var(--border); color: var(--primary); }
+        .logout-btn { margin-top: auto; color: var(--danger); }
+
+        main { 
+            flex: 1; 
+            padding: 30px; 
+            overflow-y: auto; 
+            background-image: radial-gradient(at 0% 0%, rgba(0, 255, 136, 0.05) 0%, transparent 50%); 
+            display: block;
+        }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.4s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .monitor-header { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .monitor-card { background: var(--card); border: 1px solid var(--border); padding: 15px; border-radius: 12px; display: flex; justify-content: space-around; align-items: center; text-align: center; }
+        .monitor-card.gratis { border-top: 3px solid var(--primary); }
+        .monitor-card.vip { border-top: 3px solid var(--vip); }
+        .mon-item { display: flex; flex-direction: column; }
+        .mon-label { font-size: 0.65rem; color: #8b949e; text-transform: uppercase; font-weight: 800; }
+        .mon-val { font-size: 1.1rem; font-weight: 900; color: #fff; }
+        .mon-perc { font-size: 1.3rem; color: var(--primary); font-weight: 900; }
+
+        h2, h3 { margin-bottom: 20px; color: #fff; }
+        h3 { margin-top: 30px; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+
+        .admin-card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 25px; }
+        .grid-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 0.7rem; font-weight: 800; color: #8b949e; text-transform: uppercase; }
+        
+        input, select, textarea { background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: #fff; outline: none; }
+        input:focus { border-color: var(--primary); }
+        
+        .btn-save { background: var(--primary); color: #0b0e14; border: none; padding: 15px; border-radius: 10px; font-weight: 800; cursor: pointer; width: 100%; transition: 0.2s; margin-top: 10px; }
+        .btn-save:hover { opacity: 0.85; }
+        .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .table-container { background: var(--card); border-radius: 15px; border: 1px solid var(--border); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+        th { background: #21262d; padding: 15px; font-size: 0.7rem; color: var(--primary); text-transform: uppercase; }
+        td { padding: 14px 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding: 10px; padding-bottom: 30px; }
+        .page-btn { background: var(--card); border: 1px solid var(--border); color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .page-info { font-size: 0.8rem; color: #8b949e; font-weight: bold; }
+
+        .mini-stats { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .stat-row { display: flex; justify-content: space-between; border-bottom: 1px solid #21262d; padding-bottom: 5px; }
+        .stat-label { font-size: 0.8rem; color: #8b949e; font-weight: 600; }
+        .stat-val { font-size: 0.85rem; color: var(--primary); font-weight: 800; }
+        .top-item { display: flex; justify-content: space-between; padding: 12px; background: #0b0e14; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+        
+        .badge { padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; }
+        .badge-ativo { background: rgba(0, 255, 136, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+        .badge-pendente { background: rgba(255, 152, 0, 0.1); color: #ff9800; border: 1px solid #ff9800; }
+        
+        .input-placar { width: 65px; text-align: center; background: #000 !important; border-color: #444 !important; color: var(--vip); font-weight: bold; }
+        .img-mini { width: 45px; height: 30px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+        
+        .action-btn { padding: 6px 10px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 0.75rem; margin-right: 4px; }
+        .btn-win { background: rgba(0, 255, 136, 0.2); color: var(--primary); }
+        .btn-loss { background: rgba(255, 77, 77, 0.2); color: var(--danger); }
+        .btn-edit { background: rgba(110, 64, 255, 0.2); color: var(--accent); }
+        .btn-pin { background: rgba(255, 215, 0, 0.15); color: var(--vip); }
+        .btn-pin.active { background: var(--vip); color: #000; }
+        .btn-del { background: #30363d; color: #ff4d4d; }
+
+        /* ===================== LOG DE IMPORTAÇÃO MELHORADO ===================== */
+        #log-importacao {
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            color: var(--primary);
+            white-space: pre-wrap;
+            line-height: 1.7;
+            min-height: 120px;
+        }
+
+        /* Barra de status da biblioteca */
+        #lib-status {
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lib-ok  { background: rgba(0,255,136,0.1); border: 1px solid var(--primary); color: var(--primary); }
+        .lib-err { background: rgba(255,77,77,0.1);  border: 1px solid var(--danger);  color: var(--danger);  }
+
+        /* Prévia de colunas detectadas */
+        #preview-colunas {
+            margin-top: 15px;
+            padding: 15px 20px;
+            background: #0b0e14;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #8b949e;
+            display: none;
+            line-height: 1.6;
+        }
+        #preview-colunas b { color: var(--vip); }
+        #preview-colunas .col-list { color: var(--primary); margin-top: 5px; }
+
+        /* Progresso */
+        .progress-bar-wrap { background: #21262d; border-radius: 6px; height: 8px; margin: 12px 0; overflow: hidden; display: none; }
+        .progress-bar-fill { height: 100%; background: var(--primary); border-radius: 6px; width: 0%; transition: width 0.3s; }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">SEFULL<span>BET</span></div>
-        <a href="/login.html" class="btn-secondary" style="padding:10px 25px;font-size:0.9rem;border-radius:8px;">LOGIN</a>
-    </header>
 
-    <section class="hero">
-        <div class="hero-badge">INTELIGENCIA MATEMATICA APLICADA</div>
-        <h1>Chega de Palpites. <br><span>Opere com Dados.</span></h1>
-        <p>Nossa tecnologia varre o mercado global em busca de distorcoes estatisticas. O <b>SeFull Bet</b> analisa as ODDs e gera as 3 melhores entradas automaticas para o jogo que voce escolher.</p>
-        <div class="btn-group">
-            <a href="/cadastro.html" class="btn-primary">TESTAR ANALISADOR GRATIS</a>
-            <a href="/feed.html" class="btn-secondary">RESULTADOS EM TEMPO REAL</a>
+<nav>
+    <div class="nav-logo">ADMIN<span>BET</span></div>
+    <button class="nav-btn active" onclick="showSection('sec-palpites', this)">⚽ Gestão de Sinais</button>
+    <button class="nav-btn" onclick="showSection('sec-analisador', this)">📊 Analisador de ODDS</button>
+    <button class="nav-btn" onclick="showSection('sec-usuarios', this)">👥 Membros & Expiração</button>
+    <button class="nav-btn" onclick="showSection('sec-vitorias', this)">🏆 Vitórias Recentes</button>
+    <button class="nav-btn" onclick="showSection('sec-noticias', this)">📰 Notícias Feed</button>
+    <button class="nav-btn" onclick="showSection('sec-importacao', this)">📥 Importação Dados</button>
+    <button class="nav-btn logout-btn" onclick="logout()">Sair do Painel</button>
+</nav>
+
+<main>
+
+    <!-- ======================== GESTÃO DE PALPITES ======================== -->
+    <section id="sec-palpites" class="section active">
+        <h2>⚽ Gestão de Sinais</h2>
+        
+        <div class="monitor-header">
+            <div class="monitor-card gratis">
+                <div class="mon-item"><span class="mon-label">Sinais Grátis</span><span class="mon-val" id="count-g">0</span></div>
+                <div class="mon-item"><span class="mon-label">Red</span><span class="mon-val" id="red-g" style="color:var(--danger)">0</span></div>
+                <div class="mon-item"><span class="mon-label">Assertividade</span><span class="mon-perc" id="perc-g">0%</span></div>
+            </div>
+            <div class="monitor-card vip">
+                <div class="mon-item"><span class="mon-label">Sinais VIP</span><span class="mon-val" id="count-v">0</span></div>
+                <div class="mon-item"><span class="mon-label">Red</span><span class="mon-val" id="red-v" style="color:var(--danger)">0</span></div>
+                <div class="mon-item"><span class="mon-label">Assertividade</span><span class="mon-perc" id="perc-v" style="color:var(--vip)">0%</span></div>
+            </div>
         </div>
-        <div class="feature-box">
-            <div class="feature-icon"><i class="fas fa-robot"></i></div>
-            <div>
-                <h3 style="color:var(--primary);margin-bottom:8px;">Analisador de ODDs 3.0</h3>
-                <p style="font-size:0.95rem;color:#b1bac4;">Escolha qualquer partida no mundo. Nosso algoritmo processa os dados e entrega os 3 mercados com maior probabilidade de lucro. <b>Cadastre-se e ganhe 1 credito premium.</b></p>
+
+        <div class="admin-card">
+            <h3>📝 Novo Palpite</h3>
+            <div class="grid-form">
+                <div class="input-group"><label>Data</label><input type="date" id="p-data"></div>
+                <div class="input-group"><label>Hora</label><input type="time" id="p-hora"></div>
+                <div class="input-group"><label>Confronto</label><input type="text" id="p-confronto" placeholder="Ex: Flamengo x Vasco"></div>
+                <div class="input-group"><label>Mercado</label><input type="text" id="p-mercado" placeholder="Ex: Over 2.5"></div>
+                <div class="input-group"><label>Odd</label><input type="text" id="p-odd" placeholder="Ex: 1.90"></div>
+                <div class="input-group">
+                    <label>Tipo</label>
+                    <select id="p-tipo">
+                        <option value="gratis">GRÁTIS</option>
+                        <option value="vip">VIP</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-save" onclick="salvarPalpite()">ADICIONAR PALPITE</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Tipo</th>
+                        <th>Confronto / Mercado</th>
+                        <th>Placar</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-palpites"></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="pag-palpites"></div>
+    </section>
+
+    <!-- ======================== ANALISADOR ======================== -->
+    <section id="sec-analisador" class="section">
+        <h2 style="color:var(--primary)">📊 SeFull Analisador de ODDS</h2>
+        <div class="admin-card">
+            <div class="grid-form">
+                <div class="input-group"><label>Prob. Casa (1)</label><input type="number" id="ana-odd-casa" step="0.01" placeholder="Ex: 0.50"></div>
+                <div class="input-group"><label>Prob. Empate (X)</label><input type="number" id="ana-odd-empate" step="0.01" placeholder="Ex: 0.25"></div>
+                <div class="input-group"><label>Prob. Fora (2)</label><input type="number" id="ana-odd-fora" step="0.01" placeholder="Ex: 0.25"></div>
+            </div>
+            <button class="btn-save" style="background:#27ae60; color:#fff" onclick="gerarAnaliseCompleta()">GERAR ANÁLISE COMPLETA</button>
+        </div>
+
+        <div id="painel-analise-res" style="display:none">
+            <div style="border: 1px solid var(--vip); border-radius: 12px; padding: 20px; margin-bottom: 25px; background: rgba(255,215,0,0.02)">
+                <h3 style="color:var(--vip); margin:0 0 15px 0">⭐ AS 3 MELHORES ENTRADAS EM DESTAQUE</h3>
+                <div id="top-3-entradas"></div>
+            </div>
+            <div class="grid-form" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+                <div class="monitor-card" style="display:block; text-align:left; padding: 20px;"><label style="color:var(--primary)">🏆 Principal</label><div id="ana-principal" class="mini-stats"></div></div>
+                <div class="monitor-card" style="display:block; text-align:left; padding: 20px;"><label style="color:var(--accent)">🔄 Dupla Chance</label><div id="ana-dupla" class="mini-stats"></div></div>
+                <div class="monitor-card" style="display:block; text-align:left; padding: 20px;"><label style="color:var(--primary)">🔥 Over Gols</label><div id="ana-over" class="mini-stats"></div></div>
+                <div class="monitor-card" style="display:block; text-align:left; padding: 20px;"><label style="color:var(--danger)">❄️ Under Gols</label><div id="ana-under" class="mini-stats"></div></div>
+                <div class="monitor-card" style="display:block; text-align:left; padding: 20px;"><label style="color:var(--vip)">📊 Médias & Info</label><div id="ana-medias" class="mini-stats"></div></div>
             </div>
         </div>
     </section>
 
-    <section class="plans-container">
-        <div class="grid-plans">
-            <div class="card-plan">
-                <h3>FREE</h3>
-                <div class="price">R$ 0<span>/mes</span></div>
-                <ul class="features-list">
-                    <li><i class="fas fa-circle"></i><b>1 Analise do Analisador</b></li>
-                    <li><i class="fas fa-circle"></i>1 Palpite Gratis Diario</li>
-                    <li><i class="fas fa-circle"></i>Acompanha Assertividade</li>
-                    <li><i class="fas fa-circle"></i>Historico de Greens</li>
-                </ul>
-                <a href="/cadastro.html" class="btn-secondary" style="display:block;text-align:center;">CRIAR CONTA</a>
+    <!-- ======================== USUÁRIOS ======================== -->
+    <section id="sec-usuarios" class="section">
+        <h2>👥 Membros & Expiração</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Membro / Email</th>
+                        <th>Perfil</th>
+                        <th>Status</th>
+                        <th>Expiração</th>
+                        <th>Dias</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-usuarios"></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="pag-usuarios"></div>
+    </section>
+
+    <!-- ======================== VITÓRIAS ======================== -->
+    <section id="sec-vitorias" class="section">
+        <h2>🏆 Vitórias Recentes (Resultados)</h2>
+        <div class="admin-card">
+            <input type="hidden" id="edit-v-id">
+            <div class="grid-form">
+                <div class="input-group"><label>Título</label><input type="text" id="v-titulo" placeholder="Ex: Green no Over 2.5"></div>
+                <div class="input-group"><label>Assunto</label><input type="text" id="v-assunto" placeholder="Ex: Flamengo 3x0 Vasco"></div>
+                <div class="input-group"><label>Link Imagem 1</label><input type="text" id="v-img1" placeholder="https://..."></div>
+                <div class="input-group"><label>Link Imagem 2</label><input type="text" id="v-img2" placeholder="https://..."></div>
             </div>
-            <div class="card-plan highlight">
-                <div class="tag-promo">MAIS VENDIDO</div>
-                <h3 style="color:var(--vip);">VIP GOLD</h3>
-                <div class="price">R$ 49<span>/mes</span></div>
-                <ul class="features-list">
-                    <li><i class="fas fa-star" style="color:var(--vip);"></i><b>30 Analises/Mes</b></li>
-                    <li><i class="fas fa-star" style="color:var(--vip);"></i>Palpites VIP GOLD</li>
-                    <li><i class="fas fa-star" style="color:var(--vip);"></i>Canal Exclusivo Telegram</li>
-                </ul>
-                <a href="/cadastro.html" class="btn-primary" style="display:block;text-align:center;background:var(--vip);">ASSINAR AGORA</a>
+            <button class="btn-save" onclick="salvarVitoria()">SALVAR RESULTADO</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Img</th>
+                        <th>Título</th>
+                        <th>Assunto</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-vitorias-tabela"></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="pag-vitorias"></div>
+    </section>
+
+    <!-- ======================== NOTÍCIAS ======================== -->
+    <section id="sec-noticias" class="section">
+        <h2>📰 Notícias Feed</h2>
+        <div class="admin-card">
+            <input type="hidden" id="edit-n-id">
+            <div class="grid-form">
+                <div class="input-group"><label>Título Notícia</label><input type="text" id="n-titulo"></div>
+                <div class="input-group"><label>Link Imagem/Vídeo</label><input type="text" id="n-midia"></div>
             </div>
-            <div class="card-plan" style="border-color:var(--premium);">
-                <h3 style="color:var(--premium);">PLATINUM</h3>
-                <div class="price">R$ 97<span>/mes</span></div>
-                <ul class="features-list">
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i><b>Analises Ilimitadas</b></li>
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i>Tudo do VIP GOLD</li>
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i>Suporte Prioritario</li>
-                </ul>
-                <a href="/cadastro.html" class="btn-primary" style="display:block;text-align:center;background:var(--premium);">ADQUIRIR FULL</a>
+            <div class="input-group" style="margin-top:15px"><label>Conteúdo</label><textarea id="n-conteudo" rows="4"></textarea></div>
+            <button class="btn-save" onclick="salvarNoticia()">POSTAR NOTÍCIA</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pin</th>
+                        <th>Data</th>
+                        <th>Título</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-noticias-tabela"></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="pag-noticias"></div>
+    </section>
+
+    <!-- ======================== IMPORTAÇÃO ======================== -->
+    <section id="sec-importacao" class="section">
+        <h2>📥 Importação de Dados (Excel)</h2>
+        <div class="admin-card">
+            <div id="lib-status" class="lib-ok">✅ Biblioteca SheetJS pronta para uso</div>
+            
+            <div class="grid-form">
+                <div class="input-group">
+                    <label>Tipo de Destino</label>
+                    <select id="imp-tipo">
+                        <option value="base_historica">📊 Base Histórica (Para o Analisador)</option>
+                        <option value="palpites">⚽ Palpites (Gestão de Sinais)</option>
+                        <option value="usuarios">👥 Lista de Usuários</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Selecionar Arquivo .xlsx</label>
+                    <input type="file" id="imp-file" accept=".xlsx, .xls" onchange="preVisualizarArquivo(this)">
+                </div>
             </div>
+
+            <div id="preview-colunas">
+                <div>📄 <b>Arquivo:</b> <span id="pre-nome">---</span> | <b>Tamanho:</b> <span id="pre-tamanho">0 KB</span></div>
+                <div>📊 <b>Registros encontrados:</b> <span id="pre-linhas">0</span> linhas</div>
+                <div>📂 <b>Colunas detectadas (<span id="pre-col-count">0</span>):</b></div>
+                <div class="col-list" id="pre-col-list">---</div>
+                <div style="margin-top:10px; color:var(--vip); font-size:0.7rem">⚠️ Certifique-se que o cabeçalho do Excel segue a estrutura esperada (Hora, Liga, Casa, Fora, Odds, Resultado, etc.).</div>
+            </div>
+
+            <div class="progress-bar-wrap" id="progress-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
+            
+            <div style="display:flex; gap:10px; margin-top:15px">
+                <button class="btn-save" id="btn-importar" onclick="executarImportacao()">▶ EXECUTAR IMPORTAÇÃO</button>
+                <button class="btn-save" style="background:#ff4d4d; color:#fff; width:200px" onclick="limparBaseDados()">🔥 LIMPAR BASE DADOS</button>
+            </div>
+        </div>
+
+        <div class="admin-card" style="padding:0; overflow:hidden">
+            <div style="background:#21262d; padding:10px 20px; font-size:0.7rem; font-weight:800; color:#8b949e">CONSOLE DE IMPORTAÇÃO</div>
+            <div id="log-importacao">Aguardando arquivo...</div>
         </div>
     </section>
 
-    <footer>
-        <p>&copy; 2026 SeFullBet - Tecnologia em Apostas Esportivas.<br>O mercado de renda variavel envolve riscos. Jogue com responsabilidade.</p>
-    </footer>
+</main>
+
+<script>
+/* ================================================================
+   CONFIGURAÇÃO DO SERVIDOR (RENDER)
+================================================================ */
+const API_URL = "https://sefullbet.onrender.com"; // Substitua pela sua URL do Render
+
+/* ================================================================
+   NAVEGAÇÃO E ESTADO GLOBAL
+================================================================ */
+let pagAtual = { palpites: 1, usuarios: 1, vitorias: 1, noticias: 1 };
+const ITENS_POR_PAG = 8;
+
+async function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+    
+    if (id === 'sec-palpites') await renderizarPalpites();
+    if (id === 'sec-usuarios') await renderizarUsuarios();
+    if (id === 'sec-vitorias') await renderizarVitorias();
+    if (id === 'sec-noticias') await renderizarNoticias();
+}
+
+/* ================================================================
+   PAGINAÇÃO GENÉRICA
+================================================================ */
+function getPaginated(lista, pag) {
+    const start = (pag - 1) * ITENS_POR_PAG;
+    return lista.slice(start, start + ITENS_POR_PAG);
+}
+
+function renderPagination(containerId, lista, chave) {
+    const totalPags = Math.ceil(lista.length / ITENS_POR_PAG);
+    const container = document.getElementById(containerId);
+    if (totalPags <= 1) { container.innerHTML = ''; return; }
+    
+    container.innerHTML = `
+        <button class="page-btn" ${pagAtual[chave] === 1 ? 'disabled' : ''} onclick="mudarPag('${chave}', -1)">Anterior</button>
+        <span class="page-info">Página ${pagAtual[chave]} de ${totalPags}</span>
+        <button class="page-btn" ${pagAtual[chave] === totalPags ? 'disabled' : ''} onclick="mudarPag('${chave}', 1)">Próxima</button>
+    `;
+}
+
+async function mudarPag(chave, delta) {
+    pagAtual[chave] += delta;
+    if (chave === 'palpites') await renderizarPalpites();
+    if (chave === 'usuarios') await renderizarUsuarios();
+    if (chave === 'vitorias') await renderizarVitorias();
+    if (chave === 'noticias') await renderizarNoticias();
+}
+
+/* ================================================================
+   IMPORTAÇÃO EXCEL (BLOQUEIO POR HORA E PERSISTÊNCIA)
+================================================================ */
+function limparNumero(val) {
+    if (typeof val === 'number') return val;
+    if (!val) return 0;
+    return parseFloat(val.toString().replace(',', '.').replace('%', '').trim());
+}
+
+function preVisualizarArquivo(input) {
+    if (!input.files.length) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    
+    document.getElementById('pre-nome').innerText = file.name;
+    document.getElementById('pre-tamanho').innerText = (file.size / 1024).toFixed(2) + ' KB';
+    
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, { type: 'array' });
+            const ws = wb.Sheets[wb.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1 });
+            
+            if (jsonData.length > 0) {
+                const colunas = jsonData[0].map(c => String(c || ''));
+                document.getElementById('pre-linhas').innerText = jsonData.length - 1;
+                document.getElementById('pre-col-count').innerText = colunas.length;
+                document.getElementById('pre-col-list').innerText = colunas.join(' · ');
+                document.getElementById('preview-colunas').style.display = 'block';
+            }
+        } catch (err) {
+            console.error("Erro no preview:", err);
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function gerarHashLinha(item) {
+    const valorHora = item.hora || item.Hora || '';
+    return String(valorHora).replace(/\s/g, '').toLowerCase();
+}
+
+async function executarImportacao() {
+    const fileInput   = document.getElementById('imp-file');
+    const tipoDestino = document.getElementById('imp-tipo').value;
+    const log          = document.getElementById('log-importacao');
+    const btnImportar = document.getElementById('btn-importar');
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressFill = document.getElementById('progress-fill');
+
+    if (!fileInput.files.length) return alert("Selecione um arquivo Excel!");
+
+    const file = fileInput.files[0];
+    btnImportar.disabled = true;
+    btnImportar.textContent = '⌛ Processando...';
+    progressWrap.style.display = 'block';
+    progressFill.style.width   = '10%';
+    log.innerHTML = `⌛ Lendo arquivo "${file.name}"...`;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            progressFill.style.width = '40%';
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, { type: 'array', cellDates: true });
+            const sheetName = wb.SheetNames[0];
+            const ws = wb.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+
+            if (jsonData.length === 0) {
+                log.innerHTML = `<span style="color:var(--danger)">❌ Planilha vazia.</span>`;
+                resetarBotao();
+                return;
+            }
+
+            // BUSCA DADOS DO SERVIDOR
+            const response = await fetch(`${API_URL}/${tipoDestino}`);
+            let baseAtual = await response.json();
+            
+            const hashesExistentes = new Set(baseAtual.map(item => gerarHashLinha(item)));
+            let novosItens = [];
+            let duplicados = 0;
+
+            jsonData.forEach((j, idx) => {
+                const hash = gerarHashLinha(j);
+                if (!hashesExistentes.has(hash)) {
+                    if (tipoDestino === 'palpites' && !j.id) j.id = Date.now() + idx;
+                    novosItens.push(j);
+                    hashesExistentes.add(hash);
+                } else {
+                    duplicados++;
+                }
+            });
+
+            // ENVIA NOVOS REGISTROS PARA O SERVIDOR
+            if (novosItens.length > 0) {
+                await fetch(`${API_URL}/importar/${tipoDestino}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novosItens)
+                });
+            }
+
+            progressFill.style.width = '100%';
+            const totalFinal = baseAtual.length + novosItens.length;
+            const relatorioHTML = `
+<span style="color:var(--vip)">⚠️ ${novosItens.length > 0 ? 'Importação concluída.' : 'Sem registros novos.'}</span>
+----------------------------------------
+📂 Destino          : <span style="color:var(--primary)">${tipoDestino}</span>
+📊 Colunas          : <span style="color:var(--primary)">${Object.keys(jsonData[0]).length} detectadas</span>
+📥 Registros Novos  : <span style="color:var(--primary)">${novosItens.length}</span>
+🚫 Duplicados (Hora): <span style="color:var(--danger)">${duplicados}</span>
+💾 Total na Base    : <span style="color:var(--vip)">${totalFinal}</span>
+----------------------------------------`;
+
+            log.innerHTML = relatorioHTML;
+            if (tipoDestino === 'palpites') await renderizarPalpites();
+            if (tipoDestino === 'usuarios') await renderizarUsuarios();
+        } catch (err) {
+            log.innerHTML = `<span style="color:var(--danger)">❌ Erro crítico: ${err.message}</span>`;
+        } finally {
+            resetarBotao();
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function resetarBotao() {
+    const btn = document.getElementById('btn-importar');
+    if (btn) { btn.disabled = false; btn.textContent = '▶ EXECUTAR IMPORTAÇÃO'; }
+}
+
+async function limparBaseDados() {
+    const tipoDestino = document.getElementById('imp-tipo').value;
+    if (confirm(`⚠️ ATENÇÃO: Deseja apagar permanentemente todos os dados de "${tipoDestino}" no servidor?`)) {
+        await fetch(`${API_URL}/limpar/${tipoDestino}`, { method: 'DELETE' });
+        alert("Base de dados limpa com sucesso!");
+        location.reload();
+    }
+}
+
+/* ================================================================
+   ANALISADOR DE ODDS (BUSCA NO SERVIDOR)
+================================================================ */
+async function gerarAnaliseCompleta() {
+    const response = await fetch(`${API_URL}/base_historica`);
+    const baseRaw = await response.json();
+    
+    if (baseRaw.length === 0) return alert("Base histórica vazia!");
+
+    const c = parseFloat(document.getElementById('ana-odd-casa').value);
+    const e = parseFloat(document.getElementById('ana-odd-empate').value);
+    const f = parseFloat(document.getElementById('ana-odd-fora').value);
+
+    if (isNaN(c) || isNaN(e) || isNaN(f)) return alert("Preencha as 3 probabilidades!");
+
+    // Mapeamento dos campos da planilha (image_c3ef98.png)
+    const dadosExcel = baseRaw.map(j => ({
+        pC: limparNumero(j.gol_casa || j['GOL CASA'] || 0), 
+        pV: limparNumero(j.gol_fora || j['GOL FORA'] || 0),
+        probC: limparNumero(j.odd_casa || j['ODD CASA'] || 0), 
+        probE: limparNumero(j.odd_empate || j['ODD EMPATE'] || 0), 
+        probF: limparNumero(j.odd_fora || j['ODD FORA'] || 0)
+    }));
+
+    // Cálculo de similaridade (image_c37fd5.png mostra 3 amostras como exemplo)
+    let similares = dadosExcel.map(j => {
+        let dist = Math.sqrt(Math.pow(j.probC - c, 2) + Math.pow(j.probE - e, 2) + Math.pow(j.probF - f, 2));
+        return { ...j, dist, peso: 1 / (dist + 0.001) };
+    }).filter(j => j.dist <= 0.1).sort((a,b) => a.dist - b.dist).slice(0, 50);
+
+    if (similares.length === 0) return alert("Nenhum confronto similar encontrado.");
+
+    let pesoT = 0; 
+    let s = { 
+        vC:0, vE:0, vV:0, ambos:0, gC:0, gV:0, 
+        o05:0, o15:0, o25:0, o35:0, o45:0, 
+        u05:0, u15:0, u25:0, u35:0, u45:0 
+    };
+
+    similares.forEach(j => {
+        const p = j.peso; pesoT += p;
+        const totalGols = j.pC + j.pV;
+        
+        // Resultado Principal
+        if (j.pC > j.pV) s.vC += p; else if (j.pC === j.pV) s.vE += p; else s.vV += p;
+        if (j.pC > 0 && j.pV > 0) s.ambos += p;
+        
+        // Estatísticas de Over (image_c3ef98.png)
+        if (totalGols > 0.5) s.o05 += p; if (totalGols > 1.5) s.o15 += p; if (totalGols > 2.5) s.o25 += p;
+        if (totalGols > 3.5) s.o35 += p; if (totalGols > 4.5) s.o45 += p;
+        
+        // Estatísticas de Under (image_c37fd5.png)
+        if (totalGols < 0.5) s.u05 += p; if (totalGols < 1.5) s.u15 += p; if (totalGols < 2.5) s.u25 += p;
+        if (totalGols < 3.5) s.u35 += p; if (totalGols < 4.5) s.u45 += p;
+        
+        s.gC += (j.pC * p); s.gV += (j.pV * p);
+    });
+
+    const pc = (val) => (val / pesoT * 100);
+    const toFixed1 = (val) => (val / pesoT * 100).toFixed(1);
+
+    // Destaque Top 3 (image_c37fd5.png)
+    const entradas = [
+        { nome: "Vitória Casa (1)", val: pc(s.vC) },
+        { nome: "Empate (X)", val: pc(s.vE) },
+        { nome: "Vitória Fora (2)", val: pc(s.vV) },
+        { nome: "Ambos Marcam", val: pc(s.ambos) },
+        { nome: "Casa ou Empate (1X)", val: pc(s.vC + s.vE) },
+        { nome: "Empate ou Fora (X2)", val: pc(s.vE + s.vV) },
+        { nome: "Over 1.5 Gols", val: pc(s.o15) },
+        { nome: "Over 2.5 Gols", val: pc(s.o25) },
+        { nome: "Under 3.5 Gols", val: pc(s.u35) }
+    ].sort((a,b) => b.val - a.val).slice(0, 3);
+
+    document.getElementById('top-3-entradas').innerHTML = entradas.map((t, i) => `
+        <div class="top-item"><span><b>#${i+1}</b> &nbsp; ${t.nome}</span><b style="color:var(--primary); font-size:18px;">${t.val.toFixed(1)}%</b></div>`).join('');
+
+    // Preenchimento dos Cards Visuais (image_c37fd5.png)
+    document.getElementById('ana-principal').innerHTML = `
+        <div class="stat-row"><span class="stat-label">Casa Ganha:</span><span class="stat-val">${toFixed1(s.vC)}%</span></div>
+        <div class="stat-row"><span class="stat-label">Empate:</span><span class="stat-val">${toFixed1(s.vE)}%</span></div>
+        <div class="stat-row"><span class="stat-label">Fora Ganha:</span><span class="stat-val">${toFixed1(s.vV)}%</span></div>
+        <div class="stat-row"><span class="stat-label">Ambos Marcam:</span><span class="stat-val">${toFixed1(s.ambos)}%</span></div>`;
+
+    document.getElementById('ana-dupla').innerHTML = `
+        <div class="stat-row"><span class="stat-label">Casa ou Empate(1X):</span><span class="stat-val">${toFixed1(s.vC+s.vE)}%</span></div>
+        <div class="stat-row"><span class="stat-label">Casa ou Fora(12):</span><span class="stat-val">${toFixed1(s.vC+s.vV)}%</span></div>
+        <div class="stat-row"><span class="stat-label">Empate ou Fora(X2):</span><span class="stat-val">${toFixed1(s.vE+s.vV)}%</span></div>`;
+
+    document.getElementById('ana-over-gols').innerHTML = `
+        <div class="stat-row"><span class="stat-label">+0.5 Gols:</span><span class="stat-val">${toFixed1(s.o05)}%</span></div>
+        <div class="stat-row"><span class="stat-label">+1.5 Gols:</span><span class="stat-val">${toFixed1(s.o15)}%</span></div>
+        <div class="stat-row"><span class="stat-label">+2.5 Gols:</span><span class="stat-val">${toFixed1(s.o25)}%</span></div>
+        <div class="stat-row"><span class="stat-label">+3.5 Gols:</span><span class="stat-val">${toFixed1(s.o35)}%</span></div>
+        <div class="stat-row"><span class="stat-label">+4.5 Gols:</span><span class="stat-val">${toFixed1(s.o45)}%</span></div>`;
+
+    document.getElementById('ana-under-gols').innerHTML = `
+        <div class="stat-row"><span class="stat-label">-0.5 Gols:</span><span class="stat-val">${toFixed1(s.u05)}%</span></div>
+        <div class="stat-row"><span class="stat-label">-1.5 Gols:</span><span class="stat-val">${toFixed1(s.u15)}%</span></div>
+        <div class="stat-row"><span class="stat-label">-2.5 Gols:</span><span class="stat-val">${toFixed1(s.u25)}%</span></div>
+        <div class="stat-row"><span class="stat-label">-3.5 Gols:</span><span class="stat-val">${toFixed1(s.u35)}%</span></div>
+        <div class="stat-row"><span class="stat-label">-4.5 Gols:</span><span class="stat-val">${toFixed1(s.u45)}%</span></div>`;
+
+    document.getElementById('ana-medias').innerHTML = `
+        <div class="stat-row"><span class="stat-label">xGols Casa:</span><span class="stat-val">${(s.gC/pesoT).toFixed(2)}</span></div>
+        <div class="stat-row"><span class="stat-label">xGols Fora:</span><span class="stat-val">${(s.gV/pesoT).toFixed(2)}</span></div>
+        <div class="stat-row"><span class="stat-label">Total Esperado:</span><span class="stat-val" style="color:var(--primary)">${((s.gC + s.gV)/pesoT).toFixed(2)} Gols</span></div>
+        <div class="stat-row"><span class="stat-label">Foco em:</span><span class="stat-val" style="color:var(--primary)">${similares.length} jogos</span></div>`;
+
+    document.getElementById('painel-analise-res').style.display = 'block';
+}
+
+/* ================================================================
+   FUNÇÕES DE RENDERIZAÇÃO (FETCH)
+================================================================ */
+async function renderizarPalpites() {
+    const res = await fetch(`${API_URL}/palpites`);
+    const l = await res.json();
+    const paged = getPaginated(l, pagAtual.palpites);
+    document.getElementById('lista-palpites').innerHTML = paged.map(p => `
+        <tr>
+            <td>${p.data || ''} ${p.hora || ''}</td>
+            <td>${p.tipo ? p.tipo.toUpperCase() : 'S/T'}</td>
+            <td><b>${p.confronto || ''}</b><br><small style="color:#8b949e">${p.mercado || ''} | Odd: ${p.odd || ''}</small></td>
+            <td><input type="text" class="input-placar" value="${p.placar || ''}" onchange="atuPlacar(${p.id}, this.value)"></td>
+            <td style="color:${p.status==='green'?'var(--primary)':p.status==='red'?'var(--danger)':'#fff'}">${(p.status||'LIVE').toUpperCase()}</td>
+            <td>
+                <button class="action-btn btn-win" onclick="setStatus(${p.id},'green')">W</button>
+                <button class="action-btn btn-loss" onclick="setStatus(${p.id},'red')">L</button>
+                <button class="action-btn btn-del" onclick="removerItem(${p.id},'palpites')">🗑️</button>
+            </td>
+        </tr>`).join('');
+    renderPagination('pag-palpites', l, 'palpites');
+    atualizarDashboard(l);
+}
+
+function atualizarDashboard(palpites) {
+    const calc = (tipo) => {
+        const filtered = palpites.filter(p => p.tipo === tipo);
+        const r = filtered.filter(p => p.status === 'red').length;
+        const g = filtered.filter(p => p.status === 'green').length;
+        const p = (g + r) > 0 ? ((g / (g + r)) * 100).toFixed(0) : 0;
+        return { total: filtered.length, r, p };
+    };
+    const gr = calc('gratis'), vp = calc('vip');
+    document.getElementById('count-g').innerText = gr.total;
+    document.getElementById('red-g').innerText = gr.r;
+    document.getElementById('perc-g').innerText = gr.p + '%';
+    document.getElementById('count-v').innerText = vp.total;
+    document.getElementById('red-v').innerText = vp.r;
+    document.getElementById('perc-v').innerText = vp.p + '%';
+}
+
+async function salvarPalpite() {
+    const p = {
+        id: Date.now(),
+        data: document.getElementById('p-data').value,
+        hora: document.getElementById('p-hora').value,
+        confronto: document.getElementById('p-confronto').value,
+        mercado: document.getElementById('p-mercado').value,
+        odd: document.getElementById('p-odd').value,
+        tipo: document.getElementById('p-tipo').value,
+        status: 'live', placar: ''
+    };
+    await fetch(`${API_URL}/palpites`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p)
+    });
+    await renderizarPalpites();
+}
+
+async function setStatus(id, s) {
+    await fetch(`${API_URL}/palpites/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: s })
+    });
+    await renderizarPalpites();
+}
+
+async function atuPlacar(id, v) {
+    await fetch(`${API_URL}/palpites/${id}/placar`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placar: v })
+    });
+}
+
+async function renderizarUsuarios() {
+    const res = await fetch(`${API_URL}/usuarios`);
+    const l = await res.json();
+    const paged = getPaginated(l, pagAtual.usuarios);
+    document.getElementById('lista-usuarios').innerHTML = paged.map(u => {
+        const dias = u.expiracao ? Math.ceil((new Date(u.expiracao) - new Date()) / 86400000) : 0;
+        const email = u.email || u.Email;
+        return `<tr>
+            <td><b>${u.nome || u.Nome || ''}</b><br><small>${email}</small></td>
+            <td>
+                <select onchange="alterarPerfil('${email}', this.value)" style="background:transparent; color:var(--primary); border:none; font-weight:bold;">
+                    <option value="gratis" ${u.perfil==='gratis'?'selected':''}>GRÁTIS</option>
+                    <option value="vip" ${u.perfil==='vip'?'selected':''}>VIP</option>
+                </select>
+            </td>
+            <td><span class="badge ${u.status==='ativo'?'badge-ativo':'badge-pendente'}">${u.status || 'pendente'}</span></td>
+            <td><input type="date" value="${u.expiracao||''}" onchange="alterarExpiracao('${email}', this.value)"></td>
+            <td><b style="color:${dias<=3?'var(--danger)':'var(--primary)'}">${dias>0?dias:0}d</b></td>
+            <td>
+                <button class="action-btn btn-win" onclick="ativar30d('${email}')">+30d</button>
+                <button class="action-btn btn-del" onclick="removerItem('${email}','usuarios','email')">🗑️</button>
+            </td>
+        </tr>`;
+    }).join('');
+    renderPagination('pag-usuarios', l, 'usuarios');
+}
+
+async function alterarPerfil(email, p) {
+    await fetch(`${API_URL}/usuarios/${email}/perfil`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil: p })
+    });
+}
+
+async function ativar30d(email) {
+    const d = new Date(); d.setDate(d.getDate() + 30);
+    const exp = d.toISOString().split('T')[0];
+    await fetch(`${API_URL}/usuarios/${email}/ativar`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ativo', expiracao: exp })
+    });
+    await renderizarUsuarios();
+}
+
+async function renderizarVitorias() {
+    const res = await fetch(`${API_URL}/vitorias`);
+    let l = await res.json();
+    l.sort((a, b) => (b.fixado || 0) - (a.fixado || 0));
+    const paged = getPaginated(l, pagAtual.vitorias);
+    document.getElementById('lista-vitorias-tabela').innerHTML = paged.map(v => `
+        <tr style="${v.fixado ? 'background:rgba(255,215,0,0.05)' : ''}">
+            <td><img src="${v.img2 || v.img1 || ''}" class="img-mini"></td>
+            <td><b>${v.fixado ? '📌 ' : ''}${v.titulo}</b></td>
+            <td>${v.assunto}</td>
+            <td>
+                <button class="action-btn btn-pin ${v.fixado?'active':''}" onclick="togglePinVitoria(${v.id})">📌</button>
+                <button class="action-btn btn-del" onclick="removerItem(${v.id},'vitorias')">🗑️</button>
+            </td>
+        </tr>`).join('');
+    renderPagination('pag-vitorias', l, 'vitorias');
+}
+
+async function salvarVitoria() {
+    const v = {
+        id: Date.now(),
+        titulo: document.getElementById('v-titulo').value,
+        assunto: document.getElementById('v-assunto').value,
+        img1: document.getElementById('v-img1').value,
+        img2: document.getElementById('v-img2').value,
+        fixado: false
+    };
+    await fetch(`${API_URL}/vitorias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(v)
+    });
+    resetFormVitoria();
+    await renderizarVitorias();
+}
+
+async function removerItem(id, chave, campo = 'id') {
+    if (!confirm("Confirma exclusão?")) return;
+    await fetch(`${API_URL}/${chave}/${id}`, { method: 'DELETE' });
+    if (chave === 'palpites') await renderizarPalpites();
+    if (chave === 'usuarios') await renderizarUsuarios();
+    if (chave === 'vitorias') await renderizarVitorias();
+    if (chave === 'noticias') await renderizarNoticias();
+}
+
+window.onload = async () => {
+    await renderizarPalpites();
+    document.getElementById('p-data').value = new Date().toISOString().split('T')[0];
+};
+</script>
 </body>
 </html>
