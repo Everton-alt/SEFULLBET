@@ -371,21 +371,26 @@
 
 <script>
 /* ================================================================
+   CONFIGURAÇÃO DO SERVIDOR (RENDER)
+================================================================ */
+const API_URL = "https://seu-projeto-no-render.com"; // Substitua pela sua URL do Render
+
+/* ================================================================
    NAVEGAÇÃO E ESTADO GLOBAL
 ================================================================ */
 let pagAtual = { palpites: 1, usuarios: 1, vitorias: 1, noticias: 1 };
 const ITENS_POR_PAG = 8;
 
-function showSection(id, btn) {
+async function showSection(id, btn) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     btn.classList.add('active');
     
-    if (id === 'sec-palpites') renderizarPalpites();
-    if (id === 'sec-usuarios') renderizarUsuarios();
-    if (id === 'sec-vitorias') renderizarVitorias();
-    if (id === 'sec-noticias') renderizarNoticias();
+    if (id === 'sec-palpites') await renderizarPalpites();
+    if (id === 'sec-usuarios') await renderizarUsuarios();
+    if (id === 'sec-vitorias') await renderizarVitorias();
+    if (id === 'sec-noticias') await renderizarNoticias();
 }
 
 /* ================================================================
@@ -408,12 +413,12 @@ function renderPagination(containerId, lista, chave) {
     `;
 }
 
-function mudarPag(chave, delta) {
+async function mudarPag(chave, delta) {
     pagAtual[chave] += delta;
-    if (chave === 'palpites') renderizarPalpites();
-    if (chave === 'usuarios') renderizarUsuarios();
-    if (chave === 'vitorias') renderizarVitorias();
-    if (chave === 'noticias') renderizarNoticias();
+    if (chave === 'palpites') await renderizarPalpites();
+    if (chave === 'usuarios') await renderizarUsuarios();
+    if (chave === 'vitorias') await renderizarVitorias();
+    if (chave === 'noticias') await renderizarNoticias();
 }
 
 /* ================================================================
@@ -454,13 +459,12 @@ function preVisualizarArquivo(input) {
     reader.readAsArrayBuffer(file);
 }
 
-// Chave baseada APENAS no campo "hora" para evitar duplicidade
 function gerarHashLinha(item) {
     const valorHora = item.hora || item.Hora || '';
     return String(valorHora).replace(/\s/g, '').toLowerCase();
 }
 
-function executarImportacao() {
+async function executarImportacao() {
     const fileInput   = document.getElementById('imp-file');
     const tipoDestino = document.getElementById('imp-tipo').value;
     const log          = document.getElementById('log-importacao');
@@ -478,7 +482,7 @@ function executarImportacao() {
     log.innerHTML = `⌛ Lendo arquivo "${file.name}"...`;
 
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
         try {
             progressFill.style.width = '40%';
             const data = new Uint8Array(e.target.result);
@@ -493,56 +497,49 @@ function executarImportacao() {
                 return;
             }
 
-            let baseAtual = JSON.parse(localStorage.getItem(tipoDestino)) || [];
+            // BUSCA DADOS DO SERVIDOR
+            const response = await fetch(`${API_URL}/${tipoDestino}`);
+            let baseAtual = await response.json();
             
-            // Cria um Set de Hashes baseado apenas na hora dos itens existentes
             const hashesExistentes = new Set(baseAtual.map(item => gerarHashLinha(item)));
-            
-            let novos = 0, duplicados = 0, erros = 0;
+            let novosItens = [];
+            let duplicados = 0;
 
             jsonData.forEach((j, idx) => {
                 const hash = gerarHashLinha(j);
-                
-                // Se a hora não existir na base, adiciona a linha
                 if (!hashesExistentes.has(hash)) {
                     if (tipoDestino === 'palpites' && !j.id) j.id = Date.now() + idx;
-                    baseAtual.push(j);
+                    novosItens.push(j);
                     hashesExistentes.add(hash);
-                    novos++;
                 } else {
                     duplicados++;
                 }
             });
 
-            try {
-                localStorage.setItem(tipoDestino, JSON.stringify(baseAtual));
-            } catch (storageErr) {
-                log.innerHTML = `<span style="color:var(--danger)">❌ LIMITE DE MEMÓRIA ATINGIDO! A base está muito grande.</span>`;
-                resetarBotao();
-                return;
+            // ENVIA NOVOS REGISTROS PARA O SERVIDOR
+            if (novosItens.length > 0) {
+                await fetch(`${API_URL}/importar/${tipoDestino}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novosItens)
+                });
             }
 
             progressFill.style.width = '100%';
-            
+            const totalFinal = baseAtual.length + novosItens.length;
             const relatorioHTML = `
-<span style="color:var(--vip)">⚠️ ${novos > 0 ? 'Importação concluída com sucesso.' : 'Nenhum registro novo encontrado.'}</span>
+<span style="color:var(--vip)">⚠️ ${novosItens.length > 0 ? 'Importação concluída.' : 'Sem registros novos.'}</span>
 ----------------------------------------
 📂 Destino          : <span style="color:var(--primary)">${tipoDestino}</span>
-📄 Arquivo          : <span style="color:var(--primary)">${file.name}</span>
-📑 Aba lida         : <span style="color:var(--primary)">${sheetName}</span>
 📊 Colunas          : <span style="color:var(--primary)">${Object.keys(jsonData[0]).length} detectadas</span>
-📥 Registros Novos  : <span style="color:var(--primary)">${novos}</span>
+📥 Registros Novos  : <span style="color:var(--primary)">${novosItens.length}</span>
 🚫 Duplicados (Hora): <span style="color:var(--danger)">${duplicados}</span>
-⚠️ Erros de linha   : <span style="color:var(--danger)">${erros}</span>
-💾 Total na Base    : <span style="color:var(--vip)">${baseAtual.length}</span>
-----------------------------------------
-<span style="color:var(--primary)">✓ Bloqueio de duplicados aplicado apenas no campo "Hora".</span>`;
+💾 Total na Base    : <span style="color:var(--vip)">${totalFinal}</span>
+----------------------------------------`;
 
             log.innerHTML = relatorioHTML;
-            localStorage.setItem('ultimo_log_importacao', relatorioHTML);
-
-            if (tipoDestino === 'palpites') renderizarPalpites();
-            if (tipoDestino === 'usuarios') renderizarUsuarios();
+            if (tipoDestino === 'palpites') await renderizarPalpites();
+            if (tipoDestino === 'usuarios') await renderizarUsuarios();
         } catch (err) {
             log.innerHTML = `<span style="color:var(--danger)">❌ Erro crítico: ${err.message}</span>`;
         } finally {
@@ -557,35 +554,36 @@ function resetarBotao() {
     if (btn) { btn.disabled = false; btn.textContent = '▶ EXECUTAR IMPORTAÇÃO'; }
 }
 
-function limparBaseDados() {
+async function limparBaseDados() {
     const tipoDestino = document.getElementById('imp-tipo').value;
-    if (confirm(`⚠️ ATENÇÃO: Deseja apagar permanentemente todos os dados de "${tipoDestino}"?`)) {
-        localStorage.removeItem(tipoDestino);
-        localStorage.removeItem('ultimo_log_importacao');
+    if (confirm(`⚠️ ATENÇÃO: Deseja apagar permanentemente todos os dados de "${tipoDestino}" no servidor?`)) {
+        await fetch(`${API_URL}/limpar/${tipoDestino}`, { method: 'DELETE' });
         alert("Base de dados limpa com sucesso!");
         location.reload();
     }
 }
 
 /* ================================================================
-   ANALISADOR DE ODDS (LÓGICA INTEGRADA DO ANALISTA PRO)
+   ANALISADOR DE ODDS (BUSCA NO SERVIDOR)
 ================================================================ */
-function gerarAnaliseCompleta() {
-    const baseRaw = JSON.parse(localStorage.getItem('base_historica')) || [];
-    if (baseRaw.length === 0) return alert("Base histórica vazia! Importe o Excel primeiro.");
+async function gerarAnaliseCompleta() {
+    const response = await fetch(`${API_URL}/base_historica`);
+    const baseRaw = await response.json();
+    
+    if (baseRaw.length === 0) return alert("Base histórica vazia!");
 
     const c = parseFloat(document.getElementById('ana-odd-casa').value);
     const e = parseFloat(document.getElementById('ana-odd-empate').value);
     const f = parseFloat(document.getElementById('ana-odd-fora').value);
 
-    if (isNaN(c) || isNaN(e) || isNaN(f)) return alert("Preencha as 3 probabilidades para analisar!");
+    if (isNaN(c) || isNaN(e) || isNaN(f)) return alert("Preencha as 3 probabilidades!");
 
     const dadosExcel = baseRaw.map(j => ({
         pC: limparNumero(j.placar_casa || j['GOL CASA'] || j['Gol Casa'] || 0), 
         pV: limparNumero(j.placar_visitante || j['GOL FORA'] || j['Gol Fora'] || 0),
-        probC: limparNumero(j.prob_casa || j['ODD CASA'] || j['Odd casa'] || 0), 
-        probE: limparNumero(j.prob_empate || j['ODD EMPATE'] || j['odd empate'] || 0), 
-        probF: limparNumero(j.prob_fora || j['ODD FORA'] || j['Odd Fora'] || 0)
+        probC: limparNumero(j.odd_casa || j['ODD CASA'] || 0), 
+        probE: limparNumero(j.odd_empate || j['ODD EMPATE'] || 0), 
+        probF: limparNumero(j.odd_fora || j['ODD FORA'] || 0)
     }));
 
     let similares = dadosExcel.map(j => {
@@ -593,30 +591,20 @@ function gerarAnaliseCompleta() {
         return { ...j, dist, peso: 1 / (dist + 0.001) };
     }).filter(j => j.dist <= 0.1).sort((a,b) => a.dist - b.dist).slice(0, 50);
 
-    if (similares.length === 0) return alert("Recomendamos a seleção de um confronto alternativo.");
+    if (similares.length === 0) return alert("Nenhum confronto similar encontrado.");
 
     let pesoT = 0; 
-    let s = { 
-        vC:0, vE:0, vV:0, ambos:0, gC:0, gV:0,
-        o05:0, o15:0, o25:0, o35:0, o45:0,
-        u05:0, u15:0, u25:0, u35:0, u45:0
-    };
+    let s = { vC:0, vE:0, vV:0, ambos:0, gC:0, gV:0, o05:0, o15:0, o25:0, o35:0, o45:0, u05:0, u15:0, u25:0, u35:0, u45:0 };
 
     similares.forEach(j => {
         const p = j.peso; pesoT += p;
         const totalGols = j.pC + j.pV;
         if (j.pC > j.pV) s.vC += p; else if (j.pC === j.pV) s.vE += p; else s.vV += p;
         if (j.pC > 0 && j.pV > 0) s.ambos += p;
-        if (totalGols > 0.5) s.o05 += p;
-        if (totalGols > 1.5) s.o15 += p;
-        if (totalGols > 2.5) s.o25 += p;
-        if (totalGols > 3.5) s.o35 += p;
-        if (totalGols > 4.5) s.o45 += p;
-        if (totalGols < 0.5) s.u05 += p;
-        if (totalGols < 1.5) s.u15 += p;
-        if (totalGols < 2.5) s.u25 += p;
-        if (totalGols < 3.5) s.u35 += p;
-        if (totalGols < 4.5) s.u45 += p;
+        if (totalGols > 0.5) s.o05 += p; if (totalGols > 1.5) s.o15 += p; if (totalGols > 2.5) s.o25 += p;
+        if (totalGols > 3.5) s.o35 += p; if (totalGols > 4.5) s.o45 += p;
+        if (totalGols < 0.5) s.u05 += p; if (totalGols < 1.5) s.u15 += p; if (totalGols < 2.5) s.u25 += p;
+        if (totalGols < 3.5) s.u35 += p; if (totalGols < 4.5) s.u45 += p;
         s.gC += (j.pC * p); s.gV += (j.pV * p);
     });
 
@@ -636,93 +624,69 @@ function gerarAnaliseCompleta() {
     ].sort((a,b) => b.val - a.val).slice(0, 3);
 
     document.getElementById('top-3-entradas').innerHTML = entradas.map((t, i) => `
-        <div class="top-item">
-            <span><b>#${i+1}</b> &nbsp; ${t.nome}</span>
-            <b style="color:var(--primary); font-size:18px;">${t.val.toFixed(1)}%</b>
-        </div>
-    `).join('');
+        <div class="top-item"><span><b>#${i+1}</b> &nbsp; ${t.nome}</span><b style="color:var(--primary); font-size:18px;">${t.val.toFixed(1)}%</b></div>`).join('');
 
     document.getElementById('ana-principal').innerHTML = `
         <div class="stat-row"><span class="stat-label">Casa:</span><span class="stat-val">${toFixed1(s.vC)}%</span></div>
         <div class="stat-row"><span class="stat-label">Empate:</span><span class="stat-val">${toFixed1(s.vE)}%</span></div>
         <div class="stat-row"><span class="stat-label">Fora:</span><span class="stat-val">${toFixed1(s.vV)}%</span></div>
-        <div class="stat-row"><span class="stat-label">Ambos:</span><span class="stat-val">${toFixed1(s.ambos)}%</span></div>
-    `;
+        <div class="stat-row"><span class="stat-label">Ambos:</span><span class="stat-val">${toFixed1(s.ambos)}%</span></div>`;
 
     document.getElementById('ana-dupla').innerHTML = `
         <div class="stat-row"><span class="stat-label">1X:</span><span class="stat-val">${toFixed1(s.vC+s.vE)}%</span></div>
         <div class="stat-row"><span class="stat-label">12:</span><span class="stat-val">${toFixed1(s.vC+s.vV)}%</span></div>
-        <div class="stat-row"><span class="stat-label">X2:</span><span class="stat-val">${toFixed1(s.vE+s.vV)}%</span></div>
-    `;
-
-    document.getElementById('ana-over').innerHTML = `
-        <div class="stat-row"><span class="stat-label">+0.5:</span><span class="stat-val">${toFixed1(s.o05)}%</span></div>
-        <div class="stat-row"><span class="stat-label">+1.5:</span><span class="stat-val">${toFixed1(s.o15)}%</span></div>
-        <div class="stat-row"><span class="stat-label">+2.5:</span><span class="stat-val">${toFixed1(s.o25)}%</span></div>
-        <div class="stat-row"><span class="stat-label">+3.5:</span><span class="stat-val">${toFixed1(s.o35)}%</span></div>
-        <div class="stat-row"><span class="stat-label">+4.5:</span><span class="stat-val">${toFixed1(s.o45)}%</span></div>
-    `;
-
-    document.getElementById('ana-under').innerHTML = `
-        <div class="stat-row"><span class="stat-label">-0.5:</span><span class="stat-val">${toFixed1(s.u05)}%</span></div>
-        <div class="stat-row"><span class="stat-label">-1.5:</span><span class="stat-val">${toFixed1(s.u15)}%</span></div>
-        <div class="stat-row"><span class="stat-label">-2.5:</span><span class="stat-val">${toFixed1(s.u25)}%</span></div>
-        <div class="stat-row"><span class="stat-label">-3.5:</span><span class="stat-val">${toFixed1(s.u35)}%</span></div>
-        <div class="stat-row"><span class="stat-label">-4.5:</span><span class="stat-val">${toFixed1(s.u45)}%</span></div>
-    `;
+        <div class="stat-row"><span class="stat-label">X2:</span><span class="stat-val">${toFixed1(s.vE+s.vV)}%</span></div>`;
 
     document.getElementById('ana-medias').innerHTML = `
         <div class="stat-row"><span class="stat-label">xG Casa:</span><span class="stat-val">${(s.gC/pesoT).toFixed(2)}</span></div>
         <div class="stat-row"><span class="stat-label">xG Fora:</span><span class="stat-val">${(s.gV/pesoT).toFixed(2)}</span></div>
-        <div class="stat-row" style="border:none"><span class="stat-label">Total Esperado:</span><span class="stat-val" style="color:var(--vip)">${((s.gC+s.gV)/pesoT).toFixed(2)} Gols</span></div>
-        <div class="stat-row"><span class="stat-label">Amostras:</span><span class="stat-val">${similares.length} jogos</span></div>
-    `;
+        <div class="stat-row"><span class="stat-label">Amostras:</span><span class="stat-val">${similares.length} jogos</span></div>`;
 
     document.getElementById('painel-analise-res').style.display = 'block';
 }
 
 /* ================================================================
-   PALPITES, USUÁRIOS, VITÓRIAS, NOTÍCIAS (RESTAURADOS)
+   FUNÇÕES DE RENDERIZAÇÃO (FETCH)
 ================================================================ */
-function renderizarPalpites() {
-    const l    = JSON.parse(localStorage.getItem('palpites')) || [];
+async function renderizarPalpites() {
+    const res = await fetch(`${API_URL}/palpites`);
+    const l = await res.json();
     const paged = getPaginated(l, pagAtual.palpites);
     document.getElementById('lista-palpites').innerHTML = paged.map(p => `
         <tr>
-            <td>${p.data || p.DATA || ''} ${p.hora || p.HORA || ''}</td>
+            <td>${p.data || ''} ${p.hora || ''}</td>
             <td>${p.tipo ? p.tipo.toUpperCase() : 'S/T'}</td>
-            <td><b>${p.confronto || ((p.Casa || p.CASA || '') + ' vs ' + (p.Fora || p.FORA || ''))}</b><br><small style="color:#8b949e">${p.mercado || ''} ${p.odd ? '| Odd: '+p.odd : ''}</small></td>
+            <td><b>${p.confronto || ''}</b><br><small style="color:#8b949e">${p.mercado || ''} | Odd: ${p.odd || ''}</small></td>
             <td><input type="text" class="input-placar" value="${p.placar || ''}" onchange="atuPlacar(${p.id}, this.value)"></td>
             <td style="color:${p.status==='green'?'var(--primary)':p.status==='red'?'var(--danger)':'#fff'}">${(p.status||'LIVE').toUpperCase()}</td>
             <td>
-                <button class="action-btn btn-win"  onclick="setStatus(${p.id},'green')">W</button>
-                <button class="action-btn btn-loss"  onclick="setStatus(${p.id},'red')">L</button>
-                <button class="action-btn btn-del"   onclick="removerItem(${p.id},'palpites')">🗑️</button>
+                <button class="action-btn btn-win" onclick="setStatus(${p.id},'green')">W</button>
+                <button class="action-btn btn-loss" onclick="setStatus(${p.id},'red')">L</button>
+                <button class="action-btn btn-del" onclick="removerItem(${p.id},'palpites')">🗑️</button>
             </td>
         </tr>`).join('');
     renderPagination('pag-palpites', l, 'palpites');
-    atualizarDashboard();
+    atualizarDashboard(l);
 }
 
-function atualizarDashboard() {
-    const palpites = JSON.parse(localStorage.getItem('palpites')) || [];
+function atualizarDashboard(palpites) {
     const calc = (tipo) => {
-        const l = palpites.filter(p => p.tipo === tipo);
-        const r = l.filter(p => p.status === 'red').length;
-        const g = l.filter(p => p.status === 'green').length;
+        const filtered = palpites.filter(p => p.tipo === tipo);
+        const r = filtered.filter(p => p.status === 'red').length;
+        const g = filtered.filter(p => p.status === 'green').length;
         const p = (g + r) > 0 ? ((g / (g + r)) * 100).toFixed(0) : 0;
-        return { total: l.length, r, p };
+        return { total: filtered.length, r, p };
     };
     const gr = calc('gratis'), vp = calc('vip');
     document.getElementById('count-g').innerText = gr.total;
-    document.getElementById('red-g').innerText   = gr.r;
-    document.getElementById('perc-g').innerText  = gr.p + '%';
+    document.getElementById('red-g').innerText = gr.r;
+    document.getElementById('perc-g').innerText = gr.p + '%';
     document.getElementById('count-v').innerText = vp.total;
-    document.getElementById('red-v').innerText   = vp.r;
-    document.getElementById('perc-v').innerText  = vp.p + '%';
+    document.getElementById('red-v').innerText = vp.r;
+    document.getElementById('perc-v').innerText = vp.p + '%';
 }
 
-function salvarPalpite() {
+async function salvarPalpite() {
     const p = {
         id: Date.now(),
         data: document.getElementById('p-data').value,
@@ -731,218 +695,127 @@ function salvarPalpite() {
         mercado: document.getElementById('p-mercado').value,
         odd: document.getElementById('p-odd').value,
         tipo: document.getElementById('p-tipo').value,
-        status: 'live',
-        placar: ''
+        status: 'live', placar: ''
     };
-    let l = JSON.parse(localStorage.getItem('palpites')) || [];
-    l.unshift(p);
-    localStorage.setItem('palpites', JSON.stringify(l));
-    renderizarPalpites();
+    await fetch(`${API_URL}/palpites`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p)
+    });
+    await renderizarPalpites();
 }
 
-function setStatus(id, s) {
-    let l = JSON.parse(localStorage.getItem('palpites'));
-    const i = l.findIndex(x => x.id == id);
-    l[i].status = s;
-    localStorage.setItem('palpites', JSON.stringify(l));
-    renderizarPalpites();
+async function setStatus(id, s) {
+    await fetch(`${API_URL}/palpites/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: s })
+    });
+    await renderizarPalpites();
 }
 
-function atuPlacar(id, v) {
-    let l = JSON.parse(localStorage.getItem('palpites'));
-    const i = l.findIndex(x => x.id == id);
-    l[i].placar = v;
-    localStorage.setItem('palpites', JSON.stringify(l));
+async function atuPlacar(id, v) {
+    await fetch(`${API_URL}/palpites/${id}/placar`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ placar: v })
+    });
 }
 
-function renderizarUsuarios() {
-    const l    = JSON.parse(localStorage.getItem('usuarios')) || [];
+async function renderizarUsuarios() {
+    const res = await fetch(`${API_URL}/usuarios`);
+    const l = await res.json();
     const paged = getPaginated(l, pagAtual.usuarios);
     document.getElementById('lista-usuarios').innerHTML = paged.map(u => {
         const dias = u.expiracao ? Math.ceil((new Date(u.expiracao) - new Date()) / 86400000) : 0;
+        const email = u.email || u.Email;
         return `<tr>
-            <td><b>${u.nome || u.Nome || ''}</b><br><small>${u.email || u.Email || ''}</small></td>
+            <td><b>${u.nome || u.Nome || ''}</b><br><small>${email}</small></td>
             <td>
-                <select onchange="alterarPerfil('${u.email || u.Email}', this.value)" style="background:transparent; color:var(--primary); border:none; font-weight:bold;">
-                    <option value="gratis"  ${u.perfil==='gratis'  ?'selected':''}>GRÁTIS</option>
-                    <option value="vip"     ${u.perfil==='vip'     ?'selected':''}>VIP</option>
-                    <option value="premium" ${u.perfil==='premium' ?'selected':''}>PREMIUM</option>
+                <select onchange="alterarPerfil('${email}', this.value)" style="background:transparent; color:var(--primary); border:none; font-weight:bold;">
+                    <option value="gratis" ${u.perfil==='gratis'?'selected':''}>GRÁTIS</option>
+                    <option value="vip" ${u.perfil==='vip'?'selected':''}>VIP</option>
                 </select>
             </td>
             <td><span class="badge ${u.status==='ativo'?'badge-ativo':'badge-pendente'}">${u.status || 'pendente'}</span></td>
-            <td><input type="date" value="${u.expiracao||''}" onchange="alterarExpiracao('${u.email||u.Email}', this.value)"></td>
+            <td><input type="date" value="${u.expiracao||''}" onchange="alterarExpiracao('${email}', this.value)"></td>
             <td><b style="color:${dias<=3?'var(--danger)':'var(--primary)'}">${dias>0?dias:0}d</b></td>
             <td>
-                <button class="action-btn btn-win" onclick="ativar30d('${u.email||u.Email}')">+30d</button>
-                <button class="action-btn btn-del" onclick="removerItem('${u.email||u.Email}','usuarios','email')">🗑️</button>
+                <button class="action-btn btn-win" onclick="ativar30d('${email}')">+30d</button>
+                <button class="action-btn btn-del" onclick="removerItem('${email}','usuarios','email')">🗑️</button>
             </td>
         </tr>`;
     }).join('');
     renderPagination('pag-usuarios', l, 'usuarios');
 }
 
-function alterarPerfil(email, p) {
-    let u = JSON.parse(localStorage.getItem('usuarios'));
-    const i = u.findIndex(x => (x.email||x.Email) === email);
-    if (i >= 0) { u[i].perfil = p; localStorage.setItem('usuarios', JSON.stringify(u)); }
+async function alterarPerfil(email, p) {
+    await fetch(`${API_URL}/usuarios/${email}/perfil`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil: p })
+    });
 }
 
-function alterarExpiracao(email, d) {
-    let u = JSON.parse(localStorage.getItem('usuarios'));
-    const i = u.findIndex(x => (x.email||x.Email) === email);
-    if (i >= 0) { u[i].expiracao = d; localStorage.setItem('usuarios', JSON.stringify(u)); renderizarUsuarios(); }
-}
-
-function ativar30d(email) {
-    let users = JSON.parse(localStorage.getItem('usuarios'));
-    const i = users.findIndex(u => (u.email||u.Email) === email);
+async function ativar30d(email) {
     const d = new Date(); d.setDate(d.getDate() + 30);
-    users[i].status    = 'ativo';
-    users[i].expiracao = d.toISOString().split('T')[0];
-    localStorage.setItem('usuarios', JSON.stringify(users));
-    renderizarUsuarios();
+    const exp = d.toISOString().split('T')[0];
+    await fetch(`${API_URL}/usuarios/${email}/ativar`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ativo', expiracao: exp })
+    });
+    await renderizarUsuarios();
 }
 
-function renderizarVitorias() {
-    let l = JSON.parse(localStorage.getItem('vitorias')) || [];
+async function renderizarVitorias() {
+    const res = await fetch(`${API_URL}/vitorias`);
+    let l = await res.json();
     l.sort((a, b) => (b.fixado || 0) - (a.fixado || 0));
     const paged = getPaginated(l, pagAtual.vitorias);
     document.getElementById('lista-vitorias-tabela').innerHTML = paged.map(v => `
         <tr style="${v.fixado ? 'background:rgba(255,215,0,0.05)' : ''}">
-            <td><img src="${v.img2 || v.img1 || ''}" class="img-mini" onerror="this.style.display='none'"></td>
+            <td><img src="${v.img2 || v.img1 || ''}" class="img-mini"></td>
             <td><b>${v.fixado ? '📌 ' : ''}${v.titulo}</b></td>
             <td>${v.assunto}</td>
             <td>
                 <button class="action-btn btn-pin ${v.fixado?'active':''}" onclick="togglePinVitoria(${v.id})">📌</button>
-                <button class="action-btn btn-edit" onclick="editVitoria(${v.id})">✏️</button>
-                <button class="action-btn btn-del"  onclick="removerItem(${v.id},'vitorias')">🗑️</button>
+                <button class="action-btn btn-del" onclick="removerItem(${v.id},'vitorias')">🗑️</button>
             </td>
         </tr>`).join('');
     renderPagination('pag-vitorias', l, 'vitorias');
 }
 
-function salvarVitoria() {
-    const id = document.getElementById('edit-v-id').value;
-    let l    = JSON.parse(localStorage.getItem('vitorias')) || [];
-    const v  = {
-        id:     id ? parseInt(id) : Date.now(),
+async function salvarVitoria() {
+    const v = {
+        id: Date.now(),
         titulo: document.getElementById('v-titulo').value,
-        assunto:document.getElementById('v-assunto').value,
-        img1:   document.getElementById('v-img1').value,
-        img2:   document.getElementById('v-img2').value,
-        fixado: id ? (l.find(x => x.id == id)?.fixado || false) : false
+        assunto: document.getElementById('v-assunto').value,
+        img1: document.getElementById('v-img1').value,
+        img2: document.getElementById('v-img2').value,
+        fixado: false
     };
-    if (id) { const i = l.findIndex(x => x.id == id); l[i] = v; } else { l.unshift(v); }
-    localStorage.setItem('vitorias', JSON.stringify(l));
+    await fetch(`${API_URL}/vitorias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(v)
+    });
     resetFormVitoria();
-    renderizarVitorias();
+    await renderizarVitorias();
 }
 
-function editVitoria(id) {
-    const l = JSON.parse(localStorage.getItem('vitorias')) || [];
-    const v = l.find(x => x.id == id);
-    if (!v) return;
-    document.getElementById('edit-v-id').value = v.id;
-    document.getElementById('v-titulo').value  = v.titulo;
-    document.getElementById('v-assunto').value = v.assunto;
-    document.getElementById('v-img1').value    = v.img1;
-    document.getElementById('v-img2').value    = v.img2;
-}
-
-function togglePinVitoria(id) {
-    let l = JSON.parse(localStorage.getItem('vitorias'));
-    const i = l.findIndex(x => x.id == id);
-    l[i].fixado = !l[i].fixado;
-    localStorage.setItem('vitorias', JSON.stringify(l));
-    renderizarVitorias();
-}
-
-function resetFormVitoria() {
-    ['edit-v-id','v-titulo','v-assunto','v-img1','v-img2'].forEach(id => document.getElementById(id).value = '');
-}
-
-function renderizarNoticias() {
-    let l = JSON.parse(localStorage.getItem('noticias')) || [];
-    l.sort((a, b) => (b.fixado || 0) - (a.fixado || 0));
-    const paged = getPaginated(l, pagAtual.noticias);
-    document.getElementById('lista-noticias-tabela').innerHTML = paged.map(n => `
-        <tr style="${n.fixado ? 'background:rgba(110,64,255,0.05)' : ''}">
-            <td style="text-align:center">${n.fixado ? '📌' : ''}</td>
-            <td>${n.data}</td>
-            <td><b>${n.titulo}</b></td>
-            <td>
-                <button class="action-btn btn-pin ${n.fixado?'active':''}" onclick="togglePinNoticia(${n.id})">📌</button>
-                <button class="action-btn btn-edit" onclick="editNoticia(${n.id})">✏️</button>
-                <button class="action-btn btn-del"  onclick="removerItem(${n.id},'noticias')">🗑️</button>
-            </td>
-        </tr>`).join('');
-    renderPagination('pag-noticias', l, 'noticias');
-}
-
-function salvarNoticia() {
-    const id = document.getElementById('edit-n-id').value;
-    let l    = JSON.parse(localStorage.getItem('noticias')) || [];
-    const n  = {
-        id:       id ? parseInt(id) : Date.now(),
-        data:     id ? (l.find(x => x.id == id)?.data) : new Date().toLocaleDateString('pt-BR'),
-        titulo:   document.getElementById('n-titulo').value,
-        midia:    document.getElementById('n-midia').value,
-        conteudo: document.getElementById('n-conteudo').value,
-        fixado:   id ? (l.find(x => x.id == id)?.fixado || false) : false
-    };
-    if (id) { const i = l.findIndex(x => x.id == id); l[i] = n; } else { l.unshift(n); }
-    localStorage.setItem('noticias', JSON.stringify(l));
-    resetFormNoticia();
-    renderizarNoticias();
-}
-
-function editNoticia(id) {
-    const l = JSON.parse(localStorage.getItem('noticias')) || [];
-    const n = l.find(x => x.id == id);
-    if (!n) return;
-    document.getElementById('edit-n-id').value  = n.id;
-    document.getElementById('n-titulo').value   = n.titulo;
-    document.getElementById('n-midia').value    = n.midia;
-    document.getElementById('n-conteudo').value = n.conteudo;
-}
-
-function togglePinNoticia(id) {
-    let l = JSON.parse(localStorage.getItem('noticias'));
-    const i = l.findIndex(x => x.id == id);
-    l[i].fixado = !l[i].fixado;
-    localStorage.setItem('noticias', JSON.stringify(l));
-    renderizarNoticias();
-}
-
-function resetFormNoticia() {
-    ['edit-n-id','n-titulo','n-midia','n-conteudo'].forEach(id => document.getElementById(id).value = '');
-}
-
-function removerItem(id, chave, campo = 'id') {
+async function removerItem(id, chave, campo = 'id') {
     if (!confirm("Confirma exclusão?")) return;
-    let l = JSON.parse(localStorage.getItem(chave)) || [];
-    l = l.filter(i => String(i[campo]) !== String(id));
-    localStorage.setItem(chave, JSON.stringify(l));
-    if (chave === 'palpites') renderizarPalpites();
-    if (chave === 'usuarios') renderizarUsuarios();
-    if (chave === 'vitorias') renderizarVitorias();
-    if (chave === 'noticias') renderizarNoticias();
+    await fetch(`${API_URL}/${chave}/${id}`, { method: 'DELETE' });
+    if (chave === 'palpites') await renderizarPalpites();
+    if (chave === 'usuarios') await renderizarUsuarios();
+    if (chave === 'vitorias') await renderizarVitorias();
+    if (chave === 'noticias') await renderizarNoticias();
 }
 
-function logout() {
-    localStorage.removeItem('usuarioLogado');
-    window.location.href = 'login.html';
-}
-
-window.onload = () => {
-    renderizarPalpites();
+window.onload = async () => {
+    await renderizarPalpites();
     document.getElementById('p-data').value = new Date().toISOString().split('T')[0];
-    
-    // Persistência do Console de Importação
-    const ultimoLog = localStorage.getItem('ultimo_log_importacao');
-    if (ultimoLog) {
-        document.getElementById('log-importacao').innerHTML = ultimoLog;
-    }
 };
 </script>
 </body>
