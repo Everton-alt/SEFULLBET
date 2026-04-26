@@ -226,6 +226,16 @@
 </main>
 
 <script>
+// FALLBACKS (caso não existam no sistema)
+function getUsuario() {
+    try { return JSON.parse(localStorage.getItem('usuario')); }
+    catch { return null; }
+}
+
+function getToken() {
+    return localStorage.getItem('token');
+}
+
 /* ESTADO GLOBAL */
 let pagAtual = { palpites: 1, usuarios: 1, vitorias: 1, noticias: 1 };
 const ITENS = 8;
@@ -481,63 +491,38 @@ async function removerUsuario(id) {
 async function carregarUsuarios() {
     try {
         const data = await apiFetch(`/api/usuarios?page=${pagAtual.usuarios}&limit=${ITENS}`);
-        if (!data) return;
-        totais.usuarios = data.total;
+        if (!data || !data.usuarios) return;
+
+        totais.usuarios = data.total || 0;
+
         document.getElementById('lista-usuarios').innerHTML = data.usuarios.map(u => {
             const dias = u.expiracao ? Math.ceil((new Date(u.expiracao) - new Date()) / 86400000) : 0;
-            const idCurto = u.id.split('-')[0];
+            const idSeguro = u.id || '';
+            const idCurto = idSeguro.includes('-') ? idSeguro.split('-')[0] : idSeguro;
+
             return `<tr>
-                <td><span class="user-uuid" title="${esc(u.id)}">${esc(idCurto)}</span></td>
+                <td><span class="user-uuid" title="${esc(idSeguro)}">${esc(idCurto)}</span></td>
                 <td><b>${esc(u.nome)}</b><br><small>${esc(u.email)}</small></td>
-                <td><select onchange="alterarPerfil('${u.id}',this.value)" style="background:transparent;color:var(--primary);border:none;font-weight:bold;">
+                <td><select onchange="alterarPerfil('${idSeguro}',this.value)" style="background:transparent;color:var(--primary);border:none;font-weight:bold;">
                     <option value="gratis" ${u.perfil==='gratis'?'selected':''}>GRATIS</option>
                     <option value="vip" ${u.perfil==='vip'?'selected':''}>VIP</option>
                     <option value="premium" ${u.perfil==='premium'?'selected':''}>PREMIUM</option>
                 </select></td>
                 <td><span class="badge ${u.status==='ativo'?'badge-ativo':'badge-pendente'}">${esc(u.status)}</span></td>
-                <td><input type="date" value="${u.expiracao?u.expiracao.split('T')[0]:''}" onchange="alterarExpiracao('${u.id}',this.value)"></td>
+                <td><input type="date" value="${u.expiracao?u.expiracao.split('T')[0]:''}" onchange="alterarExpiracao('${idSeguro}',this.value)"></td>
                 <td><b style="color:${dias<=3?'var(--danger)':'var(--primary)'}">${dias>0?dias:0}d</b></td>
                 <td>
-                    <button class="action-btn btn-win" onclick="ativar30d('${u.id}')">+30d</button>
-                    <button class="action-btn btn-del" onclick="removerUsuario('${u.id}')">X</button>
+                    <button class="action-btn btn-win" onclick="ativar30d('${idSeguro}')">+30d</button>
+                    <button class="action-btn btn-del" onclick="removerUsuario('${idSeguro}')">X</button>
                 </td></tr>`;
         }).join('');
+
         renderPag('pag-usuarios', 'usuarios');
+
     } catch (err) {
         console.error('Erro ao carregar usuários:', err);
     }
 }
-
-async function alterarPerfil(id, p) { 
-    try { 
-        await apiFetch(`/api/usuarios/${id}/perfil`, {method:'PUT', body:JSON.stringify({perfil:p})}); 
-        carregarUsuarios(); 
-    } catch(err){ alert('Erro ao alterar perfil'); console.error(err); }
-}
-
-async function alterarExpiracao(id, d) { 
-    try { 
-        await apiFetch(`/api/usuarios/${id}/expiracao`, {method:'PUT', body:JSON.stringify({expiracao:d})}); 
-        carregarUsuarios(); 
-    } catch(err){ alert('Erro ao alterar expiração'); }
-}
-
-async function ativar30d(id) { 
-    try { 
-        await apiFetch(`/api/usuarios/${id}/ativar30d`, {method:'PUT'}); 
-        carregarUsuarios(); 
-    } catch(err){ alert('Erro ao ativar usuário'); }
-}
-
-async function removerUsuario(id) { 
-    if(!confirm('Remover usuario?')) return; 
-    try { 
-        await apiFetch(`/api/usuarios/${id}`, {method:'DELETE'}); 
-        carregarUsuarios(); 
-    } catch(err){ alert('Erro ao remover usuário'); }
-}
-
-
 /* VITORIAS */
 async function carregarVitorias() {
     try {
@@ -584,63 +569,26 @@ async function fixarVitoria(id) { try { await apiFetch(`/api/vitorias/${id}/fixa
 async function removerVitoria(id) { if(!confirm('Remover?')) return; try { await apiFetch(`/api/vitorias/${id}`, {method:'DELETE'}); carregarVitorias(); } catch(err){ alert('Erro ao remover vitória'); } }
 
 /* NOTICIAS */
-async function carregarNoticias() {
-    try {
-        const data = await apiFetch(`/api/noticias?page=${pagAtual.noticias}&limit=${ITENS}`);
-        if (!data) return;
-        totais.noticias = data.total;
-        document.getElementById('lista-noticias-tabela').innerHTML = data.noticias.map(n => `<tr style="${n.fixado?'background:rgba(110,64,255,0.05)':''}">
-            <td style="text-align:center">${n.fixado?'&#128204;':''}</td>
-            <td>${esc(n.data)}</td>
-            <td><b>${esc(n.titulo)}</b></td>
-            <td>
-                <button class="action-btn btn-pin ${n.fixado?'active':''}" onclick="fixarNoticia(${n.id})">&#128204;</button>
-                <button class="action-btn btn-edit" onclick="editNoticia(${n.id})">E</button>
-                <button class="action-btn btn-del" onclick="removerNoticia(${n.id})">X</button>
-            </td></tr>`).join('');
-        renderPag('pag-noticias', 'noticias');
-    } catch(err){ console.error('Erro ao carregar notícias:', err); }
-}
-
 async function salvarNoticia() {
     try {
         const id = document.getElementById('edit-n-id').value;
-        const body = { titulo: document.getElementById('n-titulo').value, midia: document.getElementById('n-midia').value, conteudo: document.getElementById('n-conteudo').value };
-        if (id) { await apiFetch(`/api/noticias/${id}`, {method:'PUT', body:JSON.stringify(body)}); }
-        else { await apiFetch('/api/noticias', {method:'POST', body:JSON.stringify(body)}); }
-        ['edit-n-id','n-titulo','n-midia','n-conteudo'].forEach(i => document.getElementById(i).value = '');
-        carregarNoticias();
-    } catch(err){ alert('Erro ao salvar notícia'); }
-}
 
-async function editNoticia(id) {
-    try {
-        const n = await apiFetch(`/api/noticias/${id}`);
-        if (!n) return;
-        document.getElementById('edit-n-id').value = n.id;
-        document.getElementById('n-titulo').value = n.titulo;
-        document.getElementById('n-midia').value = n.midia || '';
-        document.getElementById('n-conteudo').value = n.conteudo || '';
-    } catch(err){ alert('Erro ao carregar notícia'); }
-}
-
-async function fixarNoticia(id) { try { await apiFetch(`/api/noticias/${id}/fixar`, {method:'PUT'}); carregarNoticias(); } catch(err){ alert('Erro ao fixar notícia'); } }
-async function removerNoticia(id) { if(!confirm('Remover?')) return; try { await apiFetch(`/api/noticias/${id}`, {method:'DELETE'}); carregarNoticias(); } catch(err){ alert('Erro ao remover notícia'); } }
-async function salvarNoticia() {
-    try {
-        const id = document.getElementById('edit-n-id').value;
         const body = { 
             titulo: document.getElementById('n-titulo').value, 
             midia: document.getElementById('n-midia').value, 
             conteudo: document.getElementById('n-conteudo').value 
         };
+
         if (id) { 
             await apiFetch(`/api/noticias/${id}`, {method:'PUT', body:JSON.stringify(body)}); 
         } else { 
             await apiFetch('/api/noticias', {method:'POST', body:JSON.stringify(body)}); 
         }
+
         ['edit-n-id','n-titulo','n-midia','n-conteudo'].forEach(i => document.getElementById(i).value = '');
+
         carregarNoticias();
+
     } catch(err){ 
         alert('Erro ao salvar notícia'); 
     }
@@ -650,10 +598,12 @@ async function editNoticia(id) {
     try {
         const n = await apiFetch(`/api/noticias/${id}`);
         if (!n) return;
+
         document.getElementById('edit-n-id').value = n.id;
         document.getElementById('n-titulo').value = n.titulo;
         document.getElementById('n-midia').value = n.midia || '';
         document.getElementById('n-conteudo').value = n.conteudo || '';
+
     } catch(err){ 
         alert('Erro ao carregar notícia'); 
     }
@@ -677,6 +627,7 @@ async function removerNoticia(id) {
         alert('Erro ao remover notícia'); 
     } 
 }
+
 /* ANALISADOR */
 async function gerarAnalise() {
     const c = document.getElementById('ana-odd-casa').value;
@@ -748,7 +699,11 @@ function normalizarLinha(row) {
     return n;
 }
 
-function limparNum(v) { if (typeof v === 'number') return v; if (!v) return 0; return parseFloat(String(v).replace(',','.').replace('%','').trim()) || 0; }
+function limparNum(v) {
+    if (typeof v === 'number') return v;
+    if (!v) return 0;
+    return parseFloat(String(v).replace(',','.').replace('%','').trim()) || 0;
+}
 
 async function executarImportacao() {
     const log = document.getElementById('log-importacao');
@@ -756,15 +711,26 @@ async function executarImportacao() {
     const file = document.getElementById('imp-file').files[0];
     const tipo = document.getElementById('imp-tipo').value;
 
-    if (typeof XLSX === 'undefined') { log.innerHTML = '<span style="color:var(--danger)">Biblioteca XLSX nao carregada. Recarregue a pagina.</span>'; return; }
-    if (!file) { log.innerHTML = '<span style="color:var(--danger)">Selecione um arquivo!</span>'; return; }
+    if (typeof XLSX === 'undefined') {
+        log.innerHTML = '<span style="color:var(--danger)">Biblioteca XLSX nao carregada.</span>';
+        return;
+    }
 
-    btn.disabled = true; btn.textContent = 'Processando...';
+    if (!file) {
+        log.innerHTML = '<span style="color:var(--danger)">Selecione um arquivo!</span>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Processando...';
+
     document.getElementById('progress-wrap').style.display = 'block';
     document.getElementById('progress-fill').style.width = '20%';
+
     log.innerHTML = 'Lendo arquivo...';
 
     const reader = new FileReader();
+
     reader.onload = async function(e) {
         try {
             const data = new Uint8Array(e.target.result);
@@ -773,36 +739,57 @@ async function executarImportacao() {
             const json = XLSX.utils.sheet_to_json(ws, { defval:'', raw:false });
 
             document.getElementById('progress-fill').style.width = '50%';
-            log.innerHTML = `Lido ${json.length} registros. Enviando para o servidor...`;
+            log.innerHTML = `Lido ${json.length} registros. Processando...`;
 
             let registros;
+
             if (tipo === 'base_historica') {
                 registros = json.map(r => {
                     const n = normalizarLinha(r);
+
+                    n.hora = String(n.hora).trim(); // 🔥 TRATAR COMO ID
+
                     n.odd_casa = limparNum(n.odd_casa);
                     n.odd_empate = limparNum(n.odd_empate);
                     n.odd_fora = limparNum(n.odd_fora);
                     n.gol_casa = limparNum(n.gol_casa);
                     n.gol_fora = limparNum(n.gol_fora);
                     n.gols_total = limparNum(n.gols_total) || (n.gol_casa + n.gol_fora);
+
                     return n;
                 });
+
+                // 🔥 REMOVER DUPLICADOS PELO "HORA" (ID)
+                const mapaUnico = new Map();
+                registros.forEach(r => {
+                    if (r.hora) mapaUnico.set(r.hora, r);
+                });
+
+                registros = Array.from(mapaUnico.values());
+
+                log.innerHTML += `<br>Após remover duplicados: ${registros.length} registros`;
             } else {
                 registros = json.map(r => ({
                     data: r.data || r.DATA || r.Data || '',
                     hora: r.hora || r.HORA || '',
                     confronto: r.confronto || ((r.Casa||r.CASA||'') + ' vs ' + (r.Fora||r.FORA||'')),
-                    mercado: r.mercado || '', odd: r.odd || '', tipo: r.tipo || 'gratis'
+                    mercado: r.mercado || '',
+                    odd: r.odd || '',
+                    tipo: r.tipo || 'gratis'
                 }));
             }
 
-            // Enviar em lotes de 5000
-            // Enviar em lotes de 5000
-            const LOTE = 5000;
-            let totalNovos = 0, totalDups = 0, totalErros = 0, totalBase = 0;
+            // 🚀 LOTE AUMENTADO PARA 20 MIL
+            const LOTE = 20000;
+
+            let totalNovos = 0;
+            let totalDups = 0;
+            let totalErros = 0;
+            let totalBase = 0;
 
             for (let i = 0; i < registros.length; i += LOTE) {
                 const lote = registros.slice(i, i + LOTE);
+
                 const pct = Math.round(50 + (i / registros.length) * 50);
                 document.getElementById('progress-fill').style.width = pct + '%';
 
@@ -825,7 +812,9 @@ async function executarImportacao() {
             }
 
             document.getElementById('progress-fill').style.width = '100%';
-            log.innerHTML = `<span style="color:var(--primary)">IMPORTACAO CONCLUIDA!</span>
+
+            log.innerHTML = `
+<span style="color:var(--primary)">IMPORTACAO CONCLUIDA!</span>
 ----------------------------------------
 Destino        : ${tipo}
 Arquivo        : ${file.name}
@@ -834,28 +823,36 @@ Duplicados     : ${totalDups}
 Erros          : ${totalErros}
 Total na Base  : ${totalBase}
 ----------------------------------------`;
+
         } catch (err) {
             log.innerHTML = '<span style="color:var(--danger)">ERRO: ' + err.message + '</span>';
         } finally {
-            btn.disabled = false; 
+            btn.disabled = false;
             btn.textContent = 'EXECUTAR IMPORTACAO';
         }
     };
+
     reader.readAsArrayBuffer(file);
 }
 
 async function limparBase() {
     const tipo = document.getElementById('imp-tipo').value;
+
     if (!confirm('Apagar todos os dados de "' + tipo + '"?')) return;
+
     try {
         await apiFetch(`/api/importacao/${tipo}`, { method:'DELETE' });
-        document.getElementById('log-importacao').innerHTML = '<span style="color:var(--danger)">Base limpa!</span>';
+
+        document.getElementById('log-importacao').innerHTML =
+            '<span style="color:var(--danger)">Base limpa!</span>';
+
     } catch(err) {
         alert('Erro ao limpar base');
         console.error(err);
     }
 }
 </script>
+
 
 </body>
 </html>

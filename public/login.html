@@ -80,7 +80,6 @@ document.getElementById('form-login').onsubmit = async function(e) {
       return;
     }
 
-    localStorage.setItem('token', data.token);
     localStorage.setItem('usuario', JSON.stringify(data.usuario));
 
     if (data.usuario.perfil === 'admin') {
