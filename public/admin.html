@@ -226,15 +226,9 @@
 </main>
 
 <script>
-// FALLBACKS (caso não existam no sistema)
-function getUsuario() {
-    try { return JSON.parse(localStorage.getItem('usuario')); }
-    catch { return null; }
-}
-
-function getToken() {
-    return localStorage.getItem('token');
-}
+// USUARIO LOGADO VIA COOKIE HTTPONLY
+// O token agora fica no cookie seguro do navegador, então NÃO deve ser validado pelo localStorage.
+let usuarioLogado = null;
 
 /* ESTADO GLOBAL */
 let pagAtual = { palpites: 1, usuarios: 1, vitorias: 1, noticias: 1 };
@@ -244,11 +238,15 @@ let totais = { palpites: 0, usuarios: 0, vitorias: 0, noticias: 0 };
 /* VERIFICAR AUTH AO CARREGAR */
 window.onload = async () => {
     try {
-        const user = getUsuario();
-        if (!user || !getToken() || user.perfil !== 'admin') {
+        usuarioLogado = await apiFetch('/api/auth/me');
+
+        if (!usuarioLogado || usuarioLogado.perfil !== 'admin') {
             window.location.href = '/login.html';
             return;
         }
+
+        localStorage.setItem('usuario', JSON.stringify(usuarioLogado));
+
         document.getElementById('p-data').value = new Date().toISOString().split('T')[0];
         await carregarPalpites();
         await carregarStats();
@@ -569,6 +567,32 @@ async function fixarVitoria(id) { try { await apiFetch(`/api/vitorias/${id}/fixa
 async function removerVitoria(id) { if(!confirm('Remover?')) return; try { await apiFetch(`/api/vitorias/${id}`, {method:'DELETE'}); carregarVitorias(); } catch(err){ alert('Erro ao remover vitória'); } }
 
 /* NOTICIAS */
+async function carregarNoticias() {
+    try {
+        const data = await apiFetch(`/api/noticias?page=${pagAtual.noticias}&limit=${ITENS}`);
+        if (!data || !data.noticias) return;
+
+        totais.noticias = data.total || 0;
+
+        document.getElementById('lista-noticias-tabela').innerHTML = data.noticias.map(n => `
+            <tr style="${n.fixado ? 'background:rgba(110,64,255,0.05)' : ''}">
+                <td style="text-align:center">${n.fixado ? '&#128204;' : ''}</td>
+                <td>${esc(n.data || n.criado_em || '')}</td>
+                <td><b>${esc(n.titulo)}</b></td>
+                <td>
+                    <button class="action-btn btn-pin ${n.fixado ? 'active' : ''}" onclick="fixarNoticia(${n.id})">&#128204;</button>
+                    <button class="action-btn btn-edit" onclick="editNoticia(${n.id})">E</button>
+                    <button class="action-btn btn-del" onclick="removerNoticia(${n.id})">X</button>
+                </td>
+            </tr>
+        `).join('');
+
+        renderPag('pag-noticias', 'noticias');
+    } catch (err) {
+        console.error('Erro ao carregar notícias:', err);
+    }
+}
+
 async function salvarNoticia() {
     try {
         const id = document.getElementById('edit-n-id').value;
