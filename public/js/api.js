@@ -1,38 +1,59 @@
-// === Utilitário de comunicação com a API ===
-// Todas as páginas usam esse arquivo
+const API_BASE = 'https://sefullbet.onrender.com';
 
 async function apiFetch(path, options = {}) {
-  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
-  const res = await fetch(path, { 
-    ...options, 
-    headers, 
-    credentials: 'include' // envia cookies de sessão
-  });
+  const isFormData = options.body instanceof FormData;
 
-  if (res.status === 401) {
-    // Sessão expirada ou inválida → redireciona para login
-    window.location.href = '/login.html';
-    return null;
-  }
+  const headers = {
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(options.headers || {})
+  };
 
   try {
-    return await res.json();
-  } catch {
+    const res = await fetch(API_BASE + path, {
+      ...options,
+      headers,
+      credentials: 'include',
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (res.status === 401) {
+      if (!window.location.pathname.includes('login')) {
+        window.location.href = '/login.html';
+      }
+      return null;
+    }
+
+    if (!res.ok) {
+      let errorMsg = `Erro HTTP ${res.status}`;
+
+      try {
+        const errJson = await res.json();
+        errorMsg = errJson.erro || errJson.message || errorMsg;
+      } catch {}
+
+      throw new Error(errorMsg);
+    }
+
+    const text = await res.text();
+    if (!text) return null;
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      alert('Servidor demorou para responder.');
+    } else {
+      alert(err.message || 'Erro na comunicação com servidor');
+    }
     return null;
   }
-}
-
-function logout() {
-  // Invalida sessão no servidor
-  fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-    .finally(() => { window.location.href = '/login.html'; });
-}
-
-// Escapa HTML para prevenir XSS
-function esc(str) {
-  if (!str) return '';
-  const div = document.createElement('div');
-  div.textContent = String(str);
-  return div.innerHTML;
 }
