@@ -1,73 +1,31 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-const pool = require('./db/pool');
+const cookieParser = require('cookie-parser');
+
+const authRoutes = require('./routes/auth');
+const palpitesRoutes = require('./routes/palpites');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+app.set('trust proxy', 1);
+
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
 app.use(express.json({ limit: '50mb' }));
+app.use(cookieParser());
 
-// Servir frontend (arquivos estáticos)
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/api/auth', authRoutes);
+app.use('/api/palpites', palpitesRoutes);
 
-// Rotas da API
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/palpites', require('./routes/palpites'));
-app.use('/api/usuarios', require('./routes/usuarios'));
-app.use('/api/vitorias', require('./routes/vitorias'));
-app.use('/api/noticias', require('./routes/noticias'));
-app.use('/api/importacao', require('./routes/importacao'));
-
-// Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
-
-// Fallback: qualquer rota não-API serve o index.html
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  }
+app.get('/', (req, res) => {
+  res.json({ status: 'OK', mensagem: 'API online' });
 });
 
-// Inicializar banco e subir servidor
-async function iniciar() {
-  try {
-    // Executa schema.sql apenas se necessário
-    const schema = fs.readFileSync(path.join(__dirname, 'db', 'schema.sql'), 'utf-8');
-    await pool.query(schema);
-    console.log('Banco de dados verificado.');
-
-    // Criar admin padrão se não existir
-    const bcrypt = require('bcrypt');
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPass = process.env.ADMIN_PASSWORD;
-
-    if (adminEmail && adminPass) {
-      const existe = await pool.query('SELECT id FROM users WHERE email = $1', [adminEmail]);
-      if (existe.rows.length === 0) {
-        const hash = await bcrypt.hash(adminPass, 10);
-        await pool.query(
-          `INSERT INTO users (nome, email, senha_hash, perfil, status)
-           VALUES ('Administrador', $1, $2, 'admin', 'ativo')`,
-          [adminEmail, hash]
-        );
-        console.log('Admin padrão criado.');
-      } else {
-        console.log('Admin padrão já existe.');
-      }
-    }
-
-    app.listen(PORT, () => {
-      console.log(`SeFull Bet rodando na porta ${PORT}`);
-    });
-  } catch (err) {
-    console.error('Erro ao iniciar:', err);
-    process.exit(1);
-  }
-}
-
-iniciar();
+app.listen(process.env.PORT || 3000, () => {
+  console.log(`Servidor rodando na porta ${process.env.PORT || 3000}`);
+});
