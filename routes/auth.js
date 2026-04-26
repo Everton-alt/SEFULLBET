@@ -20,9 +20,9 @@ router.post('/cadastro', async (req, res) => {
     }
 
     const hash = await bcrypt.hash(senha, 10);
-    const result = await pool.query(
+    const result = await pool.query
       `INSERT INTO users (nome, email, senha_hash, perfil, status)
-       VALUES ($1, $2, $3, $4, 'pendente')
+       VALUES ($1, $2, $3, gratis, 'pendente')
        RETURNING id, nome, email, perfil, status, criado_em`,
       [nome, email.toLowerCase(), hash, perfil || 'gratis']
     );

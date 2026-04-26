@@ -129,9 +129,9 @@ router.get('/analisar', autenticar, async (req, res) => {
 
     similares.forEach(j => {
       const res = (j.resultado || '').toUpperCase();
-      if (res === 'H') stats.H++;
-      else if (res === 'D') stats.D++;
-      else if (res === 'A') stats.A++;
+      if (['H','CASA'].includes(res)) stats.H++;
+      else if (['D','EMPATE'].includes(res)) stats.D++;
+      else if (['A','FORA'].includes(res)) stats.A++;
 
       const am = (j.ambos_marcam || '').toUpperCase();
       if (['S', 'SIM', 'YES', '1'].includes(am)) stats.btts++;
