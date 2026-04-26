@@ -1,36 +1,32 @@
-// === Utilitario de comunicacao com a API ===
-// Todas as paginas usam esse arquivo
+// === Utilitário de comunicação com a API ===
+// Todas as páginas usam esse arquivo
 
 async function apiFetch(path, options = {}) {
-  const token = localStorage.getItem('token');
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-  if (token) headers['Authorization'] = 'Bearer ' + token;
 
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(path, { 
+    ...options, 
+    headers, 
+    credentials: 'include' // envia cookies de sessão
+  });
 
   if (res.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
+    // Sessão expirada ou inválida → redireciona para login
     window.location.href = '/login.html';
     return null;
   }
 
-  return res.json();
-}
-
-function getUsuario() {
-  try { return JSON.parse(localStorage.getItem('usuario')); }
-  catch { return null; }
-}
-
-function getToken() {
-  return localStorage.getItem('token');
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
 }
 
 function logout() {
-  localStorage.removeItem('token');
-  localStorage.removeItem('usuario');
-  window.location.href = '/login.html';
+  // Invalida sessão no servidor
+  fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+    .finally(() => { window.location.href = '/login.html'; });
 }
 
 // Escapa HTML para prevenir XSS
