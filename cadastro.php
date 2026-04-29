@@ -1,165 +1,58 @@
+<?php
+require_once 'config.php';
+$mensagem = ""; $erro = "";
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $nome = trim($_POST['nome']);
+    $login = trim($_POST['login']);
+    $email = trim($_POST['email']);
+    $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
+    $plano = $_POST['plano']; // Grátis, VIP ou Platinum
+
+    // Regra de Status Inicial do Escopo
+    $status = ($plano == 'Grátis') ? 'Ativo' : 'Aguardando Aprovação';
+    $creditos = ($plano == 'Grátis') ? 1 : (($plano == 'VIP') ? 30 : 9999);
+
+    try {
+        $sql = "INSERT INTO usuarios (nome, login, email, senha, perfil, plano_escolhido, status_aprovacao, saldo_creditos) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$nome, $login, $email, $senha, $plano, $plano, $status, $creditos]);
+        
+        $mensagem = ($status == 'Ativo') ? "Conta Ativa! Pode logar." : "Cadastro recebido! Aguarde aprovação VIP.";
+    } catch (PDOException $e) { $erro = "Erro: " . $e->getMessage(); }
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Criar Conta - Sefullbet</title>
+    <title>Sefullbet - Cadastro</title>
     <style>
-        :root {
-            --primary: #00ff88;
-            --bg: #080a0f;
-            --card: #12151c;
-            --border: #262c3a;
-            --text: #a0aec0;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .cadastro-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 30px;
-            border-radius: 15px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-
-        h2 {
-            color: var(--primary);
-            text-align: center;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: white;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: var(--primary);
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary);
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.3s;
-        }
-
-        button:hover {
-            background: #00cc6e;
-            transform: translateY(-2px);
-        }
-
-        .footer-links {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-
-        .footer-links a {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .termos-box {
-            font-size: 0.75rem;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .termos-box input {
-            width: auto;
-        }
+        body { background: #080a0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: #12151c; padding: 30px; border-radius: 15px; border: 1px solid #262c3a; width: 350px; }
+        input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #262c3a; background: #080a0f; color: white; }
+        button { background: #00ff88; color: black; font-weight: bold; cursor: pointer; border: none; }
+        .success { color: #00ff88; text-align: center; }
     </style>
 </head>
 <body>
-
-<div class="cadastro-card">
-    <h2>Sefullbet</h2>
-    
-    <form action="processa_cadastro.php" method="POST">
-        
-        <div class="input-group">
-            <label>Nome Completo</label>
-            <input type="text" name="nome" placeholder="Ex: João Silva" required>
-        </div>
-
-        <div class="input-group">
-            <label>Usuário (Login)</label>
-            <input type="text" name="login" placeholder="Ex: joao_bet" required>
-        </div>
-
-        <div class="input-group">
-            <label>E-mail</label>
-            <input type="email" name="email" placeholder="seu@email.com" required>
-        </div>
-
-        <div class="input-group">
-            <label>Senha</label>
-            <input type="password" name="senha" placeholder="Minimo 6 caracteres" required>
-        </div>
-
-        <div class="input-group">
-            <label>Plano Desejado</label>
-            <select name="perfil">
-                <option value="Grátis">Plano Grátis</option>
-                <option value="VIP">Plano VIP</option>
-                <option value="Platinum">Plano Platinum</option>
+    <div class="card">
+        <h2 style="text-align:center; color:#00ff88;">SEFULLBET</h2>
+        <?php if($mensagem) echo "<p class='success'>$mensagem</p>"; ?>
+        <form method="POST">
+            <input type="text" name="nome" placeholder="Nome" required>
+            <input type="text" name="login" placeholder="Login" required>
+            <input type="email" name="email" placeholder="E-mail" required>
+            <input type="password" name="senha" placeholder="Senha" required>
+            <label>Escolha seu Plano:</label>
+            <select name="plano">
+                <option value="Grátis">Grátis (1 Crédito)</option>
+                <option value="VIP">VIP (30 Créditos)</option>
+                <option value="Platinum">Platinum (Ilimitado)</option>
             </select>
-        </div>
-
-        <div class="termos-box">
-            <input type="checkbox" required>
-            <span>Eu li e aceito os <a href="termos.php" target="_blank">Termos de Uso</a></span>
-        </div>
-
-        <button type="submit">Solicitar Acesso</button>
-    </form>
-
-    <div class="footer-links">
-        Já tem uma conta? <a href="login.php">Faça Login</a>
+            <button type="submit">CADASTRAR</button>
+        </form>
     </div>
-</div>
-
 </body>
 </html>
