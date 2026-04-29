@@ -1,5 +1,9 @@
 <?php
-echo "Host do Banco: " . getenv('DB_HOST');
-echo "<br>";
-echo "Email do Admin: " . getenv('ADMIN_EMAIL');
+require_once 'config/db.php';
+
+if (isset($pdo)) {
+    echo "✅ Sucesso! O PHP conseguiu conectar ao banco de dados.";
+} else {
+    echo "❌ A variável de conexão não foi definida.";
+}
 ?>
