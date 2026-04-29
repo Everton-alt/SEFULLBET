@@ -1,6 +1,6 @@
 <?php
-require_once '../config/db.php';
-require_once '../modules/auth_logic.php';
+require_once 'config/db.php';
+require_once 'modules/auth_logic.php';
 
 $erro = "";
 
