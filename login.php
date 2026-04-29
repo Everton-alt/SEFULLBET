@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_SESSION['perfil'] = $user['perfil'];
                     
                     // REDIRECIONAMENTO CORRIGIDO PARA dashb.php
-                    header("Location: Dashboard.php");
+                    header("Location: dashboard.php");
                     exit();
                 }
             } else {
