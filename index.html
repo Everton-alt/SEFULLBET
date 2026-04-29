@@ -1,1 +1,196 @@
-teste
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeFull Bet | Inteligência em Odds</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilos Base para garantir o funcionamento sem o style.css externo */
+        :root {
+            --primary: #00ff88;
+            --premium: #00d4ff;
+            --vip: #ffcc00;
+            --card-bg: #12151c;
+            --border: #262c3a;
+            --text-dim: #a0aec0;
+        }
+
+        body { background-color: #080a0f; color: #fff; font-family: 'Inter', sans-serif; margin: 0; }
+
+        .hero { padding: 100px 5% 80px; text-align: center; max-width: 1100px; margin: 0 auto; }
+        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.2rem); line-height: 1.1; margin-bottom: 25px; font-weight: 900; }
+        .hero h1 span { background: linear-gradient(90deg, var(--primary), var(--premium)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-badge { background: rgba(0, 255, 136, 0.1); color: var(--primary); padding: 10px 25px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; border: 1px solid rgba(0, 255, 136, 0.3); display: inline-block; margin-bottom: 25px; }
+        
+        .plans-container { padding: 80px 5%; max-width: 1200px; margin: 0 auto; }
+        .grid-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+        .card-plan { background: var(--card-bg); border-radius: 28px; padding: 50px 35px; border: 1px solid var(--border); position: relative; transition: 0.4s; display: flex; flex-direction: column; }
+        .card-plan:hover { border-color: var(--primary); transform: translateY(-10px); }
+        .card-plan.highlight { border: 2px solid var(--vip); }
+        
+        .price { font-size: 3rem; font-weight: 900; margin: 25px 0; }
+        .price span { font-size: 1.1rem; color: var(--text-dim); }
+        .features-list { list-style: none; margin-bottom: 40px; flex-grow: 1; padding: 0; }
+        .features-list li { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: var(--text-dim); }
+        .features-list i { color: var(--primary); }
+
+        /* Estilos do Modal de Login */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #12151c; padding: 40px; border-radius: 24px; border: 1px solid var(--border); width: 90%; max-width: 400px; position: relative; }
+        .close-modal { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-dim); }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 0.85rem; color: var(--text-dim); }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-wrapper i { position: absolute; left: 15px; color: var(--primary); }
+        .input-wrapper input { width: 100%; padding: 12px 15px 12px 45px; background: #080a0f; border: 1px solid var(--border); border-radius: 12px; color: #fff; outline: none; }
+        .input-wrapper input:focus { border-color: var(--primary); }
+
+        /* Footer Estilizado */
+        footer { background: #0b0e14; padding: 80px 8% 40px; border-top: 1px solid var(--border); margin-top: 50px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 40px; margin-bottom: 50px; }
+        .footer-col h4 { color: #fff; margin-bottom: 20px; font-size: 1.1rem; }
+        .footer-col ul { list-style: none; padding: 0; }
+        .footer-col ul li { margin-bottom: 12px; }
+        .footer-col ul li a { color: var(--text-dim); text-decoration: none; transition: 0.3s; font-size: 0.9rem; }
+        .footer-col ul li a:hover { color: var(--primary); }
+        .footer-bottom { border-top: 1px solid var(--border); padding-top: 30px; text-align: center; color: var(--text-dim); font-size: 0.8rem; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <!-- CABEÇALHO -->
+    <header style="padding: 20px 8%; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100; background: rgba(8, 10, 15, 0.8);">
+        <a href="index.html" style="text-decoration: none; font-weight: 900; font-size: 1.6rem; color: #fff;">SEFULL<span style="color: var(--primary);">BET</span></a>
+        <button onclick="abrirLogin()" class="btn-main" style="width: auto; padding: 10px 25px; font-size: 0.8rem; cursor: pointer;">ÁREA DO MEMBRO</button>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-badge"><i class="fas fa-microchip"></i> ANALISADOR SEFULLBET ATIVO</div>
+        <h1>Esqueça a Sorte. <br><span>Opere a Matemática.</span></h1>
+        <p style="color: var(--text-dim); margin-bottom: 40px; max-width: 700px; margin-inline: auto;">A primeira plataforma que não te dá apenas palpites, mas sim <b>análise de valor real</b>. Nosso sistema processa milhões de dados para gerar as melhores entradas.</p>
+        
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <a href="cadastro.html" class="btn-main" style="width: auto; padding: 20px 40px; text-decoration: none;">COMEÇAR AGORA</a>
+            <a href="#" style="text-decoration: none; color: #fff; padding: 20px 40px; border: 1px solid var(--border); border-radius: 12px; font-weight: 800;">VER FEED AO VIVO</a>
+        </div>
+    </section>
+
+    <!-- SEÇÃO DE PLANOS -->
+    <section class="plans-container">
+        <div class="grid-plans">
+            <!-- Grátis -->
+            <div class="card-plan">
+                <h3 style="color: var(--text-dim);">GRÁTIS</h3>
+                <div class="price">R$ 0<span>/mês</span></div>
+                <ul class="features-list">
+                    <li><i class="fas fa-check-circle"></i> 1 Análise Diária</li>
+                    <li><i class="fas fa-check-circle"></i> Acesso ao Feed Público</li>
+                    <li><i class="fas fa-check-circle"></i> Grupo Telegram Free</li>
+                </ul>
+                <a href="cadastro.html" class="btn-main" style="background: transparent; border: 1px solid var(--border); color: #fff; text-decoration: none; text-align: center;">CRIAR CONTA</a>
+            </div>
+
+            <!-- VIP GOLD -->
+            <div class="card-plan highlight">
+                <div style="position: absolute; top: -15px; right: 30px; background: var(--vip); color: #000; padding: 5px 15px; border-radius: 20px; font-size: 0.7rem; font-weight: 900;">RECOMENDADO</div>
+                <h3 style="color: var(--vip);">VIP GOLD</h3>
+                <div class="price">R$ 49<span>/mês</span></div>
+                <ul class="features-list">
+                    <li><i class="fas fa-star" style="color: var(--vip);"></i> 30 Créditos de Análise</li>
+                    <li><i class="fas fa-star" style="color: var(--vip);"></i> Sinais VIP Exclusivos</li>
+                    <li><i class="fas fa-star" style="color: var(--vip);"></i> Gestão de Banca IA</li>
+                </ul>
+                <a href="cadastro.html" class="btn-main" style="background: var(--vip); color: #000; text-decoration: none; text-align: center;">ASSINAR VIP</a>
+            </div>
+
+            <!-- PLATINUM -->
+            <div class="card-plan" style="border-color: var(--premium);">
+                <h3 style="color: var(--premium);">PLATINUM</h3>
+                <div class="price">R$ 97<span>/mês</span></div>
+                <ul class="features-list">
+                    <li><i class="fas fa-infinity" style="color: var(--premium);"></i> Análises Ilimitadas</li>
+                    <li><i class="fas fa-infinity" style="color: var(--premium);"></i> Suporte 24h via WhatsApp</li>
+                    <li><i class="fas fa-infinity" style="color: var(--premium);"></i> Alertas de Arbitragem</li>
+                </ul>
+                <a href="cadastro.html" class="btn-main" style="background: var(--premium); text-decoration: none; text-align: center;">GO PLATINUM</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- RODAPÉ -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div style="font-weight: 900; font-size: 1.5rem; color: #fff; margin-bottom: 20px;">SEFULL<span style="color: var(--primary);">BET</span></div>
+                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.5;">Utilizamos inteligência artificial e modelos matemáticos avançados para encontrar valor real no mercado esportivo.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Plataforma</h4>
+                <ul>
+                    <li><a href="#">Feed de Sinais</a></li>
+                    <li><a href="#">Como Funciona</a></li>
+                    <li><a href="#">Planos VIP</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Suporte</h4>
+                <ul>
+                    <li><a href="#">Central de Ajuda</a></li>
+                    <li><a href="#">Termos de Uso</a></li>
+                    <li><a href="#">Privacidade</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Social</h4>
+                <div style="display: flex; gap: 15px;">
+                    <a href="#" style="color: #fff; font-size: 1.2rem;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem;"><i class="fab fa-telegram"></i></a>
+                    <a href="#" style="color: #fff; font-size: 1.2rem;"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 SeFullBet - Todos os direitos reservados.<br>
+            Apostas esportivas envolvem riscos. Jogue com responsabilidade. Proibido para menores de 18 anos.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL DE LOGIN -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharLogin()">&times;</span>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="font-weight: 900; font-size: 1.8rem;">LOGIN <span style="color: var(--primary);">BET</span></h2>
+                <p style="color: var(--text-dim); font-size: 0.8rem;">Acesse sua inteligência de dados</p>
+            </div>
+
+            <form action="processa_login.php" method="POST">
+                <div class="form-group">
+                    <label>Usuário ou E-mail</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="login" placeholder="Seu usuário" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="senha" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-main" style="width: 100%; cursor: pointer;">Entrar Agora</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 25px; font-size: 0.85rem; color: var(--text-dim);">
+                Ainda não tem conta? <a href="cadastro.html" style="color: var(--primary); text-decoration: none; font-weight: 700;">Registre-se</a>
+            </div>
+        </div>
+    </div>
+
+    
+</body>
+</html>
