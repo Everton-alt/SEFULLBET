@@ -1,39 +1,78 @@
 <?php
+// 1. Inicia a sessão (obrigatório para usar $_SESSION)
+session_start();
+
+// 2. Habilita exibição de erros para sabermos exatamente o que acontece
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// 3. Conexão com o banco (ajustado para a raiz)
 require_once 'config/db.php';
-require_once 'modules/auth_logic.php';
+
+// (Opcional) Se você quiser tentar usar o auth_logic depois, 
+// verifique se o caminho dentro dele também está correto.
+// require_once 'modules/auth_logic.php'; 
 
 $erro = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $login_input = $_POST['login'];
-    $senha_input = $_POST['senha'];
+    $login_input = $_POST['login'] ?? '';
+    $senha_input = $_POST['senha'] ?? '';
 
-    // Busca o usuário no banco
-    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE login = ? OR email = ?");
-    $stmt->execute([$login_input, $login_input]);
-    $user = $stmt->fetch();
+    if (!empty($login_input) && !empty($senha_input)) {
+        try {
+            // Busca o usuário no banco
+            $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE login = ? OR email = ?");
+            $stmt->execute([$login_input, $login_input]);
+            $user = $stmt->fetch();
 
-    if ($user && password_verify($senha_input, $user['senha'])) {
-        // Verifica status para VIP/Platinum (Grátis entra direto)
-        if ($user['status_aprovacao'] == 'Ativo' || $user['perfil'] == 'Grátis') {
-            $_SESSION['usuario_id'] = $user['id'];
-            $_SESSION['usuario_nome'] = $user['nome'];
-            $_SESSION['usuario_perfil'] = $user['perfil'];
-            $_SESSION['usuario_creditos'] = $user['creditos'];
-            
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            $erro = "Sua conta (".$user['perfil'].") ainda aguarda aprovação do Admin.";
+            if ($user && password_verify($senha_input, $user['senha'])) {
+                // Verifica status (Grátis entra direto)
+                if ($user['status_aprovacao'] == 'Ativo' || $user['perfil'] == 'Grátis') {
+                    $_SESSION['usuario_id'] = $user['id'];
+                    $_SESSION['usuario_nome'] = $user['nome'];
+                    $_SESSION['usuario_perfil'] = $user['perfil'];
+                    $_SESSION['usuario_creditos'] = $user['creditos'];
+                    
+                    header("Location: dashboard.php");
+                    exit();
+                } else {
+                    $erro = "Sua conta (" . $user['perfil'] . ") ainda aguarda aprovação.";
+                }
+            } else {
+                // Validação Admin via Environment Variables
+                if ($login_input == getenv('ADMIN_EMAIL') && $senha_input == getenv('ADMIN_PASSWORD')) {
+                    $erro = "Admin reconhecido, mas precisa ser criado no Banco de Dados primeiro.";
+                } else {
+                    $erro = "Login ou senha incorretos.";
+                }
+            }
+        } catch (PDOException $e) {
+            $erro = "Erro na consulta: " . $e->getMessage();
         }
     } else {
-        // Validação extra: Verifica se é o Admin configurado no Render
-        if ($login_input == getenv('ADMIN_EMAIL') && $senha_input == getenv('ADMIN_PASSWORD')) {
-             $erro = "Conta Admin encontrada nas variáveis, mas precisa ser criada no Banco SQL primeiro.";
-        } else {
-             $erro = "Login ou senha incorretos.";
-        }
+        $erro = "Por favor, preencha todos os campos.";
     }
 }
 ?>
-<!-- O HTML do login deve enviar os campos 'login' e 'senha' via POST -->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Sefullbet</title>
+</head>
+<body>
+    <h2>Login Sefullbet</h2>
+    <?php if ($erro): ?>
+        <p style="color: red;"><?php echo $erro; ?></p>
+    <?php endif; ?>
+
+    <form method="POST" action="login.php">
+        <input type="text" name="login" placeholder="Login ou E-mail" required><br><br>
+        <input type="password" name="senha" placeholder="Senha" required><br><br>
+        <button type="submit">Entrar</button>
+    </form>
+</body>
+</html>
