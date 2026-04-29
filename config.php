@@ -1,35 +1,28 @@
 <?php
-// Captura a URL do Render
-$database_url = getenv('DATABASE_URL');
+/**
+ * CONFIGURAÇÃO DE BANCO DE DADOS - SEFULLBET
+ * Dados extraídos conforme as credenciais do Render
+ */
 
-if ($database_url) {
-    // Decompõe a URL: postgresql://sefullbetdb_2yej_user:lynqHfnkYApwjPoUczKWYeqiFXUuNYKK@dpg-d7mgjiapmmbs73c01b2g-a.oregon-postgres.render.com/sefullbet
-    $db_config = parse_url($database_url);
+$host   = 'dpg-d7mgjiapmmbs73c01b2g-a.oregon-postgres.render.com'; 
+$port   = '5432';
+$dbname = 'sefullbet';
+$user   = 'sefullbetdb_2yej_user';
+$pass   = 'lynqHfnkYApwjPoUczKWYeqiFXUuNYKK';
 
-    $host = $db_config['host'];
-    // Se a porta não existir na URL, o PHP usa a padrão 5432
-    $port = isset($db_config['port']) ? $db_config['port'] : '5432';
-    $user = $db_config['user'];
-    $pass = $db_config['pass'];
-    // Remove a barra "/" do início do caminho para pegar o nome do banco
-    $dbname = ltrim($db_config['path'], '/');
+try {
+    // DSN específico para PostgreSQL com SSL obrigatório (exigência do Render)
+    $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
+    
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false
+    ]);
 
-    try {
-        // Monta o DSN (Data Source Name) de forma limpa
-        $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
-        
-        $pdo = new PDO($dsn, $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            // Importante para garantir estabilidade no Render
-            PDO::ATTR_PERSISTENT => true 
-        ]);
-
-    } catch (PDOException $e) {
-        // Se der erro, mostra uma mensagem limpa
-        die("Erro ao conectar ao banco de dados: " . $e->getMessage());
-    }
-} else {
-    die("Erro Crítico: A variável DATABASE_URL não foi encontrada no ambiente.");
+    // Conexão bem-sucedida
+} catch (PDOException $e) {
+    // Se houver erro, exibe a mensagem real para diagnóstico
+    die("Erro de Conexão Sefullbet: " . $e->getMessage());
 }
 ?>
