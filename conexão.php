@@ -1,5 +1,5 @@
 <?php
-// conexao.php
+// conexao.php - Versão Sefullbet Pro
 $dbUrl = getenv('DATABASE_URL');
 
 if ($dbUrl) {
@@ -7,23 +7,30 @@ if ($dbUrl) {
     $url = parse_url($dbUrl);
     
     $host = $url["host"];
-    $port = $url["port"];
+    $port = $url["port"] ?? 5432; // Define 5432 como padrão se não houver na URL
     $user = $url["user"];
     $pass = $url["pass"];
     $dbname = ltrim($url["path"], '/');
 
     try {
-        $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
+        // Adicionado: charset=utf8 para evitar erros de acentos nas Tips
+        $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;options='--client_encoding=UTF8'";
+        
         $pdo = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            // Importante para o Render:
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            // Adicionado: Mantém a conexão persistente para maior velocidade no Analisador
+            PDO::ATTR_PERSISTENT => true,
+            // Evita conversão de tipos numéricos (importante para odds e créditos)
+            PDO::ATTR_EMULATE_PREPARES => false,
         ]);
-        // echo "Conectado com sucesso!";
+
+        // Conexão bem-sucedida
     } catch (PDOException $e) {
-        die("Erro na conexão: " . $e->getMessage());
+        // Em produção, você pode trocar o die por um log silencioso
+        die("Erro técnico na conexão: " . $e->getMessage());
     }
 } else {
-    die("Variável DATABASE_URL não configurada.");
+    die("Configuração Crítica: DATABASE_URL ausente no ambiente Render.");
 }
 ?>
