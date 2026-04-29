@@ -1,34 +1,161 @@
+/* ============================================================
+   VARIÁVEIS GLOBAIS E IDENTIDADE VISUAL
+   ============================================================ */
 :root {
-    --bg-dark: #0a0b0d;
-    --neon-green: #39ff14;
-    --neon-cyan: #00f3ff;
-    --card-bg: #1a1c20;
+    --primary: #00ff88;    /* Verde Neon Principal */
+    --primary-glow: rgba(0, 255, 136, 0.3);
+    --bg: #0b0e14;         /* Fundo Deep Dark */
+    --card-bg: #161b22;    /* Fundo de Cards e Modais */
+    --input-bg: #0d1117;   /* Fundo de Campos de Texto */
+    --text: #ffffff;       /* Texto Principal */
+    --text-dim: #8b949e;   /* Texto Secundário/Desbotado */
+    --border: #30363d;     /* Cor de Bordas Padrão */
+    --error: #ff4d4d;      /* Cor de Erro */
+    --vip: #ffd700;        /* Dourado VIP */
+    --premium: #00ddeb;    /* Ciano Premium */
+}
+
+/* ============================================================
+   RESET E CONFIGURAÇÕES BÁSICAS
+   ============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: white;
-    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    background-image: radial-gradient(circle at 20% 30%, #162c23 0%, #0b0e14 100%);
+    min-height: 100vh;
 }
 
-.btn-neon-pulse {
-    background: transparent;
-    border: 2px solid var(--neon-green);
-    color: var(--neon-green);
-    padding: 20px 40px;
+/* ============================================================
+   ESTRUTURA DO POPUP (MODAL)
+   ============================================================ */
+.modal-overlay {
+    display: none; /* Controlado via JS */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    position: relative;
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px; right: 25px;
     font-size: 1.5rem;
-    box-shadow: 0 0 15px var(--neon-green);
-    animation: pulse 2s infinite;
+    color: var(--text-dim);
     cursor: pointer;
+    transition: 0.3s;
 }
 
-@keyframes pulse {
-    0% { box-shadow: 0 0 5px var(--neon-green); }
-    50% { box-shadow: 0 0 25px var(--neon-green); }
-    100% { box-shadow: 0 0 5px var(--neon-green); }
+.close-modal:hover { color: var(--primary); }
+
+/* ============================================================
+   ELEMENTOS DE FORMULÁRIO (PADRÃO SEFULL)
+   ============================================================ */
+.form-group {
+    margin-bottom: 20px;
 }
 
-.card-vip.locked {
-    filter: blur(4px);
-    pointer-events: none;
+.form-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-wrapper i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+}
+
+input[type="text"], 
+input[type="email"], 
+input[type="password"] {
+    width: 100%;
+    padding: 14px 15px 14px 45px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: #fff;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+/* ============================================================
+   BOTÕES PREMIUM
+   ============================================================ */
+.btn-main {
+    width: 100%;
+    padding: 16px;
+    background: var(--primary);
+    color: #0b0e14;
+    border: none;
+    border-radius: 12px;
+    font-weight: 900;
+    font-size: 1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: 0.4s;
+}
+
+.btn-main:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px var(--primary-glow);
+    filter: brightness(1.1);
+}
+
+/* ============================================================
+   RODAPÉ UNIFICADO
+   ============================================================ */
+footer {
+    padding: 60px 8%;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    background: rgba(22, 27, 34, 0.5);
+    color: var(--text-dim);
+}
+
+footer span { color: var(--primary); }
