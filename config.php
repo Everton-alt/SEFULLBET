@@ -1,35 +1,28 @@
 <?php
-// Arquivo de Configuração Central - Sefullbet
-// Este arquivo conecta seu PHP ao PostgreSQL no Render
+// Configurações do Banco de Dados no Render
+$database_url = getenv('DATABASE_URL');
 
-// Pegamos a URL do Banco de Dados das Variáveis de Ambiente do Render
-$databaseUrl = getenv('DATABASE_URL');
+if ($database_url) {
+    // Extrai os dados da URL do Render (postgres://user:pass@host:port/dbname)
+    $db_config = parse_url($database_url);
 
-if ($databaseUrl) {
-    // O Render fornece a URL no formato postgresql://sefullbet_user:kmWspOQXsHqx4hMI5DLnbvCXj0jJt9Vs@dpg-d7mgjiapmmbs73c01b2g-a/sefullbet
-    // Vamos converter para o formato DSN que o PHP (PDO) entende
-    $url = parse_url($databaseUrl);
+    $host = $db_config['host'];
+    $port = isset($db_config['port']) ? $db_config['port'] : '5432'; // Se não achar a porta, usa 5432
+    $user = $db_config['user'];
+    $pass = $db_config['pass'];
+    $dbname = ltrim($db_config['path'], '/');
 
-    $host = $url['host'];
-    $port = $url['port'];
-    $db   = ltrim($url['path'], '/');
-    $user = $url['user'];
-    $pass = $url['pass'];
-
-    $dsn = "pgsql:host=$host;port=$port;dbname=$db;";
+    try {
+        // DSN formatado corretamente para PostgreSQL
+        $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
+        $pdo = new PDO($dsn, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]);
+    } catch (PDOException $e) {
+        die("Erro ao conectar ao banco de dados: " . $e->getMessage());
+    }
 } else {
-    // Caso você esteja testando localmente sem Docker
-    die("Erro: DATABASE_URL não encontrada.");
-}
-
-try {
-    $options = [
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES   => false,
-    ];
-    $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (PDOException $e) {
-    die("Erro ao conectar ao banco de dados: " . $e->getMessage());
+    die("Variável DATABASE_URL não encontrada. Verifique as configurações no Render.");
 }
 ?>
