@@ -1,28 +1,28 @@
 <?php
-// Configurações de Administrador e Segurança
+// 1. Configurações de Administrador e Segurança (Mantidas)
 define('ADMIN_EMAIL', 'admin@sefullbet.com');
 define('ADMIN_PASSWORD', 'Bobba123');
 define('JWT_SECRET', 'sefullbet-chave-secreta-2026-ultra-segura');
 
-// Credenciais extraídas da sua DATABASE_URL do Render
-$host     = 'dpg-d7mgjiapmmbs73c01b2g-a.oregon-postgres.render.com'; // Host interno/externo do Render
+// 2. Credenciais ATUALIZADAS conforme sua foto do Render
+$host     = 'dpg-d7mgjiapmmbs73c01b2g-a.oregon-postgres.render.com'; 
 $port     = '5432';
 $dbname   = 'sefullbet';
-$user     = 'sefullbet_user';
-$password = 'kmWspOQXsHqx4hMI5DLnbvCXj0jJt9Vs';
+$user     = 'sefullbetdb_2yej_user'; // Corrigido conforme a foto
+$password = 'lynqHfnkYApwjPoUczKWYeqiFXUuNYKK'; // Corrigido conforme a foto
 
 try {
-    // String de conexão PDO para PostgreSQL
-    $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
+    // 3. String de conexão com SSL OBRIGATÓRIO para o Render
+    $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=require";
     
     $pdo = new PDO($dsn, $user, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Lança exceções em caso de erro
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // Retorna dados como array associativo
-        PDO::ATTR_EMULATE_PREPARES => false, // Segurança extra contra SQL Injection
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, 
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
     ]);
 
 } catch (PDOException $e) {
-    // Log de erro (em produção, o ideal é não exibir detalhes ao usuário)
-    die("Erro crítico de conexão: Verifique as credenciais do banco de dados.");
+    // 4. MUDANÇA CRUCIAL: Agora ele vai mostrar o erro REAL se falhar
+    die("ERRO DE CONEXÃO REAL: " . $e->getMessage());
 }
 ?>
