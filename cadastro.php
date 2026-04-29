@@ -1,98 +1,165 @@
-<?php
-// 1. Configurações de erro e conexão
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Caminho corrigido para a raiz
-require_once 'config.php'; 
-
-$mensagem = "";
-$sucesso = false;
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nome  = $_POST['nome'] ?? '';
-    $login = $_POST['login'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $senha = $_POST['senha'] ?? '';
-    $perfil = $_POST['perfil'] ?? 'Grátis'; // VIP ou Platinum conforme escolha
-
-    if (!empty($nome) && !empty($login) && !empty($senha)) {
-        try {
-            // Verifica se o login já existe
-            $check = $pdo->prepare("SELECT id FROM usuarios WHERE login = ? OR email = ?");
-            $check->execute([$login, $email]);
-            
-            if ($check->rowCount() > 0) {
-                $mensagem = "Este usuário ou e-mail já está cadastrado.";
-            } else {
-                // Criptografa a senha
-                $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
-
-                // Insere conforme Escopo: Status sempre 'Aguardando Aprovação' para novos
-                $sql = "INSERT INTO usuarios (nome, login, email, senha, perfil, status_aprovacao, saldo_creditos) 
-                        VALUES (?, ?, ?, ?, ?, 'Aguardando Aprovação', 0)";
-                
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([$nome, $login, $email, $senhaHash, $perfil]);
-
-                $sucesso = true;
-                $mensagem = "Cadastro realizado! Aguarde a aprovação do administrador para acessar.";
-            }
-        } catch (PDOException $e) {
-            // Aqui matamos o erro de conexão/banco
-            $mensagem = "Erro no banco de dados: " . $e->getMessage();
-        }
-    } else {
-        $mensagem = "Preencha todos os campos obrigatórios.";
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Cadastro - Sefullbet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta - Sefullbet</title>
     <style>
-        body { background: #080a0f; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #12151c; padding: 30px; border-radius: 15px; border: 1px solid #262c3a; width: 100%; max-width: 400px; }
-        h2 { color: #00ff88; text-align: center; margin-bottom: 25px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #262c3a; background: #080a0f; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: #00ff88; color: #000; font-weight: bold; cursor: pointer; }
-        .msg { padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; font-size: 0.9rem; }
-        .error { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; }
-        .success { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
+        :root {
+            --primary: #00ff88;
+            --bg: #080a0f;
+            --card: #12151c;
+            --border: #262c3a;
+            --text: #a0aec0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .cadastro-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 30px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #00cc6e;
+            transform: translateY(-2px);
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .termos-box {
+            font-size: 0.75rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .termos-box input {
+            width: auto;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Criar Conta Sefullbet</h2>
+
+<div class="cadastro-card">
+    <h2>Sefullbet</h2>
+    
+    <form action="processa_cadastro.php" method="POST">
         
-        <?php if ($mensagem): ?>
-            <div class="msg <?php echo $sucesso ? 'success' : 'error'; ?>">
-                <?php echo $mensagem; ?>
-            </div>
-        <?php endif; ?>
+        <div class="input-group">
+            <label>Nome Completo</label>
+            <input type="text" name="nome" placeholder="Ex: João Silva" required>
+        </div>
 
-        <?php if (!$sucesso): ?>
-        <form method="POST">
-            <input type="text" name="nome" placeholder="Nome Completo" required>
-            <input type="text" name="login" placeholder="Usuário (Login)" required>
-            <input type="email" name="email" placeholder="E-mail" required>
-            <input type="password" name="senha" placeholder="Senha" required>
-            
-            <label style="display:block; margin-bottom: 5px; font-size: 0.8rem; color: #a0aec0;">Escolha seu Plano:</label>
+        <div class="input-group">
+            <label>Usuário (Login)</label>
+            <input type="text" name="login" placeholder="Ex: joao_bet" required>
+        </div>
+
+        <div class="input-group">
+            <label>E-mail</label>
+            <input type="email" name="email" placeholder="seu@email.com" required>
+        </div>
+
+        <div class="input-group">
+            <label>Senha</label>
+            <input type="password" name="senha" placeholder="Minimo 6 caracteres" required>
+        </div>
+
+        <div class="input-group">
+            <label>Plano Desejado</label>
             <select name="perfil">
-                <option value="Grátis">Grátis (Testes)</option>
-                <option value="VIP">VIP (30 Créditos)</option>
-                <option value="Platinum">Platinum (Ilimitado)</option>
+                <option value="Grátis">Plano Grátis</option>
+                <option value="VIP">Plano VIP</option>
+                <option value="Platinum">Plano Platinum</option>
             </select>
+        </div>
 
-            <button type="submit">SOLICITAR ACESSO</button>
-        </form>
-        <?php else: ?>
-            <a href="login.php" style="color: #00ff88; display: block; text-align: center; text-decoration: none;">Ir para Login</a>
-        <?php insert_id; endif; ?>
+        <div class="termos-box">
+            <input type="checkbox" required>
+            <span>Eu li e aceito os <a href="termos.php" target="_blank">Termos de Uso</a></span>
+        </div>
+
+        <button type="submit">Solicitar Acesso</button>
+    </form>
+
+    <div class="footer-links">
+        Já tem uma conta? <a href="login.php">Faça Login</a>
     </div>
+</div>
+
 </body>
 </html>
