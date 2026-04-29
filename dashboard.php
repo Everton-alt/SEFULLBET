@@ -1,7 +1,7 @@
 <?php
-require_once '../config/db.php';
-require_once '../modules/auth_logic.php';
-require_once '../modules/palpites.php';
+require_once 'config/db.php';
+require_once 'modules/auth_logic.php';
+require_once 'modules/palpites.php';
 verificarLogin();
 
 $stats_gratis = calcularEstatisticas($pdo, 'Grátis');
@@ -13,7 +13,7 @@ $stats_vip = calcularEstatisticas($pdo, 'VIP');
         <span class="badge"><?php echo $_SESSION['usuario_perfil']; ?></span>
         <span class="credits">Créditos: <?php echo $_SESSION['usuario_creditos']; ?></span>
         <?php if($_SESSION['usuario_perfil'] == 'Admin' || $_SESSION['usuario_perfil'] == 'Supervisor'): ?>
-            <a href="../admin/index.php" class="btn-adm">Painel Geral</a>
+            <a href="admin/index.php" class="btn-adm">Painel Geral</a>
         <?php endif; ?>
     </div>
 </header>
