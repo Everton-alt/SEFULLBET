@@ -1,4 +1,21 @@
 <?php
+// Tente colocar isso antes de qualquer outra linha
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+echo "<!-- Debug: Arquivo login.php iniciado -->";
+
+if (!file_exists('config/db.php')) {
+    die("Erro: O arquivo config/db.php não foi encontrado na raiz!");
+}
+
+require_once 'config/db.php';
+echo "<!-- Debug: db.php carregado com sucesso -->";
+
+// Vamos comentar o auth_logic por um momento para isolar o erro
+// require_once 'modules/auth_logic.php';
+
+<?php
 // 1. Inicia a sessão (obrigatório para usar $_SESSION)
 session_start();
 
