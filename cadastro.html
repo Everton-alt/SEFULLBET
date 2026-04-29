@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Conta | SeFull Bet</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilos para o Modal de Termos */
+        .terms-modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); justify-content: center; align-items: center;
+        }
+        .terms-content {
+            background: var(--card-bg); border: 1px solid var(--primary); border-radius: 24px;
+            padding: 40px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; color: #cbd5e1;
+        }
+        .terms-content h3 { color: var(--primary); margin-bottom: 20px; font-weight: 900; text-align: center; }
+        .terms-content h4 { color: #fff; margin: 20px 0 10px 0; font-size: 1.1rem; border-left: 3px solid var(--primary); padding-left: 10px; }
+        .terms-content p { font-size: 0.9rem; margin-bottom: 15px; line-height: 1.6; }
+
+        /* Checkbox Estilizado */
+        .check-container { display: flex; align-items: flex-start; gap: 12px; margin: 25px 0; cursor: pointer; }
+        .check-container input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; margin-top: 3px; }
+        .check-text { font-size: 0.85rem; color: var(--text-dim); line-height: 1.4; }
+        .check-text b { color: var(--primary); text-decoration: underline; }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh;">
+
+    <header style="padding: 20px 8%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <a href="index.html" style="font-weight: 900; font-size: 1.6rem; color: #fff; text-decoration: none;">SEFULL<span style="color: var(--primary);">BET</span></a>
+        <a href="index.html" style="color: var(--text-dim); text-decoration: none; font-size: 0.85rem; font-weight: 700;"><i class="fas fa-arrow-left"></i> Voltar</a>
+    </header>
+
+    <main style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 40px 20px;">
+        <div class="modal-content" style="display: block; position: static; max-width: 450px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="font-weight: 900; font-size: 1.8rem;">CRIAR <span style="color: var(--primary);">CONTA</span></h2>
+                <p style="color: var(--text-dim); font-size: 0.85rem;">Registre-se para acessar as análises.</p>
+            </div>
+
+            <form action="processa_cadastro.php" method="POST" onsubmit="return validarSenhas()">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="nome" placeholder="Seu nome" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" placeholder="seu@email.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Usuário (Login)</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-at"></i>
+                        <input type="text" name="login" placeholder="usuario123" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Senha</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirmar Senha</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-shield-alt"></i>
+                        <input type="password" id="confirma_senha" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <label class="check-container">
+                    <input type="checkbox" id="termos_check" required>
+                    <span class="check-text">
+                        Eu concordo com os <b onclick="abrirTermos(event)">Termos e Condições de Uso</b> e desejo registrar minha conta.
+                    </span>
+                </label>
+
+                <button type="submit" class="btn-main">CONCORDAR E REGISTRAR</button>
+            </form>
+        </div>
+    </main>
+
+    <div id="modalTermos" class="terms-modal">
+        <div class="terms-content">
+            <h3>Termos e Condições de Uso</h3>
+            
+            <h4>1. Natureza do Serviço</h4>
+            <p>A SeFull Bet é uma plataforma de fornecimento de conteúdo informativo, estatístico e de análise probabilística baseada em algoritmos e dados históricos. Não somos uma casa de apostas, não aceitamos depósitos de valores e não intermediamos transações financeiras.</p>
+
+            <h4>2. Isenção de Responsabilidade</h4>
+            <p>O usuário declara estar ciente de que o mercado de apostas esportivas envolve risco financeiro real. <b>Ausência de Garantia:</b> A SeFull Bet não garante lucros. A decisão final é de responsabilidade exclusiva do usuário.</p>
+
+            <h4>3. Responsabilidade do Usuário</h4>
+            <p>Ao utilizar o site, o usuário compromete-se a: Ser maior de 18 anos; utilizar os dados apenas para fins informativos; assumir total responsabilidade civil e técnica por suas ações externas.</p>
+
+            <h4>4. Limitação Jurídica</h4>
+            <p>Em nenhuma circunstância a SeFull Bet será responsabilizada por Danos Indiretos, Falhas Técnicas ou Sanções Jurídicas locais aplicadas ao usuário.</p>
+
+            <h4>5. Propriedade Intelectual</h4>
+            <p>Todo o conteúdo e algoritmos são de propriedade da SeFull Bet.</p>
+
+            <h4>6. Modificações</h4>
+            <p>Reservamo-nos o direito de alterar estes termos a qualquer momento.</p>
+
+            <button onclick="fecharTermos()" class="btn-main" style="margin-top: 20px;">FECHAR E VOLTAR</button>
+        </div>
+    </div>
+
+    <footer>
+        <div style="font-weight: 900; font-size: 1.4rem; color: #fff; margin-bottom: 15px;">SEFULL<span style="color: var(--primary);">BET</span></div>
+        <p>© 2026 SeFullBet - Inteligência em Dados.<br>Apostas são para maiores de 18 anos. Jogue com responsabilidade.</p>
+    </footer>
+
+    <script>
+        function abrirTermos(e) { e.preventDefault(); document.getElementById('modalTermos').style.display = 'flex'; }
+        function fecharTermos() { document.getElementById('modalTermos').style.display = 'none'; }
+        
+        function validarSenhas() {
+            const senha = document.getElementById('senha').value;
+            const confirma = document.getElementById('confirma_senha').value;
+            if (senha !== confirma) {
+                alert("As senhas não coincidem!");
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>
+
