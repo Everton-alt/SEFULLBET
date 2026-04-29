@@ -1,90 +1,276 @@
 <?php
-// 1. Iniciar a sessão e configurar erros
+// 1. Configurações de Sessão e Erros
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// 2. Carregar a conexão
-require_once 'config.php'; 
+require_once 'config.php';
 
-$erro = "";
+// 2. Proteção: Se não houver sessão, expulsa para o login
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: login.php");
+    exit();
+}
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Captura e limpa espaços extras
-    $login_input = isset($_POST['login']) ? trim($_POST['login']) : '';
-    $senha_input = isset($_POST['senha']) ? trim($_POST['senha']) : '';
+$usuario_id = $_SESSION['usuario_id'];
 
-    if (!empty($login_input) && !empty($senha_input)) {
-        try {
-            // Busca o usuário pelo login ou e-mail
-            $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE login = ? OR email = ?");
-            $stmt->execute([$login_input, $login_input]);
-            $user = $stmt->fetch();
+try {
+    // 3. Busca dados REAIS do banco de dados
+    // Ajustado para as colunas: nome, login, saldo_creditos, perfil
+    $stmt = $pdo->prepare("SELECT nome, login, saldo_creditos, perfil, status_aprovacao FROM usuarios WHERE id = ?");
+    $stmt->execute([$usuario_id]);
+    $user = $stmt->fetch();
 
-            // Verifica se o usuário existe e se a senha (hash) é compatível
-            if ($user && password_verify($senha_input, $user['senha'])) {
-                
-                // VERIFICAÇÃO DE STATUS (Conforme o Escopo Mestre)
-                if ($user['status_aprovacao'] !== 'Ativo') {
-                    $erro = "Sua conta está: " . $user['status_aprovacao'] . ". Aguarde a liberação do Admin.";
-                } else {
-                    // Define as variáveis de sessão
-                    $_SESSION['usuario_id'] = $user['id'];
-                    $_SESSION['nome']       = $user['nome'];
-                    $_SESSION['perfil']     = $user['perfil'];
-                    
-                    // REDIRECIONAMENTO MANTIDO PARA dashboard.php
-                    header("Location: dashboard.php");
-                    exit();
-                }
-            } else {
-                $erro = "Usuário ou senha inválidos.";
-            }
-        } catch (PDOException $e) {
-            $erro = "Erro técnico. Por favor, tente novamente mais tarde.";
-        }
-    } else {
-        $erro = "Preencha todos os campos.";
+    if (!$user) {
+        session_destroy();
+        header("Location: login.php");
+        exit();
     }
+
+    // 4. Dados de Performance (Estatísticas do Algoritmo)
+    // Nota: Futuramente estes dados podem vir de outra tabela (ex: palpites)
+    $stats = [
+        'greens' => 128,
+        'vitorias_hoje' => 14,
+        'nota_algoritmo' => '9.8',
+        'palpites_ativos' => 6
+    ];
+
+} catch (PDOException $e) {
+    die("Erro crítico na Dashboard: " . $e->getMessage());
 }
 ?>
 
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sefullbet</title>
+    <title>Dashboard - Sefullbet Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #080a0f; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-card { background: #12151c; padding: 40px; border-radius: 15px; border: 1px solid #262c3a; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { color: #00ff88; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
-        input { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #262c3a; background: #080a0f; color: white; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: #00ff88; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 8px; background: #00ff88; color: #000; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 10px; }
-        button:hover { background: #00cc6e; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3); }
-        .error { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem; border: 1px solid rgba(255, 77, 77, 0.3); }
-        .links { margin-top: 25px; font-size: 0.85rem; color: #a0aec0; }
-        .links a { color: #00ff88; text-decoration: none; font-weight: bold; }
+        :root {
+            --primary: #00ff88;
+            --bg: #080a0f;
+            --card: #12151c;
+            --border: #262c3a;
+            --text-main: #ffffff;
+            --text-dim: #a0aec0;
+            --danger: #ff4d4d;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .layout-wrapper { display: flex; flex: 1; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .nav-menu { flex: 1; }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--text-dim);
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: 0.3s;
+        }
+
+        .nav-link i { margin-right: 12px; width: 20px; text-align: center; }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-logout { color: var(--danger); margin-top: auto; }
+
+        /* CONTEÚDO PRINCIPAL */
+        .main-content { flex: 1; padding: 40px; }
+
+        .welcome-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .badge-algoritmo {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* GRID DE MÉTRICAS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        .stat-card i { font-size: 1.8rem; color: var(--primary); margin-bottom: 12px; display: block; }
+        .stat-value { font-size: 2rem; font-weight: bold; display: block; }
+        .stat-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; display: block; }
+
+        /* BANNER DE AÇÃO */
+        .action-banner {
+            background: linear-gradient(135deg, #12151c 0%, #1c222d 100%);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-pro {
+            background: var(--primary);
+            color: #000;
+            padding: 15px 35px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.3);
+            transition: 0.3s;
+        }
+
+        .btn-pro:hover { transform: scale(1.05); background: #00cc6e; }
+
+        /* FOOTER */
+        .footer {
+            background: var(--card);
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        .footer a { color: var(--primary); text-decoration: none; margin: 0 10px; }
+
+        @media (max-width: 768px) {
+            .layout-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+            .main-content { padding: 20px; }
+            .action-banner { flex-direction: column; text-align: center; gap: 20px; }
+        }
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <h2>Sefullbet</h2>
+
+<div class="layout-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-logo">Sefullbet</div>
         
-        <?php if ($erro): ?>
-            <div class="error"><?php echo $erro; ?></div>
-        <?php endif; ?>
+        <nav class="nav-menu">
+            <a href="dashboard.php" class="nav-link active"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="analisador.php" class="nav-link"><i class="fas fa-robot"></i> Analisador Pro</a>
+            <a href="historico.php" class="nav-link"><i class="fas fa-history"></i> Histórico</a>
+            <a href="perfil.php" class="nav-link"><i class="fas fa-user-circle"></i> Meu Perfil</a>
+            
+            <?php if ($user['perfil'] === 'Admin'): ?>
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+                <a href="admin_aprova_usuarios.php" class="nav-link"><i class="fas fa-user-shield"></i> Área Admin</a>
+            <?php endif; ?>
+        </nav>
 
-        <form method="POST">
-            <input type="text" name="login" placeholder="Usuário ou E-mail" required>
-            <input type="password" name="senha" placeholder="Sua Senha" required>
-            <button type="submit">Entrar no Sistema</button>
-        </form>
+        <a href="logout.php" class="nav-link nav-logout"><i class="fas fa-power-off"></i> Sair da Conta</a>
+    </aside>
 
-        <div class="links">
-            Não tem conta? <a href="cadastro.php">Registrar Agora</a>
+    <main class="main-content">
+        <header class="welcome-header">
+            <div>
+                <h1 style="margin: 0;">Bem-vindo, <?php echo explode(' ', htmlspecialchars($user['nome']))[0]; ?>!</h1>
+                <p style="color: var(--text-dim); margin-top: 5px;">Seu plano: <strong style="color: var(--primary);"><?php echo $user['perfil']; ?></strong></p>
+            </div>
+            <div class="badge-algoritmo">
+                <i class="fas fa-star"></i> NOTA ALGORITMO: <?php echo $stats['nota_algoritmo']; ?>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-check-double"></i>
+                <span class="stat-value" style="color: var(--primary);"><?php echo $stats['greens']; ?></span>
+                <span class="stat-label">Greens Acumulados</span>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-fire"></i>
+                <span class="stat-value"><?php echo $stats['vitorias_hoje']; ?></span>
+                <span class="stat-label">Vitórias Hoje</span>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-bullseye"></i>
+                <span class="stat-value"><?php echo $stats['palpites_ativos']; ?></span>
+                <span class="stat-label">Palpites Ativos</span>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-wallet"></i>
+                <span class="stat-value"><?php echo $user['saldo_creditos']; ?></span>
+                <span class="stat-label">Créditos Atuais</span>
+            </div>
         </div>
+
+        <div class="action-banner">
+            <div>
+                <h2 style="margin: 0; color: var(--primary);">Pronto para operar?</h2>
+                <p style="color: var(--text-dim); margin-top: 5px;">O algoritmo identificou oportunidades em 12 ligas agora mesmo.</p>
+            </div>
+            <a href="analisador.php" class="btn-pro">Aceder ao Analisador</a>
+        </div>
+    </main>
+</div>
+
+<footer class="footer">
+    <p>&copy; 2026 <strong>Sefullbet Intelligence</strong> - Todos os direitos reservados.</p>
+    <div>
+        <a href="termos.php">Termos de Uso</a> | 
+        <a href="suporte.php">Suporte</a> | 
+        <a href="privacidade.php">Privacidade</a>
     </div>
+</footer>
+
 </body>
 </html>
