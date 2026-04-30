@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['perfil'] = $user['perfil'];
 
             // 4. REDIRECIONA PARA O NOME CORRETO DO SEU ARQUIVO
-            header("Location: dashb.php"); 
+            header("Location: dashboard.php"); 
             exit();
 
         } else {
