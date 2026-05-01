@@ -14,7 +14,6 @@ $user = $stmt->fetch();
 $perfil = $user['perfil']; 
 
 // Busca os dados da tabela BASE_HISTORICA para o processamento da IA
-// Note que usamos o nome exato da tabela no banco: base_historica
 $stmt_data = $pdo->query("SELECT * FROM base_historica ORDER BY id DESC LIMIT 5000");
 $dados_historicos = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
 
@@ -186,7 +185,6 @@ function processarIA() {
     document.getElementById('loader').style.display = 'flex';
     
     setTimeout(() => {
-        // Algoritmo de Similaridade - Usando nomes de colunas do seu banco
         const similares = DB.map(j => {
             const diff = Math.sqrt(
                 Math.pow(parseFloat(j.odd_casa)-oc, 2) + 
@@ -207,13 +205,12 @@ function processarIA() {
 function renderizar(dados) {
     const total = dados.length;
     
-    // Mapeamento das funções para as colunas do banco PostgreSQL
     const pRES = (v) => (dados.filter(j => j.resultado === v).length / total * 100).toFixed(1);
     const pAMB = (v) => (dados.filter(j => j.ambos_marcam === v).length / total * 100).toFixed(1);
     const pOVR = (c, v) => (dados.filter(j => j[c] === v).length / total * 100).toFixed(1);
 
     const probCasa = parseFloat(pRES('Casa'));
-    const probEmpa = parseFloat(pRES('Empate')); // Ajustado para 'Empate' conforme o banco
+    const probEmpa = parseFloat(pRES('Empate')); 
     const probFora = parseFloat(pRES('Fora'));
     
     const prob1X = (probCasa + probEmpa).toFixed(1);
@@ -223,7 +220,7 @@ function renderizar(dados) {
     const probO45 = parseFloat(pOVR('over_45', 'Sim'));
     const probU45 = (100 - probO45).toFixed(1);
 
-    // Coluna Vencedor
+    // Renderização das Colunas Estáticas
     document.getElementById('col-principal').innerHTML = `
         <div class="data-row"><span>Vitória Casa</span><b>${probCasa}%</b></div>
         <div class="data-row"><span>Empate</span><b>${probEmpa}%</b></div>
@@ -231,14 +228,12 @@ function renderizar(dados) {
         <div class="data-row"><span>Ambos Sim</span><b>${pAMB('Sim')}%</b></div>
     `;
 
-    // Coluna Dupla Chance
     document.getElementById('col-dupla').innerHTML = `
         <div class="data-row"><span>Casa ou Empate (1X)</span><b>${prob1X}%</b></div>
         <div class="data-row"><span>Casa ou Fora (12)</span><b>${prob12}%</b></div>
         <div class="data-row"><span>Fora ou Empate (X2)</span><b>${probX2}%</b></div>
     `;
 
-    // Coluna Over (Usando over_05, over_15...)
     document.getElementById('col-over').innerHTML = `
         <div class="data-row"><span>+0.5 Gols</span><b>${pOVR('over_05','Sim')}%</b></div>
         <div class="data-row"><span>+1.5 Gols</span><b>${pOVR('over_15','Sim')}%</b></div>
@@ -247,7 +242,6 @@ function renderizar(dados) {
         <div class="data-row"><span>+4.5 Gols</span><b>${probO45}%</b></div>
     `;
 
-    // Coluna Under
     document.getElementById('col-under').innerHTML = `
         <div class="data-row"><span>-0.5 Gols</span><b>${(100 - parseFloat(pOVR('over_05','Sim'))).toFixed(1)}%</b></div>
         <div class="data-row"><span>-1.5 Gols</span><b>${(100 - parseFloat(pOVR('over_15','Sim'))).toFixed(1)}%</b></div>
@@ -256,7 +250,6 @@ function renderizar(dados) {
         <div class="data-row"><span>-4.5 Gols</span><b>${probU45}%</b></div>
     `;
 
-    // Médias de Gols (Usando gols_total)
     const mediaGols = (dados.reduce((acc, j) => acc + parseFloat(j.gols_total || 0), 0) / total).toFixed(2);
     document.getElementById('col-medias').innerHTML = `
         <div class="data-row"><span>Gols p/ Jogo</span><b>${mediaGols}</b></div>
@@ -264,14 +257,26 @@ function renderizar(dados) {
         <div class="data-row"><span>Confiança</span><b>Alta</b></div>
     `;
 
-    // Ranking Dinâmico
+    // --- Ranking Dinâmico Revisado ---
     let ranking = [
-        { n: "Casa ou Fora (12)", v: parseFloat(prob12) },
-        { n: "Under 4.5 Gols", v: parseFloat(probU45) },
-        { n: "Over 1.5 Gols", v: parseFloat(pOVR('over_15','Sim')) },
+        { n: "Vitória Casa", v: probCasa },
+        { n: "Vitória Fora", v: probFora },
+        { n: "Empate", v: probEmpa },
         { n: "Casa ou Empate (1X)", v: parseFloat(prob1X) },
-        { n: "Ambos Marcam", v: parseFloat(pAMB('Sim')) },
-        { n: "Over 2.5 Gols", v: parseFloat(pOVR('over_25','Sim')) }
+        { n: "Casa ou Fora (12)", v: parseFloat(prob12) },
+        { n: "Empate ou Fora (X2)", v: parseFloat(probX2) },
+        { n: "Over 0.5 Gols", v: parseFloat(pOVR('over_05','Sim')) },
+        { n: "Over 1.5 Gols", v: parseFloat(pOVR('over_15','Sim')) },
+        { n: "Over 2.5 Gols", v: parseFloat(pOVR('over_25','Sim')) },
+        { n: "Over 3.5 Gols", v: parseFloat(pOVR('over_35','Sim')) },
+        { n: "Over 4.5 Gols", v: probO45 },
+        { n: "Under 0.5 Gols", v: (100 - parseFloat(pOVR('over_05','Sim'))) },
+        { n: "Under 1.5 Gols", v: (100 - parseFloat(pOVR('over_15','Sim'))) },
+        { n: "Under 2.5 Gols", v: (100 - parseFloat(pOVR('over_25','Sim'))) },
+        { n: "Under 3.5 Gols", v: (100 - parseFloat(pOVR('over_35','Sim'))) },
+        { n: "Under 4.5 Gols", v: probU45 },
+        { n: "Ambos Marcam Sim", v: parseFloat(pAMB('Sim')) },
+        { n: "Ambos Marcam Não", v: (100 - parseFloat(pAMB('Sim'))) }
     ].sort((a,b) => b.v - a.v).slice(0, 3);
 
     document.getElementById('top-list').innerHTML = ranking.map((item, i) => `
