@@ -53,23 +53,24 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             min-height: 100vh;
         }
 
-        /* SIDEBAR */
+        /* SIDEBAR - Ajustada para acomodar mais itens */
         nav { 
             width: 280px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
-            border-right: 1px solid var(--border); padding: 40px 20px;
+            border-right: 1px solid var(--border); padding: 30px 15px;
             display: flex; flex-direction: column; position: fixed; height: 100vh;
+            overflow-y: auto;
         }
 
-        .nav-logo { font-weight: 800; font-size: 1.6rem; letter-spacing: -1px; margin-bottom: 50px; text-align: center; }
+        .nav-logo { font-weight: 800; font-size: 1.6rem; letter-spacing: -1px; margin-bottom: 30px; text-align: center; }
         .nav-logo span { color: var(--primary); }
 
-        .nav-group { margin-bottom: 30px; }
-        .nav-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-left: 15px; margin-bottom: 10px; display: block; }
+        .nav-group { margin-bottom: 25px; }
+        .nav-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-left: 15px; margin-bottom: 8px; display: block; font-weight: 700; }
 
         .nav-btn { 
-            color: var(--text-dim); padding: 14px 18px; border-radius: 12px; text-decoration: none; 
-            display: flex; align-items: center; gap: 15px; font-size: 14px; font-weight: 500;
-            transition: 0.3s;
+            color: var(--text-dim); padding: 12px 18px; border-radius: 12px; text-decoration: none; 
+            display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 500;
+            transition: 0.3s; margin-bottom: 2px;
         }
         .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .nav-btn.active { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2); }
@@ -84,26 +85,23 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             display: flex; align-items: center; gap: 25px;
         }
 
-        /* PERFORMANCE GRID - ATUALIZADO CONFORME IMAGE_48F285.PNG */
+        /* PERFORMANCE GRID */
         .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
         .perf-card { 
             background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); 
             position: relative;
         }
         .perf-vip-card { border: 1px solid var(--vip); }
-        
         .perf-header { 
             font-size: 13px; font-weight: 800; text-transform: uppercase; 
             margin-bottom: 25px; display: flex; align-items: center; gap: 8px; 
         }
         .perf-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
-        
         .stat-box span { display: block; font-size: 10px; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
         .stat-box b { font-size: 24px; font-weight: 800; }
         .stat-green { color: var(--primary); }
         .stat-red { color: #ff4d4d; }
 
-        /* BOTÃO ANALISADOR DESTAQUE */
         .analisador-cta {
             background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
             border: 2px solid var(--primary); padding: 30px; border-radius: 20px; margin-bottom: 40px; text-align: center;
@@ -114,7 +112,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
 
-        /* LISTAS */
         .list-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 50px; }
         .list-item { 
             background: var(--card); padding: 18px 25px; border-radius: 16px; border: 1px solid var(--border);
@@ -144,17 +141,29 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 
 <nav>
     <div class="nav-logo">SEFULL<span>BET</span></div>
+    
     <div class="nav-group">
         <span class="nav-label">Menu Principal</span>
-        <a class="nav-btn active" href="#"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
+        <a class="nav-btn active" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
+        <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
+        <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+        <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
+        <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
+        <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
+        <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
+    </div>
+
+    <div class="nav-group">
+        <span class="nav-label">Análises</span>
         <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
         <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Hall da Fama</span></a>
     </div>
+
     <div class="nav-group">
-        <span class="nav-label">Conteúdo</span>
-        <a class="nav-btn" href="noticias.php"><i class="fas fa-book-open"></i> <span>Estratégias</span></a>
+        <span class="nav-label">Financeiro</span>
         <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
     </div>
+
     <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
 </nav>
 
@@ -177,9 +186,8 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         </div>
     </div>
 
-    <!-- PERFORMANCE (CORRIGIDO CONFORME IMAGE_48F285.PNG) -->
+    <!-- PERFORMANCE -->
     <div class="perf-grid">
-        <!-- Card Grátis -->
         <div class="perf-card">
             <div class="perf-header">
                 <i class="fas fa-chart-line"></i> PERFORMANCE GRÁTIS
@@ -192,7 +200,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             </div>
         </div>
 
-        <!-- Card VIP -->
         <div class="perf-card perf-vip-card">
             <div class="perf-header" style="color: var(--vip);">
                 <i class="fas fa-gem"></i> PERFORMANCE VIP
