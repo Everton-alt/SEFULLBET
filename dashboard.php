@@ -53,7 +53,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             min-height: 100vh;
         }
 
-        /* SIDEBAR - Scroll ativado para menus longos */
+        /* SIDEBAR - Ajustada para acomodar todos os itens */
         nav { 
             width: 280px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
             border-right: 1px solid var(--border); padding: 30px 15px;
@@ -146,14 +146,19 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         <span class="nav-label">Menu Principal</span>
         <a class="nav-btn active" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
         
-        <!-- Novos itens adicionados ao Menu Principal -->
-        <a class="nav-btn" href="palpites.php"><i class="fas fa-bolt"></i> <span>Palpites</span></a>
+        <!-- Novos itens adicionados -->
+        <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
         <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
         <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
         <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
         
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 10px 15px;">
+        <!-- Itens mantidos dos grupos anteriores -->
+        <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
+        <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 10px;">
         
+        <!-- Gestão Administrativa -->
         <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
         <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
         <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
@@ -240,6 +245,27 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             <div style="font-size:13px; font-weight:600;" class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">Resultado Final</div>
             <div style="text-align:center; background:rgba(255,255,255,0.05); padding:5px; border-radius:5px;" class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>"><b>2.45</b></div>
             <div style="text-align:right;"><span class="tag" style="border:1px solid var(--vip); color:var(--vip);">VIP</span></div>
+        </div>
+    </div>
+
+    <!-- 3. ULTIMAS VITORIAS -->
+    <h3 style="margin-bottom: 20px; font-weight: 800;"><i class="fas fa-trophy" style="color: var(--vip)"></i> Últimas Vitórias</h3>
+    <div class="list-container">
+        <div class="list-item grid-vitorias">
+            <div class="v-icon-circle" style="background:rgba(0,255,136,0.1); color:var(--primary);"><i class="fas fa-check"></i></div>
+            <div><div style="font-weight:700; font-size:14px;">@usuario_gold</div><div style="font-size:11px; color:var(--text-dim);">Lucrou 2.5 unidades no sinal anterior</div></div>
+            <div style="font-size:12px; font-style:italic; color:var(--text-dim);">"Analisador perfeito!"</div>
+            <div style="text-align:right;"><span class="tag tag-green">Lucro +R$ 250</span></div>
+        </div>
+    </div>
+
+    <!-- 4. ULTIMAS NOTAS -->
+    <h3 style="margin-bottom: 20px; font-weight: 800;"><i class="fas fa-sticky-note" style="color: var(--info)"></i> Últimas Notas</h3>
+    <div class="list-container">
+        <div class="list-item grid-notas">
+            <div class="v-icon-circle" style="background:rgba(0,229,255,0.1); color:var(--info);"><i class="fas fa-info"></i></div>
+            <div><div style="font-weight:700; font-size:14px;">Estratégia de Cantos HT</div><div style="font-size:11px; color:var(--text-dim);">Filtre jogos com 0x0 aos 35 minutos para buscar o canto limite.</div></div>
+            <div style="text-align:right;"><span class="tag tag-info">Educativo</span></div>
         </div>
     </div>
 
