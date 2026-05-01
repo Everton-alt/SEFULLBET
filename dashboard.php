@@ -15,6 +15,25 @@ $perfil = $user['perfil'];
 $pode_ver_vip = in_array($perfil, ['VIP', 'Platinum', 'Supervisor', 'Admin']);
 $is_platinum = ($perfil === 'Platinum');
 
+// --- ATUALIZAÇÃO DOS CONTADORES ---
+$stats_gratis = ['t' => 0, 'g' => 0, 'r' => 0, 'p' => '0%'];
+$stats_vip    = ['t' => 0, 'g' => 0, 'r' => 0, 'p' => '0%'];
+
+try {
+    // Consulta para Grátis
+    $qG = $pdo->query("SELECT COUNT(*) as t, SUM(CASE WHEN status='Green' THEN 1 ELSE 0 END) as g, SUM(CASE WHEN status='Red' THEN 1 ELSE 0 END) as r FROM sinais WHERE tipo='Grátis'")->fetch();
+    if($qG && $qG['t'] > 0) {
+        $stats_gratis = ['t' => $qG['t'], 'g' => $qG['g'], 'r' => $qG['r'], 'p' => round(($qG['g'] / $qG['t']) * 100) . '%'];
+    }
+
+    // Consulta para VIP
+    $qV = $pdo->query("SELECT COUNT(*) as t, SUM(CASE WHEN status='Green' THEN 1 ELSE 0 END) as g, SUM(CASE WHEN status='Red' THEN 1 ELSE 0 END) as r FROM sinais WHERE tipo='VIP'")->fetch();
+    if($qV && $qV['t'] > 0) {
+        $stats_vip = ['t' => $qV['t'], 'g' => $qV['g'], 'r' => $qV['r'], 'p' => round(($qV['g'] / $qV['t']) * 100) . '%'];
+    }
+} catch (Exception $e) { }
+// --- FIM DA ATUALIZAÇÃO ---
+
 $cores = [
     'Grátis' => '#8b949e', 'VIP' => '#ffd700', 'Platinum' => '#ffffff',
     'Supervisor' => '#00e5ff', 'Admin' => '#00ff88'
@@ -170,7 +189,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
 </nav>
 <main>
-    <!-- O restante do código do seu Dashboard permanece igual -->
     <!-- CABEÇALHO -->
     <div class="top-bar">
         <div class="welcome">
