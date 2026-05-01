@@ -161,6 +161,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         <!-- Gestão Administrativa -->
         <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
         <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+        <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-file-import"></i> <span>Verificar Dados importados</span></a>
         <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
         <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
         <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
@@ -169,7 +170,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 
     <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
 </nav>
-
 <main>
     <!-- CABEÇALHO -->
     <div class="top-bar">
