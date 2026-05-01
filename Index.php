@@ -28,7 +28,7 @@
 <body>
 
     <header style="padding: 20px 8%; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100;">
-        <a href="index.html" style="text-decoration: none; font-weight: 900; font-size: 1.6rem; color: #fff;">SEFULL<span style="color: var(--primary);">BET</span></a>
+        <a href="index.php" style="text-decoration: none; font-weight: 900; font-size: 1.6rem; color: #fff;">SEFULL<span style="color: var(--primary);">BET</span></a>
         <!-- Botão abre o modal de login -->
         <button onclick="abrirLogin()" class="btn-main" style="width: auto; padding: 10px 25px; font-size: 0.8rem;">ÁREA DO MEMBRO</button>
     </header>
