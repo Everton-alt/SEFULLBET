@@ -91,8 +91,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
 
     <header>
-        <a href="dashboard.php" class="logo">SEFULL <span>BET</span></a>
-        <a href="login.php" class="btn-voltar"><i class="fa-solid fa-arrow-left"></i> Início</a>
+        <a href="index.html" class="logo">SEFULL <span>BET</span></a>
+        <a href="index.html" class="btn-voltar"><i class="fa-solid fa-arrow-left"></i> Início</a>
     </header>
 
     <div class="main-content">
