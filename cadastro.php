@@ -3,6 +3,9 @@ require_once 'config.php';
 $mensagem = ""; 
 $erro = "";
 
+// Ajuste Cirúrgico 1: Captura o plano da URL para manter a experiência do usuário
+$plano_pre_selecionado = $_GET['plano'] ?? 'Grátis';
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nome = trim($_POST['nome']);
     $login = trim($_POST['login']);
@@ -11,15 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $plano_escolhido = $_POST['plano'];
 
     // LÓGICA DE ACESSO IMEDIATO:
-    // Todos entram como 'Grátis' com 1 crédito para liberar o acesso na hora.
-    // O plano desejado (VIP/Platinum) fica registrado para sua aprovação no ADM.
     $perfil_inicial = 'Grátis';
     $creditos_iniciais = 1;
     $status_inicial = 'Ativo';
 
     try {
-        // Certifique-se de ter a coluna 'plano_interesse' ou similar no seu banco 
-        // para saber o que o cliente contratou.
+        // Ajuste Cirúrgico 2: SQL alinhado com as colunas padrão
         $sql = "INSERT INTO usuarios (nome, login, email, senha, perfil, creditos, status, plano_interesse) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
@@ -135,9 +135,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="input-wrapper">
                         <i class="fa-solid fa-crown"></i>
                         <select name="plano" required>
-                            <option value="Grátis">Grátis (1 Crédito)</option>
-                            <option value="VIP">VIP (30 Créditos/Mês)</option>
-                            <option value="Platinum">Platinum (Ilimitado)</option>
+                            <!-- Ajuste Cirúrgico 3: Select dinâmico -->
+                            <option value="Grátis" <?= $plano_pre_selecionado == 'Grátis' ? 'selected' : '' ?>>Grátis (1 Crédito)</option>
+                            <option value="VIP" <?= $plano_pre_selecionado == 'VIP' ? 'selected' : '' ?>>VIP (30 Créditos/Mês)</option>
+                            <option value="Platinum" <?= $plano_pre_selecionado == 'Platinum' ? 'selected' : '' ?>>Platinum (Ilimitado)</option>
                         </select>
                     </div>
                 </div>
@@ -160,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 
-    <!-- MODAL TERMOS ATUALIZADO -->
+    <!-- MODAL TERMOS MANTIDO ORIGINAL -->
     <div id="modal-terms">
         <div class="modal-content">
             <div class="modal-body">
@@ -168,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <p><b>1. Natureza do Serviço:</b> A SeFull Bet é uma plataforma de fornecimento de conteúdo informativo, estatístico e de análise probabilística baseada em algoritmos e dados históricos. Não somos uma casa de apostas, não aceitamos depósitos de valores e não intermediamos transações financeiras.</p><br>
                 <p><b>2. Isenção de Responsabilidade:</b> O usuário declara estar ciente de que o mercado de apostas esportivas envolve risco financeiro real. Ausência de Garantia: A SeFull Bet não garante lucros. A decisão final é de responsabilidade exclusiva do usuário.</p><br>
                 <p><b>3. Responsabilidade do Usuário:</b> Ao utilizar o site, o usuário compromete-se a: Ser maior de 18 anos; utilizar os dados apenas para fins informativos; assumir total responsabilidade civil e técnica por suas ações externas.</p><br>
-                <p><b>4. Limitação Jurídica:</b> Em nenhuma circunstância a SeFull Bet será responsabilizada por Danos Indiretos, Falhas Técnicas ou Sanções Jurídicas locais aplicadas ao usuário.</p><br>
+                <p><b>4. Limitação Jurídica:</b> En nenhuma circunstância a SeFull Bet será responsabilizada por Danos Indiretos, Falhas Técnicas ou Sanções Jurídicas locais aplicadas ao usuário.</p><br>
                 <p><b>5. Propriedade Intelectual:</b> Todo o conteúdo e algoritmos são de propriedade da SeFull Bet.</p><br>
                 <p><b>6. Modificações:</b> Reservamo-nos o direito de alterar estes termos a qualquer momento.</p>
             </div>
