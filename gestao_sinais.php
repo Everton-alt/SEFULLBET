@@ -44,7 +44,6 @@ $pagina_atual = isset($_GET['p']) ? (int)$_GET['p'] : 1;
 if ($pagina_atual < 1) $pagina_atual = 1;
 $offset = ($pagina_atual - 1) * $itens_por_pagina;
 
-// Conta total para os botões de navegação
 $total_sinais = $pdo->query("SELECT COUNT(*) FROM sinais")->fetchColumn();
 $total_paginas = ceil($total_sinais / $itens_por_pagina);
 
@@ -72,11 +71,12 @@ $lista_sinais = $sinais->fetchAll();
             --text-dim: #8b949e;
             --vip: #ffd700;
             --danger: #ff4d4d;
+            --info: #3498db;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         
-        /* Custom Scrollbar para o Menu */
+        /* Barra de Rolagem da Sidebar */
         nav::-webkit-scrollbar { width: 4px; }
         nav::-webkit-scrollbar-track { background: transparent; }
         nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -89,7 +89,7 @@ $lista_sinais = $sinais->fetchAll();
             overflow-x: hidden;
         }
 
-        /* SIDEBAR IDENTICA AO DASHBOARD COM ROLAGEM */
+        /* SIDEBAR */
         nav { 
             width: 280px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
             border-right: 1px solid var(--border); padding: 30px 15px;
@@ -110,28 +110,26 @@ $lista_sinais = $sinais->fetchAll();
         .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .nav-btn.active { background: #065f46; color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2); }
 
-        /* CONTEÚDO PRINCIPAL */
+        /* CONTEÚDO */
         main { flex: 1; margin-left: 280px; padding: 40px 60px; width: calc(100% - 280px); }
 
-        /* PERFORMANCE CARDS */
         .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
         .perf-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); }
         .perf-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
         .stat-box span { display: block; font-size: 10px; color: var(--text-dim); margin-bottom: 5px; }
         .stat-box b { font-size: 20px; font-weight: 800; }
 
-        /* FORMULÁRIO */
         .form-container { background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 20px; margin-bottom: 40px; }
         .form-grid { display: grid; grid-template-columns: 1fr 2fr 0.8fr 1.2fr 0.8fr 1.2fr 0.8fr; gap: 15px; align-items: flex-end; }
         .input-group label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
         .input-group input, .input-group select { 
             width: 100%; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px; outline: none; font-size: 13px;
         }
-        .btn-pub { grid-column: 1 / -1; background: var(--primary); color: #0d1117; border: none; padding: 15px; border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px; text-transform: uppercase; transition: 0.3s; }
-        .btn-pub:hover { filter: brightness(1.1); box-shadow: 0 0 20px var(--primary); }
+        
+        .btn-pub { background: var(--primary); color: #0d1117; border: none; padding: 15px; border-radius: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-pub:hover { filter: brightness(1.1); box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
 
-        /* TABELA */
-        .table-wrapper { background: var(--card); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-bottom: 20px; }
+        .table-wrapper { background: var(--card); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: rgba(255,255,255,0.02); padding: 15px 20px; text-align: left; font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
         td { padding: 18px 20px; border-bottom: 1px solid var(--border); font-size: 13px; }
@@ -140,19 +138,15 @@ $lista_sinais = $sinais->fetchAll();
         .st-red { color: var(--danger); font-weight: bold; }
         .st-pendente { color: var(--vip); font-weight: bold; }
 
-        /* PAGINAÇÃO */
-        .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
-        .page-link { 
-            padding: 8px 16px; background: var(--card); border: 1px solid var(--border); 
-            color: var(--text-main); text-decoration: none; border-radius: 8px; font-size: 13px;
-        }
+        .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 25px; }
+        .page-link { padding: 8px 16px; background: var(--card); border: 1px solid var(--border); color: var(--text-main); text-decoration: none; border-radius: 8px; font-size: 13px; }
         .page-link.active { background: var(--primary); color: #000; font-weight: 700; border-color: var(--primary); }
 
-        @media (max-width: 1100px) {
-            nav { width: 80px; }
-            .nav-label, .nav-btn span, .nav-logo { display: none; }
-            main { margin-left: 80px; width: calc(100% - 80px); padding: 20px; }
-            .form-grid { grid-template-columns: 1fr; }
+        /* MODAL STYLE */
+        #modalEditar {
+            display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.85); z-index:3000; align-items:center; justify-content:center;
+            backdrop-filter: blur(5px);
         }
     </style>
 </head>
@@ -160,7 +154,6 @@ $lista_sinais = $sinais->fetchAll();
 
 <nav>
     <div class="nav-logo">SEFULL<span>BET</span></div>
-    
     <div class="nav-group">
         <span class="nav-label">Menu Principal</span>
         <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
@@ -170,9 +163,7 @@ $lista_sinais = $sinais->fetchAll();
         <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
         <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
         <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
-
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 10px;">
-        
         <span class="nav-label">Gestão Administrativa</span>
         <a class="nav-btn active" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
         <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
@@ -181,14 +172,12 @@ $lista_sinais = $sinais->fetchAll();
         <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
         <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
     </div>
-
     <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
 </nav>
 
 <main>
     <h1 style="font-weight: 800; margin-bottom: 30px;">Gestão de Sinais</h1>
 
-    <!-- Performance Real -->
     <div class="perf-grid">
         <div class="perf-card">
             <div class="perf-stats-row">
@@ -208,45 +197,19 @@ $lista_sinais = $sinais->fetchAll();
         </div>
     </div>
 
-    <!-- Formulário -->
     <section class="form-container">
         <form action="processar_sinal.php" method="POST" class="form-grid">
-            <div class="input-group">
-                <label>Categoria</label>
-                <select name="p_categoria">
-                    <option value="Grátis">Grátis</option>
-                    <option value="VIP">VIP</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Confronto</label>
-                <input type="text" name="p_confronto" placeholder="Time A x Time B" required>
-            </div>
-            <div class="input-group">
-                <label>Placar</label>
-                <input type="text" name="p_placar" placeholder="0-0">
-            </div>
-            <div class="input-group">
-                <label>Data</label>
-                <input type="date" name="p_data" value="<?= date('Y-m-d') ?>">
-            </div>
-            <div class="input-group">
-                <label>Hora</label>
-                <input type="time" name="p_hora">
-            </div>
-            <div class="input-group">
-                <label>Mercado</label>
-                <input type="text" name="p_mercado" placeholder="Over 2.5" required>
-            </div>
-            <div class="input-group">
-                <label>Odd</label>
-                <input type="text" name="p_odd" placeholder="1.80" required>
-            </div>
-            <button type="submit" class="btn-pub">Publicar agora</button>
+            <div class="input-group"><label>Categoria</label><select name="p_categoria"><option value="Grátis">Grátis</option><option value="VIP">VIP</option></select></div>
+            <div class="input-group"><label>Confronto</label><input type="text" name="p_confronto" placeholder="Time A x Time B" required></div>
+            <div class="input-group"><label>Placar</label><input type="text" name="p_placar" placeholder="0-0"></div>
+            <div class="input-group"><label>Data</label><input type="date" name="p_data" value="<?= date('Y-m-d') ?>"></div>
+            <div class="input-group"><label>Hora</label><input type="time" name="p_hora"></div>
+            <div class="input-group"><label>Mercado</label><input type="text" name="p_mercado" placeholder="Over 2.5" required></div>
+            <div class="input-group"><label>Odd</label><input type="text" name="p_odd" placeholder="1.80" required></div>
+            <button type="submit" class="btn-pub" style="grid-column: span 7;">Publicar agora</button>
         </form>
     </section>
 
-    <!-- Tabela -->
     <div class="table-wrapper">
         <table>
             <thead>
@@ -276,7 +239,7 @@ $lista_sinais = $sinais->fetchAll();
                     <td style="text-align:right">
                         <a href="status.php?id=<?= $s['id'] ?>&set=Green" title="Green"><i class="fas fa-check-circle" style="color: var(--primary); margin-left: 12px;"></i></a>
                         <a href="status.php?id=<?= $s['id'] ?>&set=Red" title="Red"><i class="fas fa-times-circle" style="color: var(--danger); margin-left: 12px;"></i></a>
-                        <a href="editar_sinal.php?id=<?= $s['id'] ?>" title="Editar"><i class="fas fa-edit" style="color: var(--info); margin-left: 12px;"></i></a>
+                        <a href="javascript:void(0)" onclick="abrirModalEditar(<?= htmlspecialchars(json_encode($s)) ?>)" title="Editar"><i class="fas fa-edit" style="color: var(--info); margin-left: 12px;"></i></a>
                         <a href="apagar.php?id=<?= $s['id'] ?>" title="Excluir"><i class="fas fa-trash" style="color: var(--text-dim); margin-left: 12px;"></i></a>
                     </td>
                 </tr>
@@ -285,21 +248,49 @@ $lista_sinais = $sinais->fetchAll();
         </table>
     </div>
 
-    <!-- Paginação -->
     <div class="pagination">
-        <?php if($pagina_atual > 1): ?>
-            <a href="?p=<?= $pagina_atual - 1 ?>" class="page-link"><i class="fas fa-chevron-left"></i> Anterior</a>
-        <?php endif; ?>
-
+        <?php if($pagina_atual > 1): ?><a href="?p=<?= $pagina_atual - 1 ?>" class="page-link">Anterior</a><?php endif; ?>
         <?php for($i = 1; $i <= $total_paginas; $i++): ?>
             <a href="?p=<?= $i ?>" class="page-link <?= ($i == $pagina_atual) ? 'active' : '' ?>"><?= $i ?></a>
         <?php endfor; ?>
-
-        <?php if($pagina_atual < $total_paginas): ?>
-            <a href="?p=<?= $pagina_atual + 1 ?>" class="page-link">Próxima <i class="fas fa-chevron-right"></i></a>
-        <?php endif; ?>
+        <?php if($pagina_atual < $total_paginas): ?><a href="?p=<?= $pagina_atual + 1 ?>" class="page-link">Próxima</a><?php endif; ?>
     </div>
 </main>
+
+<!-- MODAL DE EDIÇÃO -->
+<div id="modalEditar">
+    <div style="background:var(--card); width:90%; max-width:500px; padding:30px; border-radius:20px; border:1px solid var(--border);">
+        <h2 style="margin-bottom:20px;">Editar Sinal</h2>
+        <form action="atualizar_sinal.php" method="POST">
+            <input type="hidden" name="id" id="edit_id">
+            <div style="display:grid; gap:15px;">
+                <div class="input-group"><label>Confronto</label><input type="text" name="p_confronto" id="edit_confronto" required></div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="input-group"><label>Placar</label><input type="text" name="p_placar" id="edit_placar"></div>
+                    <div class="input-group"><label>Odd</label><input type="text" name="p_odd" id="edit_odd" required></div>
+                </div>
+                <div class="input-group"><label>Mercado</label><input type="text" name="p_mercado" id="edit_mercado" required></div>
+            </div>
+            <div style="margin-top:25px; display:flex; gap:10px;">
+                <button type="submit" class="btn-pub" style="flex:1;">Salvar</button>
+                <button type="button" onclick="fecharModal()" style="background:transparent; color:var(--text-dim); border:1px solid var(--border); padding:10px 20px; border-radius:12px; cursor:pointer;">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function abrirModalEditar(dados) {
+    document.getElementById('edit_id').value = dados.id;
+    document.getElementById('edit_confronto').value = dados.p_confronto;
+    document.getElementById('edit_placar').value = dados.p_placar;
+    document.getElementById('edit_odd').value = dados.p_odd;
+    document.getElementById('edit_mercado').value = dados.p_mercado;
+    document.getElementById('modalEditar').style.display = 'flex';
+}
+function fecharModal() { document.getElementById('modalEditar').style.display = 'none'; }
+window.onclick = function(e) { if (e.target == document.getElementById('modalEditar')) fecharModal(); }
+</script>
 
 </body>
 </html>
