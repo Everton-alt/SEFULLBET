@@ -100,7 +100,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 
         .top-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
         .user-status { 
-
             background: var(--card); padding: 20px 30px; border-radius: 20px; border: 1px solid var(--border);
             display: flex; align-items: center; gap: 25px;
         }
@@ -198,7 +197,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         <div class="user-status">
             <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 20px;">
                 <span style="font-size: 10px; color: var(--text-dim); text-transform: uppercase;">Créditos</span>
-                <div style="font-size: 20px; font-weight: 800; color: var(--primary);"><?php echo $is_platinum ? '∞' : $user['saldo_creditos']; ?></div>
+                <div style="font-size: 20px; font-weight: 800; color: var(--primary);"><?php echo (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?></div>
             </div>
             <div style="text-align: right;">
                 <div style="font-size: 11px; color: var(--text-dim);">Status</div>
