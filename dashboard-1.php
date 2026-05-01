@@ -28,7 +28,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | SeFull Bet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00ff88;
@@ -84,12 +84,24 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             display: flex; align-items: center; gap: 25px;
         }
 
-        /* PERFORMANCE GRID */
+        /* PERFORMANCE GRID - ATUALIZADO CONFORME IMAGE_48F285.PNG */
         .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
-        .perf-card { background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid var(--border); position: relative; overflow: hidden; }
-        .perf-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
-        .perf-free::before { background: var(--text-dim); }
-        .perf-vip::before { background: var(--vip); }
+        .perf-card { 
+            background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); 
+            position: relative;
+        }
+        .perf-vip-card { border: 1px solid var(--vip); }
+        
+        .perf-header { 
+            font-size: 13px; font-weight: 800; text-transform: uppercase; 
+            margin-bottom: 25px; display: flex; align-items: center; gap: 8px; 
+        }
+        .perf-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+        
+        .stat-box span { display: block; font-size: 10px; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-box b { font-size: 24px; font-weight: 800; }
+        .stat-green { color: var(--primary); }
+        .stat-red { color: #ff4d4d; }
 
         /* BOTÃO ANALISADOR DESTAQUE */
         .analisador-cta {
@@ -102,27 +114,21 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
 
-        /* LISTAS (PALPITES, VITORIAS, NOTAS) */
+        /* LISTAS */
         .list-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 50px; }
-        
         .list-item { 
             background: var(--card); padding: 18px 25px; border-radius: 16px; border: 1px solid var(--border);
             display: grid; align-items: center; transition: 0.2s; position: relative;
         }
-        .list-item:hover { border-color: #444; background: #1c2128; }
-
-        /* Grid específico para cada tipo */
         .grid-palpites { grid-template-columns: 100px 1.5fr 1fr 100px 120px; }
         .grid-vitorias { grid-template-columns: 50px 1.5fr 1fr 120px; }
         .grid-notas { grid-template-columns: 50px 1fr 120px; }
 
         .v-icon-circle { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-
         .tag { font-size: 10px; font-weight: 900; padding: 5px 10px; border-radius: 6px; text-transform: uppercase; text-align: center; }
         .tag-green { background: rgba(0, 255, 136, 0.1); color: var(--primary); }
         .tag-wait { background: rgba(255, 215, 0, 0.1); color: var(--vip); }
         .tag-info { background: rgba(0, 229, 255, 0.1); color: var(--info); }
-
         .blur-lock { filter: blur(6px); opacity: 0.3; pointer-events: none; }
 
         @media (max-width: 1100px) {
@@ -171,24 +177,31 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         </div>
     </div>
 
-    <!-- PERFORMANCE -->
+    <!-- PERFORMANCE (CORRIGIDO CONFORME IMAGE_48F285.PNG) -->
     <div class="perf-grid">
-        <div class="perf-card perf-free">
-            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:15px;">
-                <span>FREE PERFORMANCE</span> <i class="fas fa-chart-line"></i>
+        <!-- Card Grátis -->
+        <div class="perf-card">
+            <div class="perf-header">
+                <i class="fas fa-chart-line"></i> PERFORMANCE GRÁTIS
             </div>
-            <div style="display:flex; justify-content:space-around;">
-                <div style="text-align:center;"><small style="color:var(--text-dim); display:block; font-size:9px;">GREENS</small><b>38</b></div>
-                <div style="text-align:center;"><small style="color:var(--text-dim); display:block; font-size:9px;">TAXA</small><b>84%</b></div>
+            <div class="perf-stats-row">
+                <div class="stat-box"><span>TOTAL</span><b>45</b></div>
+                <div class="stat-box"><span>GREENS</span><b class="stat-green">38</b></div>
+                <div class="stat-box"><span>REDS</span><b class="stat-red">7</b></div>
+                <div class="stat-box"><span>WIN%</span><b>84%</b></div>
             </div>
         </div>
-        <div class="perf-card perf-vip">
-            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--vip); margin-bottom:15px;">
-                <span>VIP PERFORMANCE</span> <i class="fas fa-crown"></i>
+
+        <!-- Card VIP -->
+        <div class="perf-card perf-vip-card">
+            <div class="perf-header" style="color: var(--vip);">
+                <i class="fas fa-gem"></i> PERFORMANCE VIP
             </div>
-            <div style="display:flex; justify-content:space-around;">
-                <div style="text-align:center;"><small style="color:var(--text-dim); display:block; font-size:9px;">GREENS</small><b style="color:var(--primary)">108</b></div>
-                <div style="text-align:center;"><small style="color:var(--text-dim); display:block; font-size:9px;">TAXA</small><b style="color:var(--vip)">90%</b></div>
+            <div class="perf-stats-row">
+                <div class="stat-box"><span>TOTAL</span><b>120</b></div>
+                <div class="stat-box"><span>GREENS</span><b class="stat-green">108</b></div>
+                <div class="stat-box"><span>REDS</span><b class="stat-red">12</b></div>
+                <div class="stat-box"><span>WIN%</span><b>90%</b></div>
             </div>
         </div>
     </div>
@@ -217,7 +230,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
                 <a href="upgrade.php" style="background:var(--vip); color:#000; padding:8px 20px; border-radius:50px; font-weight:900; font-size:11px; text-decoration:none;"><i class="fas fa-lock"></i> UPGRADE VIP</a>
             </div>
             <?php endif; ?>
-            <div class="tag tag-wait <?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">Analizando</div>
+            <div class="tag tag-wait <?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">Analisando</div>
             <div class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>"><div style="font-weight:700; font-size:14px;">Real Madrid vs City</div><div style="font-size:11px; color:var(--text-dim);">Champions League</div></div>
             <div style="font-size:13px; font-weight:600;" class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">Resultado Final</div>
             <div style="text-align:center; background:rgba(255,255,255,0.05); padding:5px; border-radius:5px;" class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>"><b>2.45</b></div>
@@ -225,7 +238,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         </div>
     </div>
 
-    <!-- 3. ULTIMAS VITORIAS EM LINHA -->
+    <!-- 3. ULTIMAS VITORIAS -->
     <h3 style="margin-bottom: 20px; font-weight: 800;"><i class="fas fa-trophy" style="color: var(--vip)"></i> Últimas Vitórias</h3>
     <div class="list-container">
         <div class="list-item grid-vitorias">
@@ -234,15 +247,9 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             <div style="font-size:12px; font-style:italic; color:var(--text-dim);">"Analisador perfeito!"</div>
             <div style="text-align:right;"><span class="tag tag-green">Lucro +R$ 250</span></div>
         </div>
-        <div class="list-item grid-vitorias">
-            <div class="v-icon-circle" style="background:rgba(255,215,0,0.1); color:var(--vip);"><i class="fas fa-star"></i></div>
-            <div><div style="font-weight:700; font-size:14px;">@bet_master</div><div style="font-size:11px; color:var(--text-dim);">Sequência de 5 Greens seguidos</div></div>
-            <div style="font-size:12px; font-style:italic; color:var(--text-dim);">"Gestão e IA é o segredo."</div>
-            <div style="text-align:right;"><span class="tag tag-green">Bateu a Meta</span></div>
-        </div>
     </div>
 
-    <!-- 4. ULTIMAS NOTAS EM LINHA -->
+    <!-- 4. ULTIMAS NOTAS -->
     <h3 style="margin-bottom: 20px; font-weight: 800;"><i class="fas fa-sticky-note" style="color: var(--info)"></i> Últimas Notas</h3>
     <div class="list-container">
         <div class="list-item grid-notas">
@@ -250,15 +257,10 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             <div><div style="font-weight:700; font-size:14px;">Estratégia de Cantos HT</div><div style="font-size:11px; color:var(--text-dim);">Filtre jogos com 0x0 aos 35 minutos para buscar o canto limite.</div></div>
             <div style="text-align:right;"><span class="tag tag-info">Educativo</span></div>
         </div>
-        <div class="list-item grid-notas">
-            <div class="v-icon-circle" style="background:rgba(255,77,77,0.1); color:var(--danger);"><i class="fas fa-exclamation-triangle"></i></div>
-            <div><div style="font-weight:700; font-size:14px;">Aviso de Manutenção</div><div style="font-size:11px; color:var(--text-dim);">O servidor de dados passará por ajustes às 03:00 da manhã.</div></div>
-            <div style="text-align:right;"><span class="tag" style="background:rgba(255,77,77,0.1); color:var(--danger);">Importante</span></div>
-        </div>
     </div>
 
     <footer style="margin-top: 60px; padding: 40px 0; border-top: 1px solid var(--border); color: #444; font-size: 11px; text-align: center;">
-        &copy; © 2026 SeFullBet - Inteligência de Dados aplicada ao Esporte. Apostas são para maiores de 18 anos. Jogue com responsabilidade.
+        &copy; 2026 SeFullBet - Inteligência de Dados aplicada ao Esporte. Apostas são para maiores de 18 anos. Jogue com responsabilidade.
     </footer>
 </main>
 
