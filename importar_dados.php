@@ -66,6 +66,7 @@ $total_base = $pdo->query("SELECT COUNT(*) FROM base_analisador")->fetchColumn()
         <!-- Gestão Administrativa -->
         <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
         <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+        <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-file-import"></i> <span>Verificar Dados importados</span></a>
         <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
         <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
         <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
@@ -74,7 +75,6 @@ $total_base = $pdo->query("SELECT COUNT(*) FROM base_analisador")->fetchColumn()
 
     <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
 </nav>
-
 <main>
     <h1 style="margin-bottom: 10px;">Importar Base de Dados AI</h1>
     <p style="color: var(--text-dim); margin-bottom: 30px;">Total atual no banco: <strong><?= $total_base ?></strong> registros.</p>
