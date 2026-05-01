@@ -29,6 +29,7 @@
 
     <header style="padding: 20px 8%; display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); position: sticky; top: 0; z-index: 100;">
         <a href="index.html" style="text-decoration: none; font-weight: 900; font-size: 1.6rem; color: #fff;">SEFULL<span style="color: var(--primary);">BET</span></a>
+        <!-- Botão abre o modal de login -->
         <button onclick="abrirLogin()" class="btn-main" style="width: auto; padding: 10px 25px; font-size: 0.8rem;">ÁREA DO MEMBRO</button>
     </header>
 
@@ -45,6 +46,7 @@
 
     <section class="plans-container">
         <div class="grid-plans">
+            <!-- PLANO GRÁTIS -->
             <div class="card-plan">
                 <h3 style="color: var(--text-dim);">GRÁTIS</h3>
                 <div class="price">R$ 0<span>/mês</span></div>
@@ -53,9 +55,10 @@
                     <li><i class="fas fa-check-circle"></i> Palpites diários</li>
                     <li><i class="fas fa-check-circle"></i> Grupo Telegram</li>
                 </ul>
-                <a href="cadastro.php" class="btn-main" style="background: transparent; border: 1px solid var(--border); color: #fff; text-decoration: none; text-align: center;">CRIAR CONTA</a>
+                <a href="cadastro.php?plano=Grátis" class="btn-main" style="background: transparent; border: 1px solid var(--border); color: #fff; text-decoration: none; text-align: center;">CRIAR CONTA</a>
             </div>
 
+            <!-- PLANO VIP -->
             <div class="card-plan highlight">
                 <div style="position: absolute; top: -15px; right: 30px; background: var(--vip); color: #000; padding: 5px 15px; border-radius: 20px; font-size: 0.7rem; font-weight: 900;">RECOMENDADO</div>
                 <h3 style="color: var(--vip);">VIP GOLD</h3>
@@ -65,9 +68,10 @@
                     <li><i class="fas fa-star" style="color: var(--vip);"></i> Sinais VIP no Feed</li>
                     <li><i class="fas fa-star" style="color: var(--vip);"></i> Gestão de Banca</li>
                 </ul>
-                <a href="cadastro.php" class="btn-main" style="background: var(--vip); text-decoration: none; text-align: center;">ASSINAR VIP</a>
+                <a href="cadastro.php?plano=VIP" class="btn-main" style="background: var(--vip); text-decoration: none; text-align: center;">ASSINAR VIP</a>
             </div>
 
+            <!-- PLANO PLATINUM -->
             <div class="card-plan" style="border-color: var(--premium);">
                 <h3 style="color: var(--premium);">PLATINUM</h3>
                 <div class="price">R$ 97<span>/mês</span></div>
@@ -76,7 +80,7 @@
                     <li><i class="fas fa-infinity" style="color: var(--premium);"></i> Suporte Prioritário</li>
                     <li><i class="fas fa-infinity" style="color: var(--premium);"></i> Grupo Telegram Exclusivo</li>
                 </ul>
-                <a href="cadastro.php" class="btn-main" style="background: var(--premium); text-decoration: none; text-align: center;">GO PLATINUM</a>
+                <a href="cadastro.php?plano=Platinum" class="btn-main" style="background: var(--premium); text-decoration: none; text-align: center;">GO PLATINUM</a>
             </div>
         </div>
     </section>
@@ -86,6 +90,7 @@
         <p>© 2026 SeFullBet - Inteligência de Dados aplicada ao Esporte.<br>Apostas são para maiores de 18 anos. Jogue com responsabilidade.</p>
     </footer>
 
+    <!-- MODAL DE LOGIN ATUALIZADO -->
     <div id="loginModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharLogin()">&times;</span>
@@ -94,7 +99,8 @@
                 <p style="color: var(--text-dim); font-size: 0.8rem;">Acesse sua inteligência de dados</p>
             </div>
 
-            <form action="processa_login.php" method="POST">
+            <!-- Redireciona para login.php para processar os dados -->
+            <form action="login.php" method="POST">
                 <div class="form-group">
                     <label>Usuário</label>
                     <div class="input-wrapper">
@@ -121,6 +127,8 @@
     <script>
         function abrirLogin() { document.getElementById('loginModal').style.display = 'flex'; }
         function fecharLogin() { document.getElementById('loginModal').style.display = 'none'; }
+        
+        // Fechar ao clicar fora do modal
         window.onclick = function(event) {
             const modal = document.getElementById('loginModal');
             if (event.target == modal) { fecharLogin(); }
@@ -128,4 +136,3 @@
     </script>
 </body>
 </html>
-
