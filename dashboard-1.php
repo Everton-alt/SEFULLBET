@@ -21,7 +21,6 @@ $cores = [
 ];
 $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -29,207 +28,267 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | SeFull Bet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00ff88; --premium: #00e5ff; --bg: #07090d; --card-bg: #12161f; 
-            --border: #262c36; --text: #fff; --text-dim: #8b949e; --vip: #ffd700;
-            --neon-glow: 0 0 15px rgba(0, 255, 136, 0.4);
+            --primary: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.3);
+            --bg: #0d1117;
+            --card: #161b22;
+            --border: #30363d;
+            --text-main: #f0f6fc;
+            --text-dim: #8b949e;
+            --vip: #ffd700;
+            --danger: #ff4d4d;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         
-        body { background: var(--bg); color: var(--text); line-height: 1.6; }
-
-        /* Barra de Rolagem Personalizada */
-        ::-webkit-scrollbar { width: 10px; background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; border: 2px solid var(--bg); }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-
-        /* Header Estilo Index */
-        header {
-            padding: 15px 8%; display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(10px); background: rgba(7, 9, 13, 0.8);
-            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100;
+        body { 
+            background-color: var(--bg); 
+            color: var(--text-main);
+            background-image: radial-gradient(circle at 0% 0%, rgba(0, 255, 136, 0.05) 0%, transparent 40%);
+            display: flex;
+            min-height: 100vh;
         }
 
-        .btn-logout { 
-            color: #ff4d4d; text-decoration: none; font-weight: 800; font-size: 0.75rem; 
-            border: 1px solid rgba(255, 77, 77, 0.3); padding: 8px 15px; border-radius: 8px; transition: 0.3s;
-        }
-        .btn-logout:hover { background: rgba(255, 77, 77, 0.1); }
-
-        /* Container Principal */
-        .container { max-width: 1100px; margin: 0 auto; padding: 40px 5%; }
-
-        /* Banner Analisador */
-        .hero-dashboard { text-align: center; margin-bottom: 50px; }
-        .hero-badge { 
-            background: rgba(0, 255, 136, 0.1); color: var(--primary); padding: 8px 20px; 
-            border-radius: 50px; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(0, 255, 136, 0.3);
-            display: inline-block; margin-bottom: 20px;
+        /* SIDEBAR MODERNA */
+        nav { 
+            width: 280px; 
+            background: rgba(22, 27, 34, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border);
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
         }
 
-        .analisador-card {
-            background: linear-gradient(135deg, #12161f 0%, #1c222d 100%);
-            border: 1px solid var(--primary); border-radius: 24px; padding: 40px;
-            box-shadow: var(--neon-glow); display: flex; justify-content: space-between; align-items: center;
-            gap: 20px; flex-wrap: wrap;
+        .nav-logo { font-weight: 800; font-size: 1.6rem; letter-spacing: -1px; margin-bottom: 50px; text-align: center; }
+        .nav-logo span { color: var(--primary); }
+
+        .nav-group { margin-bottom: 30px; }
+        .nav-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-left: 15px; margin-bottom: 10px; display: block; }
+
+        .nav-btn { 
+            color: var(--text-dim); 
+            padding: 14px 18px; 
+            border-radius: 12px; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            font-size: 14px; 
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-btn.active { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2); }
+
+        /* MAIN CONTENT */
+        main { flex: 1; margin-left: 280px; padding: 40px 60px; }
+
+        /* HEADER CARDS */
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        .welcome h1 { font-size: 24px; font-weight: 800; }
+        
+        .user-status { 
+            background: var(--card); 
+            padding: 20px 30px; 
+            border-radius: 20px; 
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 25px;
         }
 
-        .btn-main {
-            background: var(--primary); color: #000; padding: 18px 35px; border-radius: 12px;
-            text-decoration: none; font-weight: 900; text-transform: uppercase;
-            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.2); transition: 0.3s; display: inline-block;
+        .credit-badge { text-align: center; border-right: 1px solid var(--border); padding-right: 25px; }
+        .credit-badge span { font-size: 10px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; }
+        .credit-badge div { font-size: 22px; font-weight: 800; color: var(--primary); }
+
+        /* PERFORMANCE GRID */
+        .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        .perf-card { 
+            background: var(--card); 
+            padding: 25px; 
+            border-radius: 24px; 
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
         }
-        .btn-main:hover { transform: translateY(-3px); filter: brightness(1.1); }
+        .perf-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+        }
+        .perf-free::before { background: var(--text-dim); }
+        .perf-vip::before { background: var(--vip); }
 
-        /* Performance Grids */
-        .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 50px; }
-        .card-stat { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 25px; }
-        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .stat-numbers { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
-        .stat-val { display: block; font-size: 1.2rem; font-weight: 900; }
-        .stat-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; font-weight: 700; }
+        .perf-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: 700; font-size: 13px; }
+        
+        .stat-row { display: flex; justify-content: space-between; }
+        .stat-item { text-align: center; flex: 1; }
+        .stat-item small { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; }
+        .stat-item b { font-size: 18px; font-weight: 800; }
 
-        /* Feed de Palpites */
-        .section-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
-        .palpite-row { 
-            background: var(--card-bg); border: 1px solid var(--border); padding: 20px; 
-            border-radius: 18px; margin-bottom: 15px; display: grid; 
-            grid-template-columns: 130px 1fr 100px 120px; align-items: center; gap: 20px;
+        /* PALPITES */
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .palpite-list { display: flex; flex-direction: column; gap: 12px; }
+        
+        .palpite-item { 
+            background: var(--card); 
+            padding: 18px 25px; 
+            border-radius: 16px; 
+            border: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: 100px 1.5fr 1fr 100px 120px;
+            align-items: center;
+            transition: 0.2s;
+            position: relative;
+        }
+        .palpite-item:hover { border-color: #444; background: #1c2128; }
+
+        .tag { 
+            font-size: 10px; 
+            font-weight: 900; 
+            padding: 5px 10px; 
+            border-radius: 6px; 
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .tag-green { background: rgba(0, 255, 136, 0.1); color: var(--primary); }
+        .tag-wait { background: rgba(255, 215, 0, 0.1); color: var(--vip); }
+
+        .odd-box { background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px; text-align: center; }
+        .odd-box small { font-size: 9px; color: var(--text-dim); display: block; }
+
+        /* LOCK SYSTEM */
+        .blur-lock { filter: blur(6px); opacity: 0.3; pointer-events: none; }
+        .lock-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; align-items: center; justify-content: center; 
+            z-index: 5; background: rgba(13, 17, 23, 0.4); border-radius: 16px;
+        }
+        .lock-btn { 
+            background: var(--vip); color: #000; padding: 8px 16px; 
+            border-radius: 50px; font-weight: 800; font-size: 11px; text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
 
-        .badge-status { padding: 6px; border-radius: 8px; font-size: 0.65rem; font-weight: 900; text-align: center; border: 1px solid; }
-        .st-green { background: rgba(0, 255, 136, 0.1); color: var(--primary); border-color: rgba(0, 255, 136, 0.2); }
-        .st-wait { background: rgba(255, 215, 0, 0.1); color: var(--vip); border-color: rgba(255, 215, 0, 0.2); }
-
-        /* Travas VIP */
-        .locked-content { filter: blur(5px); pointer-events: none; opacity: 0.4; }
-        .lock-overlay { position: absolute; background: var(--vip); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 0.7rem; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 5; }
-
-        /* Vitórias Recentes */
-        .grid-vitorias { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-        .card-v { background: var(--card-bg); border-radius: 20px; overflow: hidden; border: 1px solid var(--border); }
-        .card-v img { width: 100%; height: 180px; object-fit: cover; }
-        .card-v-body { padding: 20px; }
-
-        /* Rodapé */
-        footer { border-top: 1px solid var(--border); padding: 60px 5%; text-align: center; color: var(--text-dim); font-size: 0.85rem; }
-
-        @media (max-width: 768px) {
-            .grid-stats { grid-template-columns: 1fr; }
-            .palpite-row { grid-template-columns: 1fr 1fr; }
-            .analisador-card { text-align: center; justify-content: center; }
+        /* RESPONSIVO */
+        @media (max-width: 1100px) {
+            nav { width: 80px; padding: 40px 10px; }
+            .nav-label, .nav-btn span, .nav-logo span, .nav-logo { display: none; }
+            main { margin-left: 80px; padding: 20px; }
+            .palpite-item { grid-template-columns: 1fr 1fr; gap: 15px; }
+            .perf-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <a href="#" style="text-decoration: none; font-weight: 900; font-size: 1.4rem; color: #fff;">
-            SEFULL<span style="color: var(--primary);">BET</span>
-        </a>
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <div style="text-align: right; line-height: 1;">
-                <span style="font-size: 0.8rem; font-weight: 800;"><?php echo $user['nome']; ?></span><br>
-                <span style="font-size: 0.65rem; color: <?php echo $cor_perfil; ?>; font-weight: 900;"><?php echo strtoupper($perfil); ?></span>
-            </div>
-            <a href="logout.php" class="btn-logout">SAIR</a>
-        </div>
-    </header>
-
-    <div class="container">
-        
-        <!-- Seção Analisador -->
-        <section class="hero-dashboard">
-            <div class="hero-badge"><i class="fas fa-microchip"></i> INTELIGÊNCIA ARTIFICIAL ATIVA</div>
-            <div class="analisador-card">
-                <div style="text-align: left;">
-                    <h2 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 10px;">Analisador Pro</h2>
-                    <p style="color: var(--text-dim); font-size: 0.9rem;">
-                        Você possui <b><?php echo $is_platinum ? 'Acesso Ilimitado' : $user['saldo_creditos'] . ' créditos'; ?></b> disponíveis.
-                    </p>
-                </div>
-                <a href="analisador.php" class="btn-main"><i class="fas fa-bolt"></i> Abrir Analisador</a>
-            </div>
-        </section>
-
-        <!-- Seção Performance -->
-        <div class="grid-stats">
-            <div class="card-stat">
-                <div class="stat-header">
-                    <span class="stat-label">Performance Free</span>
-                    <i class="fas fa-chart-line" style="color: var(--text-dim);"></i>
-                </div>
-                <div class="stat-numbers">
-                    <div><span class="stat-label">Total</span><span class="stat-val">45</span></div>
-                    <div><span class="stat-label">Greens</span><span class="stat-val" style="color: var(--primary);">38</span></div>
-                    <div><span class="stat-label">Reds</span><span class="stat-val" style="color: #ff4d4d;">7</span></div>
-                    <div><span class="stat-label">Winrate</span><span class="stat-val">84%</span></div>
-                </div>
-            </div>
-            <div class="card-stat" style="border-color: var(--vip);">
-                <div class="stat-header">
-                    <span class="stat-label" style="color: var(--vip);">Performance VIP</span>
-                    <i class="fas fa-crown" style="color: var(--vip);"></i>
-                </div>
-                <div class="stat-numbers">
-                    <div><span class="stat-label">Total</span><span class="stat-val">120</span></div>
-                    <div><span class="stat-label">Greens</span><span class="stat-val" style="color: var(--primary);">108</span></div>
-                    <div><span class="stat-label">Reds</span><span class="stat-val" style="color: #ff4d4d;">12</span></div>
-                    <div><span class="stat-label">Winrate</span><span class="stat-val" style="color: var(--vip);">90%</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Seção Palpites -->
-        <h3 class="section-title"><i class="fas fa-satellite-dish" style="color: var(--primary);"></i> Feed de Sinais</h3>
-        
-        <!-- Sinal Free -->
-        <div class="palpite-row">
-            <div class="badge-status st-green">VITORIOSO</div>
-            <div>
-                <b style="font-size: 0.95rem;">Flamengo vs Palmeiras</b><br>
-                <small style="color: var(--text-dim);">Hoje 21:30 | Over 1.5 Gols</small>
-            </div>
-            <div style="text-align: center;"><span class="stat-label">ODD</span><br><b style="color: var(--primary);">1.85</b></div>
-            <div style="text-align: right;"><span class="badge-status" style="border-color: var(--border);">FREE</span></div>
-        </div>
-
-        <!-- Sinal VIP -->
-        <div class="palpite-row" style="position: relative; overflow: hidden;">
-            <?php if(!$pode_ver_vip): ?>
-                <div class="lock-overlay"><i class="fas fa-lock"></i> UPGRADE VIP</div>
-            <?php endif; ?>
-            <div class="badge-status st-wait <?php echo !$pode_ver_vip ? 'locked-content' : ''; ?>">AGUARDANDO</div>
-            <div class="<?php echo !$pode_ver_vip ? 'locked-content' : ''; ?>">
-                <b style="font-size: 0.95rem;">Man. City vs Arsenal</b><br>
-                <small style="color: var(--text-dim);">Amanhã 16:00 | ML City</small>
-            </div>
-            <div style="text-align: center;" class="<?php echo !$pode_ver_vip ? 'locked-content' : ''; ?>">
-                <span class="stat-label">ODD</span><br><b>2.10</b>
-            </div>
-            <div style="text-align: right;"><span class="badge-status" style="border-color: var(--vip); color: var(--vip);">VIP GOLD</span></div>
-        </div>
-
-        <!-- Vitórias Recentes -->
-        <h3 class="section-title" style="margin-top: 60px;"><i class="fas fa-fire" style="color: #ff8800;"></i> Vitórias da Comunidade</h3>
-        <div class="grid-vitorias">
-            <div class="card-v">
-                <img src="https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80" alt="Vitória">
-                <div class="card-v-body">
-                    <h4 style="font-size: 1rem; margin-bottom: 5px;">Alavancagem Odd 5.0</h4>
-                    <p style="font-size: 0.8rem; color: var(--text-dim);">Análise de valor em mercados alternativos garantiram lucro máximo...</p>
-                </div>
-            </div>
-        </div>
-
+<nav>
+    <div class="nav-logo">SEFULL<span>BET</span></div>
+    
+    <div class="nav-group">
+        <span class="nav-label">Menu Principal</span>
+        <a class="nav-btn active" href="#"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
+        <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
+        <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Hall da Fama</span></a>
     </div>
 
-    <footer>
-        <div style="font-weight: 900; font-size: 1.4rem; color: #fff; margin-bottom: 15px;">SEFULL<span>BET</span></div>
-        <p>© 2026 SeFullBet - Inteligência de Dados aplicada ao Esporte.<br>Apostas são para maiores de 18 anos. Jogue com responsabilidade.</p>
+    <div class="nav-group">
+        <span class="nav-label">Conteúdo</span>
+        <a class="nav-btn" href="noticias.php"><i class="fas fa-book-open"></i> <span>Estratégias</span></a>
+        <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
+    </div>
+
+    <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php">
+        <i class="fas fa-power-off"></i> <span>Encerrar Sessão</span>
+    </a>
+</nav>
+
+<main>
+    <div class="top-bar">
+        <div class="welcome">
+            <h1 style="color: var(--text-dim); font-weight: 400;">Bem-vindo,</h1>
+            <h1><?php echo explode(' ', $user['nome'])[0]; ?> 👋</h1>
+        </div>
+
+        <div class="user-status">
+            <div class="credit-badge">
+                <span>Saldo de Créditos</span>
+                <div><?php echo $is_platinum ? '∞' : $user['saldo_creditos']; ?></div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 5px;">Status da Conta</div>
+                <div style="color: <?php echo $cor_perfil; ?>; font-weight: 800; font-size: 14px;">
+                    <i class="fas fa-shield-alt"></i> <?php echo strtoupper($perfil); ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="perf-grid">
+        <div class="perf-card perf-free">
+            <div class="perf-header"><span>PERFORMANCE FREE</span> <i class="fas fa-chart-bar"></i></div>
+            <div class="stat-row">
+                <div class="stat-item"><small>Sinais</small><b>45</b></div>
+                <div class="stat-item"><small>Greens</small><b style="color: var(--primary)">38</b></div>
+                <div class="stat-item"><small>Assertividade</small><b>84%</b></div>
+            </div>
+        </div>
+        <div class="perf-card perf-vip">
+            <div class="perf-header" style="color: var(--vip)"><span>PERFORMANCE VIP</span> <i class="fas fa-crown"></i></div>
+            <div class="stat-row">
+                <div class="stat-item"><small>Sinais</small><b>120</b></div>
+                <div class="stat-item"><small>Greens</small><b style="color: var(--primary)">108</b></div>
+                <div class="stat-item"><small>Assertividade</small><b style="color: var(--vip)">90%</b></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <h3 style="font-weight: 800;">🔥 Palpites em Tempo Real</h3>
+        <a href="#" style="color: var(--primary); font-size: 12px; font-weight: 600; text-decoration: none;">Ver Histórico</a>
+    </div>
+
+    <div class="palpite-list">
+        <!-- Exemplo Free -->
+        <div class="palpite-item">
+            <div class="tag tag-green">Finalizado</div>
+            <div>
+                <div style="font-weight: 700; font-size: 14px;">Bayern Munich vs Arsenal</div>
+                <div style="font-size: 12px; color: var(--text-dim);">Champions League • 20:00</div>
+            </div>
+            <div style="font-size: 13px; font-weight: 600;">Ambas Marcam</div>
+            <div class="odd-box"><small>ODD</small><b>1.80</b></div>
+            <div style="text-align: right;"><span style="font-size: 10px; color: var(--text-dim); background: #21262d; padding: 4px 8px; border-radius: 4px;">FREE</span></div>
+        </div>
+
+        <!-- Exemplo VIP com Trava -->
+        <div class="palpite-item">
+            <?php if(!$pode_ver_vip): ?>
+            <div class="lock-overlay">
+                <a href="upgrade.php" class="lock-btn"><i class="fas fa-lock"></i> LIBERAR ACESSO VIP</a>
+            </div>
+            <?php endif; ?>
+            
+            <div class="tag tag-wait <?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">Analizando</div>
+            <div class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">
+                <div style="font-weight: 700; font-size: 14px;">Real Madrid vs Man. City</div>
+                <div style="font-size: 12px; color: var(--text-dim);">Champions League • 21:00</div>
+            </div>
+            <div style="font-size: 13px; font-weight: 600;" class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">Resultado Final</div>
+            <div class="odd-box <?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>"><small>ODD</small><b>2.45</b></div>
+            <div style="text-align: right;"><span style="font-size: 10px; color: var(--vip); border: 1px solid var(--vip); padding: 4px 8px; border-radius: 4px;">VIP</span></div>
+        </div>
+    </div>
+
+    <footer style="margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 11px; display: flex; justify-content: space-between;">
+        <span>&copy; 2024 SeFull Bet AI. Todos os direitos reservados.</span>
+        <span>Apostas envolvem risco. Jogue com responsabilidade.</span>
     </footer>
+</main>
 
 </body>
 </html>
