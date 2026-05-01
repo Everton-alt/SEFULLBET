@@ -2,45 +2,21 @@
 require_once 'config.php';
 header('Content-Type: application/json');
 
-// Recebe os dados enviados via Fetch
-$json = file_get_contents('php://input');
-$dadosPlanilha = json_decode($json, true);
+$dados = json_decode(file_get_contents('php://input'), true);
+if (empty($dados)) { echo json_encode(['conflitos' => []]); exit; }
 
-if (empty($dadosPlanilha)) {
-    echo json_encode(['conflitos' => []]);
-    exit;
-}
+$ids = array_filter(array_map(fn($d) => $d['id'] ?? $d['ID'] ?? null, $dados));
 
-// Coleta todos os IDs da planilha (tenta 'id' ou 'ID')
-$idsEnviados = array_map(function($item) {
-    return $item['id'] ?? $item['ID'] ?? null;
-}, $dadosPlanilha);
+if (empty($ids)) { echo json_encode(['conflitos' => []]); exit; }
 
-$idsEnviados = array_filter($idsEnviados); // Remove nulos
+$placeholders = implode(',', array_fill(0, count($ids), '?'));
+$stmt = $pdo->prepare("SELECT id::text FROM base_analisador WHERE id::text IN ($placeholders)");
+$stmt->execute(array_values($ids));
+$existentes = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-if (empty($idsEnviados)) {
-    echo json_encode(['conflitos' => []]);
-    exit;
-}
+$conflitos = array_filter($dados, function($d) use ($existentes) {
+    $id = (string)($d['id'] ?? $d['ID']);
+    return in_array($id, $existentes);
+});
 
-try {
-    // Cria uma lista de interrogações para o SQL (ex: ?, ?, ?)
-    $placeholders = implode(',', array_fill(0, count($idsEnviados), '?'));
-    
-    // Busca na tabela base_analisador quais desses IDs já existem
-    $sql = "SELECT id FROM base_analisador WHERE id::text IN ($placeholders)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute(array_values($idsEnviados));
-    $idsNoBanco = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    // Filtra os dados da planilha que estão em conflito
-    $conflitos = array_filter($dadosPlanilha, function($linha) use ($idsNoBanco) {
-        $idAtual = $linha['id'] ?? $linha['ID'];
-        return in_array((string)$idAtual, array_map('strval', $idsNoBanco));
-    });
-
-    echo json_encode(['conflitos' => array_values($conflitos)]);
-
-} catch (PDOException $e) {
-    echo json_encode(['erro' => $e->getMessage()]);
-}
+echo json_encode(['conflitos' => array_values($conflitos)]);
