@@ -18,14 +18,7 @@ if (!in_array($user['perfil'], ['Supervisor', 'Admin'])) {
     exit();
 }
 
-$perfil = $user['perfil']; 
-$cores = [
-    'Grátis' => '#8b949e', 'VIP' => '#ffd700', 'Platinum' => '#ffffff',
-    'Supervisor' => '#00e5ff', 'Admin' => '#00ff88'
-];
-$cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
-
-// --- Lógica de Estatísticas Reais para a Gestão ---
+// --- Lógica de Estatísticas Reais ---
 function getStats($pdo, $cat) {
     $t = $pdo->prepare("SELECT COUNT(*) FROM sinais WHERE p_categoria = ?");
     $t->execute([$cat]);
@@ -63,7 +56,6 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
     <style>
         :root {
             --primary: #00ff88;
-            --primary-glow: rgba(0, 255, 136, 0.3);
             --bg: #0d1117;
             --card: #161b22;
             --border: #30363d;
@@ -71,7 +63,6 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
             --text-dim: #8b949e;
             --vip: #ffd700;
             --danger: #ff4d4d;
-            --info: #00e5ff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -79,17 +70,15 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
         body { 
             background-color: var(--bg); 
             color: var(--text-main);
-            background-image: radial-gradient(circle at 0% 0%, rgba(0, 255, 136, 0.05) 0%, transparent 40%);
             display: flex;
             min-height: 100vh;
         }
 
-        /* SIDEBAR UNIFICADA */
+        /* SIDEBAR COMPLETA DASHBOARD */
         nav { 
-            width: 280px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
+            width: 280px; background: rgba(22, 27, 34, 0.95); backdrop-filter: blur(10px);
             border-right: 1px solid var(--border); padding: 30px 15px;
-            display: flex; flex-direction: column; position: fixed; height: 100vh;
-            overflow-y: auto;
+            display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
         }
 
         .nav-logo { font-weight: 800; font-size: 1.6rem; letter-spacing: -1px; margin-bottom: 30px; text-align: center; }
@@ -108,43 +97,49 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
         /* MAIN CONTENT */
         main { flex: 1; margin-left: 280px; padding: 40px 60px; width: calc(100% - 280px); }
 
-        /* FORMULÁRIO DE GESTÃO */
-        .form-container { 
-            background: var(--card); border: 1px solid var(--border); 
-            padding: 30px; border-radius: 20px; margin-bottom: 40px; 
+        /* PERFORMANCE CARDS (ESTILO IMAGEM REFERÊNCIA) */
+        .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        .perf-card { 
+            background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); 
+            border-left: 4px solid var(--primary);
         }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+        .perf-vip { border-left-color: var(--vip); }
+        .perf-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+        .stat-box span { display: block; font-size: 9px; color: var(--text-dim); margin-bottom: 8px; font-weight: 800; text-transform: uppercase; }
+        .stat-box b { font-size: 20px; font-weight: 800; }
+
+        /* FORMULÁRIO COM CAMPOS SEPARADOS */
+        .form-container { background: var(--card); border: 1px solid var(--border); padding: 25px; border-radius: 20px; margin-bottom: 30px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1.5fr 0.8fr 1.2fr 0.8fr 1.2fr 0.8fr; gap: 12px; align-items: flex-end; }
         .input-group label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
         .input-group input, .input-group select { 
             width: 100%; background: #0d1117; border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 10px; outline: none; font-size: 13px;
         }
         .btn-pub { 
             grid-column: 1 / -1; background: var(--primary); color: #0d1117; border: none; padding: 15px; 
-            border-radius: 12px; font-weight: 800; cursor: pointer; margin-top: 10px; text-transform: uppercase;
+            border-radius: 10px; font-weight: 800; cursor: pointer; margin-top: 15px; text-transform: uppercase;
         }
 
-        /* TABELA DE SINAIS */
+        /* TABELA COM CAMPOS SEPARADOS */
         .table-wrapper { background: var(--card); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(255,255,255,0.02); padding: 15px 20px; text-align: left; font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
-        td { padding: 18px 20px; border-bottom: 1px solid var(--border); font-size: 13px; }
+        th { background: rgba(255,255,255,0.02); padding: 15px 20px; text-align: left; font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
+        td { padding: 15px 20px; border-bottom: 1px solid var(--border); font-size: 12px; }
         
-        .tag-status { padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-        .st-green { background: rgba(0, 255, 136, 0.1); color: var(--primary); }
-        .st-red { background: rgba(255, 77, 77, 0.1); color: var(--danger); }
-        .st-pendente { background: rgba(255, 215, 0, 0.1); color: var(--vip); }
+        .tag-tipo { padding: 4px 8px; border-radius: 4px; font-size: 9px; font-weight: 800; background: rgba(0, 255, 136, 0.1); color: var(--primary); }
+        .tag-status { padding: 4px 8px; border-radius: 6px; font-size: 9px; font-weight: 800; border: 1px solid; }
+        .st-green { color: var(--primary); border-color: var(--primary); }
+        .st-red { color: var(--danger); border-color: var(--danger); }
+        .st-pendente { color: var(--vip); border-color: var(--vip); }
 
-        /* PERFORMANCE CARDS */
-        .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
-        .perf-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); }
-        .perf-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
-        .stat-box span { display: block; font-size: 10px; color: var(--text-dim); margin-bottom: 5px; }
-        .stat-box b { font-size: 20px; font-weight: 800; }
+        .action-icons i { margin-left: 12px; cursor: pointer; color: var(--text-dim); transition: 0.2s; }
+        .action-icons i:hover { color: #fff; }
 
         @media (max-width: 1100px) {
             nav { width: 80px; }
             .nav-label, .nav-btn span, .nav-logo { display: none; }
             main { margin-left: 80px; width: calc(100% - 80px); padding: 20px; }
+            .form-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -155,18 +150,22 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
     
     <div class="nav-group">
         <span class="nav-label">Menu Principal</span>
-        <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
+        <a class="nav-btn active" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
+        
+        <!-- Novos itens adicionados -->
         <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
         <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
         <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
         <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
+        
+        <!-- Itens mantidos dos grupos anteriores -->
         <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
         <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
 
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 10px;">
         
-        <span class="nav-label">Gestão Administrativa</span>
-        <a class="nav-btn active" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
+        <!-- Gestão Administrativa -->
+        <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
         <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
         <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
         <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
@@ -178,42 +177,31 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
 </nav>
 
 <main>
-    <div style="margin-bottom: 30px;">
-        <h1 style="font-weight: 800;">Gestão de Sinais</h1>
-        <p style="color: var(--text-dim); font-size: 14px;">Publique novos palpites e gerencie os resultados em tempo real.</p>
-    </div>
-
-    <!-- PERFORMANCE REAL -->
+    <!-- PERFORMANCE REAL (Cards Superiores) -->
     <div class="perf-grid">
         <div class="perf-card">
-            <div class="perf-header" style="font-size: 11px; font-weight: 800; color: var(--text-dim); margin-bottom: 15px;">
-                PERFORMANCE GRÁTIS
-            </div>
             <div class="perf-stats-row">
-                <div class="stat-box"><span>TOTAL</span><b><?= $stats_gratis['t'] ?></b></div>
+                <div class="stat-box"><span>TOTAL GRÁTIS</span><b><?= $stats_gratis['t'] ?></b></div>
                 <div class="stat-box"><span>GREENS</span><b style="color:var(--primary)"><?= $stats_gratis['g'] ?></b></div>
                 <div class="stat-box"><span>REDS</span><b style="color:var(--danger)"><?= $stats_gratis['r'] ?></b></div>
-                <div class="stat-box"><span>WIN%</span><b><?= $stats_gratis['p'] ?></b></div>
+                <div class="stat-box"><span>ASSERTIVIDADE</span><b style="color:var(--primary)"><?= $stats_gratis['p'] ?></b></div>
             </div>
         </div>
-        <div class="perf-card" style="border-color: var(--vip);">
-            <div class="perf-header" style="font-size: 11px; font-weight: 800; color: var(--vip); margin-bottom: 15px;">
-                PERFORMANCE VIP
-            </div>
+        <div class="perf-card perf-vip">
             <div class="perf-stats-row">
-                <div class="stat-box"><span>TOTAL</span><b><?= $stats_vip['t'] ?></b></div>
+                <div class="stat-box"><span>TOTAL VIP</span><b><?= $stats_vip['t'] ?></b></div>
                 <div class="stat-box"><span>GREENS</span><b style="color:var(--primary)"><?= $stats_vip['g'] ?></b></div>
                 <div class="stat-box"><span>REDS</span><b style="color:var(--danger)"><?= $stats_vip['r'] ?></b></div>
-                <div class="stat-box"><span>WIN%</span><b><?= $stats_vip['p'] ?></b></div>
+                <div class="stat-box"><span>ASSERTIVIDADE</span><b style="color:var(--primary)"><?= $stats_vip['p'] ?></b></div>
             </div>
         </div>
     </div>
 
-    <!-- FORMULÁRIO -->
+    <!-- FORMULÁRIO (TODOS OS CAMPOS SEPARADOS) -->
     <section class="form-container">
         <form action="processar_sinal.php" method="POST" class="form-grid">
             <div class="input-group">
-                <label>Categoria</label>
+                <label>Tipo</label>
                 <select name="p_categoria">
                     <option value="Grátis">GRÁTIS</option>
                     <option value="VIP">VIP</option>
@@ -224,6 +212,18 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
                 <input type="text" name="p_confronto" placeholder="Ex: Santos x Inter" required>
             </div>
             <div class="input-group">
+                <label>Placar</label>
+                <input type="text" name="p_placar" placeholder="0x0">
+            </div>
+            <div class="input-group">
+                <label>Data Evento</label>
+                <input type="date" name="p_data" value="<?= date('Y-m-d') ?>">
+            </div>
+            <div class="input-group">
+                <label>Hora</label>
+                <input type="time" name="p_hora">
+            </div>
+            <div class="input-group">
                 <label>Mercado</label>
                 <input type="text" name="p_mercado" placeholder="Ex: Over 2.5" required>
             </div>
@@ -231,22 +231,21 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
                 <label>Odd</label>
                 <input type="text" name="p_odd" placeholder="1.80" required>
             </div>
-            <div class="input-group">
-                <label>Data</label>
-                <input type="date" name="p_data" value="<?= date('Y-m-d') ?>">
-            </div>
-            <button type="submit" class="btn-pub">Publicar Sinal Agora</button>
+            <button type="submit" class="btn-pub">Publicar Palpite Agora</button>
         </form>
     </section>
 
-    <!-- TABELA -->
+    <!-- TABELA (TODOS OS CAMPOS SEPARADOS) -->
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>Código</th>
-                    <th>Categoria</th>
+                    <th>ID</th>
+                    <th>Tipo</th>
                     <th>Confronto</th>
+                    <th>Placar</th>
+                    <th>Data</th>
+                    <th>Hora</th>
                     <th>Mercado</th>
                     <th>Odd</th>
                     <th>Status</th>
@@ -256,20 +255,23 @@ $sinais = $pdo->query("SELECT * FROM sinais ORDER BY id DESC LIMIT $limit OFFSET
             <tbody>
                 <?php foreach($sinais as $s): ?>
                 <tr>
-                    <td style="color: var(--primary); font-family: monospace; font-weight: 700;"><?= $s['p_codigo'] ?></td>
-                    <td><b style="color: <?= ($s['p_categoria'] == 'VIP') ? 'var(--vip)' : 'var(--text-dim)' ?>"><?= strtoupper($s['p_categoria']) ?></b></td>
-                    <td><?= $s['p_confronto'] ?></td>
+                    <td style="color: var(--primary); font-family: monospace; font-size: 11px;"><?= $s['p_codigo'] ?></td>
+                    <td><span class="tag-tipo <?= ($s['p_categoria'] == 'VIP') ? 'tag-vip' : '' ?>"><?= strtoupper($s['p_categoria']) ?></span></td>
+                    <td style="font-weight: 600;"><?= $s['p_confronto'] ?></td>
+                    <td style="font-weight: 800; color: var(--primary);"><?= $s['p_placar'] ?: '0x0' ?></td>
+                    <td><?= date('d/m/Y', strtotime($s['p_data'])) ?></td>
+                    <td style="color: var(--text-dim);"><?= $s['p_hora'] ?: '--:--' ?></td>
                     <td><?= $s['p_mercado'] ?></td>
                     <td><b><?= number_format($s['p_odd'], 2) ?></b></td>
                     <td>
                         <span class="tag-status st-<?= strtolower($s['p_status']) ?>">
-                            <?= $s['p_status'] ?>
+                            <?= strtoupper($s['p_status']) ?>
                         </span>
                     </td>
-                    <td style="text-align:right">
-                        <a href="status.php?id=<?= $s['id'] ?>&set=Green" title="Green"><i class="fas fa-check-circle" style="color: var(--primary); margin-left: 10px; cursor:pointer;"></i></a>
-                        <a href="status.php?id=<?= $s['id'] ?>&set=Red" title="Red"><i class="fas fa-times-circle" style="color: var(--danger); margin-left: 10px; cursor:pointer;"></i></a>
-                        <a href="apagar.php?id=<?= $s['id'] ?>" title="Excluir"><i class="fas fa-trash" style="color: var(--text-dim); margin-left: 10px; cursor:pointer;"></i></a>
+                    <td class="action-icons" style="text-align:right">
+                        <a href="status.php?id=<?= $s['id'] ?>&set=Green" title="Green"><i class="fas fa-check-circle" style="color: var(--primary)"></i></a>
+                        <a href="status.php?id=<?= $s['id'] ?>&set=Red" title="Red"><i class="fas fa-times-circle" style="color: var(--danger)"></i></a>
+                        <a href="apagar.php?id=<?= $s['id'] ?>"><i class="fas fa-trash"></i></a>
                     </td>
                 </tr>
                 <?php endforeach; ?>
