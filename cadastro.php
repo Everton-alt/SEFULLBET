@@ -1,6 +1,11 @@
 <?php
 require_once 'config.php';
-session_start();
+
+// Evita o erro de sessão já ativa
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $mensagem = ""; 
 $erro = "";
 
@@ -20,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $status_inicial = 'Ativo';
 
     try {
-        // Ajuste Cirúrgico 2: SQL alinhado com as colunas padrão
-        $sql = "INSERT INTO usuarios (nome, login, email, senha, perfil, creditos, status, plano_interesse) 
+        // Ajuste Cirúrgico 2: SQL alinhado com a coluna saldo_creditos da Dashboard
+        $sql = "INSERT INTO usuarios (nome, login, email, senha, perfil, saldo_creditos, status, plano_interesse) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$nome, $login, $email, $senha, $perfil_inicial, $creditos_iniciais, $status_inicial, $plano_escolhido]);
@@ -137,7 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="input-wrapper">
                         <i class="fa-solid fa-crown"></i>
                         <select name="plano" required>
-                            <!-- Ajuste Cirúrgico 3: Select dinâmico -->
                             <option value="Grátis" <?= $plano_pre_selecionado == 'Grátis' ? 'selected' : '' ?>>Grátis (1 Crédito)</option>
                             <option value="VIP" <?= $plano_pre_selecionado == 'VIP' ? 'selected' : '' ?>>VIP (30 Créditos/Mês)</option>
                             <option value="Platinum" <?= $plano_pre_selecionado == 'Platinum' ? 'selected' : '' ?>>Platinum (Ilimitado)</option>
@@ -163,7 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 
-    <!-- MODAL TERMOS MANTIDO ORIGINAL -->
     <div id="modal-terms">
         <div class="modal-content">
             <div class="modal-body">
