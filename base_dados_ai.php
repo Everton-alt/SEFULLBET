@@ -98,13 +98,35 @@ $total_paginas = ceil($total_registros / $itens_por_pagina);
 <body>
 
 <nav>
-    <h2 style="color: var(--primary)">SEFULL<span>BET</span></h2>
-    <div style="margin-top: 40px;">
-        <p style="font-size: 10px; color: #4a5568; text-transform: uppercase; font-weight: 800;">Administração</p>
-        <a href="gestao_sinais.php" style="color: #a0aec0; text-decoration: none; display: block; padding: 10px 0;"><i class="fas fa-signal"></i> Sinais</a>
-        <a href="base_dados_ai.php" style="color: white; text-decoration: none; display: block; padding: 10px 0; font-weight: 700;"><i class="fas fa-database"></i> Base de Dados AI</a>
-        <a href="importar_dados.php" style="color: #a0aec0; text-decoration: none; display: block; padding: 10px 0;"><i class="fas fa-file-import"></i> Importar Dados</a>
+    <div class="nav-logo">SEFULL<span>BET</span></div>
+    
+    <div class="nav-group">
+        <span class="nav-label">Menu Principal</span>
+        <a class="nav-btn active" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
+        
+        <!-- Novos itens adicionados -->
+        <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
+        <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
+        <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
+        <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
+        
+        <!-- Itens mantidos dos grupos anteriores -->
+        <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
+        <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 10px;">
+        
+        <!-- Gestão Administrativa -->
+        <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
+        <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+        <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-file-import"></i> <span>Verificar Dados importados</span></a>
+        <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
+        <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
+        <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
+        <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
     </div>
+
+    <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
 </nav>
 
 <main>
