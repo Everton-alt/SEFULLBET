@@ -13,7 +13,7 @@ $user = $stmt->fetch();
 
 $perfil = $user['perfil']; 
 
-// Busca os dados da tabela BASE_HISTORICA para o processamento da IA
+// Busca os dados da tabela BASE_HISTORICA (Limitado a 5000 para performance)
 $stmt_data = $pdo->query("SELECT * FROM base_historica ORDER BY id DESC LIMIT 5000");
 $dados_historicos = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
 
@@ -150,9 +150,9 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     </div>
 
     <div class="input-card">
-        <div class="input-group"><label>Odd Casa</label><input type="number" id="o-casa" step="0.01" placeholder="1.85"></div>
-        <div class="input-group"><label>Odd Empate</label><input type="number" id="o-empate" step="0.01" placeholder="3.40"></div>
-        <div class="input-group"><label>Odd Fora</label><input type="number" id="o-fora" step="0.01" placeholder="4.50"></div>
+        <div class="input-group"><label>Odd Casa</label><input type="text" id="o-casa" placeholder="1.85"></div>
+        <div class="input-group"><label>Odd Empate</label><input type="text" id="o-empate" placeholder="3.40"></div>
+        <div class="input-group"><label>Odd Fora</label><input type="text" id="o-fora" placeholder="4.50"></div>
         <button class="btn-analisar" onclick="processarIA()"><i class="fas fa-sync-alt"></i> Analisar Agora</button>
     </div>
 
@@ -175,10 +175,16 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 <script>
 const DB = <?= json_encode($dados_historicos) ?>;
 
+// Função universal para tratar números (aceita ponto ou vírgula)
+function limparNumero(val) {
+    if (!val) return 0;
+    return parseFloat(val.toString().replace(',', '.'));
+}
+
 function processarIA() {
-    const oc = parseFloat(document.getElementById('o-casa').value);
-    const oe = parseFloat(document.getElementById('o-empate').value);
-    const of = parseFloat(document.getElementById('o-fora').value);
+    const oc = limparNumero(document.getElementById('o-casa').value);
+    const oe = limparNumero(document.getElementById('o-empate').value);
+    const of = limparNumero(document.getElementById('o-fora').value);
 
     if(!oc || !oe || !of) return alert("Por favor, insira as odds para iniciar a análise.");
 
@@ -186,10 +192,15 @@ function processarIA() {
     
     setTimeout(() => {
         const similares = DB.map(j => {
+            // Tratamento das odds do Banco de Dados (vêm com vírgula nas imagens)
+            const ocDB = limparNumero(j.odd_casa);
+            const oeDB = limparNumero(j.odd_empate);
+            const ofDB = limparNumero(j.odd_fora);
+
             const diff = Math.sqrt(
-                Math.pow(parseFloat(j.odd_casa)-oc, 2) + 
-                Math.pow(parseFloat(j.odd_empate)-oe, 2) + 
-                Math.pow(parseFloat(j.odd_fora)-of, 2)
+                Math.pow(ocDB - oc, 2) + 
+                Math.pow(oeDB - oe, 2) + 
+                Math.pow(ofDB - of, 2)
             );
             return {...j, diff};
         }).sort((a,b) => a.diff - b.diff).slice(0, 40);
@@ -205,6 +216,7 @@ function processarIA() {
 function renderizar(dados) {
     const total = dados.length;
     
+    // Funções de porcentagem com verificação de string
     const pRES = (v) => (dados.filter(j => j.resultado === v).length / total * 100).toFixed(1);
     const pAMB = (v) => (dados.filter(j => j.ambos_marcam === v).length / total * 100).toFixed(1);
     const pOVR = (c, v) => (dados.filter(j => j[c] === v).length / total * 100).toFixed(1);
@@ -220,7 +232,7 @@ function renderizar(dados) {
     const probO45 = parseFloat(pOVR('over_45', 'Sim'));
     const probU45 = (100 - probO45).toFixed(1);
 
-    // Renderização das Colunas Estáticas
+    // Renderização Principal
     document.getElementById('col-principal').innerHTML = `
         <div class="data-row"><span>Vitória Casa</span><b>${probCasa}%</b></div>
         <div class="data-row"><span>Empate</span><b>${probEmpa}%</b></div>
@@ -250,14 +262,17 @@ function renderizar(dados) {
         <div class="data-row"><span>-4.5 Gols</span><b>${probU45}%</b></div>
     `;
 
-    const mediaGols = (dados.reduce((acc, j) => acc + parseFloat(j.gols_total || 0), 0) / total).toFixed(2);
+    // Média de Gols (Tratando possíveis erros de string no gols_total)
+    const somaGols = dados.reduce((acc, j) => acc + limparNumero(j.gols_total || 0), 0);
+    const mediaGols = (somaGols / total).toFixed(2);
+
     document.getElementById('col-medias').innerHTML = `
         <div class="data-row"><span>Gols p/ Jogo</span><b>${mediaGols}</b></div>
         <div class="data-row"><span>Amostra (N)</span><b>${total}</b></div>
-        <div class="data-row"><span>Confiança</span><b>Alta</b></div>
+        <div class="data-row"><span>Confiança</span><b>${total >= 40 ? 'Alta' : 'Média'}</b></div>
     `;
 
-    // --- Ranking Dinâmico Revisado ---
+    // --- Ranking Dinâmico ---
     let ranking = [
         { n: "Vitória Casa", v: probCasa },
         { n: "Vitória Fora", v: probFora },
