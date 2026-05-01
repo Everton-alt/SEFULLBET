@@ -146,31 +146,31 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         <span class="nav-label">Menu Principal</span>
         <a class="nav-btn active" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
         
-        <!-- Novos itens adicionados -->
         <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
         <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
         <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
         <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
         
-        <!-- Itens mantidos dos grupos anteriores -->
         <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
         <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
 
-        <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 10px;">
-        
-        <!-- Gestão Administrativa -->
-        <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
-        <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
-        <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-file-import"></i> <span>Verificar Dados importados</span></a>
-        <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
-        <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
-        <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
-        <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
+        <?php if (in_array($perfil, ['Supervisor', 'Admin'])): ?>
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 10px;">
+            <span class="nav-label">Gestão Administrativa</span>
+            <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
+            <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+            <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-file-import"></i> <span>Verificar Dados importados</span></a>
+            <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
+            <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
+            <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
+            <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
+        <?php endif; ?>
     </div>
 
     <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
 </nav>
 <main>
+    <!-- O restante do código do seu Dashboard permanece igual -->
     <!-- CABEÇALHO -->
     <div class="top-bar">
         <div class="welcome">
@@ -196,10 +196,10 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
                 <i class="fas fa-chart-line"></i> PERFORMANCE GRÁTIS
             </div>
             <div class="perf-stats-row">
-                <div class="stat-box"><span>TOTAL</span><b>45</b></div>
-                <div class="stat-box"><span>GREENS</span><b class="stat-green">38</b></div>
-                <div class="stat-box"><span>REDS</span><b class="stat-red">7</b></div>
-                <div class="stat-box"><span>WIN%</span><b>84%</b></div>
+                <div class="stat-box"><span>TOTAL</span><b><?= $stats_gratis['t'] ?></b></div>
+                <div class="stat-box"><span>GREENS</span><b class="stat-green"><?= $stats_gratis['g'] ?></b></div>
+                <div class="stat-box"><span>REDS</span><b class="stat-red"><?= $stats_gratis['r'] ?></b></div>
+                <div class="stat-box"><span>WIN%</span><b><?= $stats_gratis['p'] ?></b></div>
             </div>
         </div>
 
@@ -208,10 +208,10 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
                 <i class="fas fa-gem"></i> PERFORMANCE VIP
             </div>
             <div class="perf-stats-row">
-                <div class="stat-box"><span>TOTAL</span><b>120</b></div>
-                <div class="stat-box"><span>GREENS</span><b class="stat-green">108</b></div>
-                <div class="stat-box"><span>REDS</span><b class="stat-red">12</b></div>
-                <div class="stat-box"><span>WIN%</span><b>90%</b></div>
+                <div class="stat-box"><span>TOTAL</span><b><?= $stats_vip['t'] ?></b></div>
+                <div class="stat-box"><span>GREENS</span><b class="stat-green"><?= $stats_vip['g'] ?></b></div>
+                <div class="stat-box"><span>REDS</span><b class="stat-red"><?= $stats_vip['r'] ?></b></div>
+                <div class="stat-box"><span>WIN%</span><b><?= $stats_vip['p'] ?></b></div>
             </div>
         </div>
     </div>
