@@ -332,7 +332,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     </div>
 
     <footer style="margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 11px; display: flex; justify-content: space-between;">
-        <span>&copy; 2024 SeFull Bet AI. Todos os direitos reservados.</span>
+        <span>&copy; © 2026 SeFullBet - Inteligência de Dados aplicada ao Esporte.</span>
         <span>Apostas envolvem risco. Jogue com responsabilidade.</span>
     </footer>
 </main>
