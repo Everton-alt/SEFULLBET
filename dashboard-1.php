@@ -36,26 +36,45 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow: hidden; }
+        
+        /* Removido o overflow: hidden para liberar a rolagem natural da página */
+        body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
 
-        /* Custom Scrollbar */
-        main::-webkit-scrollbar {
-            width: 8px;
+        /* Custom Scrollbar Global Mais Bonita */
+        ::-webkit-scrollbar {
+            width: 12px;
         }
-        main::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
             background: var(--bg);
         }
-        main::-webkit-scrollbar-thumb {
-            background: var(--border);
+        ::-webkit-scrollbar-thumb {
+            background: #1c222d;
             border-radius: 10px;
-            border: 2px solid var(--bg);
+            border: 3px solid var(--bg); /* Cria uma margem interna elegante */
+            transition: 0.3s;
         }
-        main::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary); /* Fica verde neon ao passar o mouse */
         }
 
         /* Sidebar Moderna */
-        nav { width: 260px; background: var(--card); border-right: 1px solid var(--border); padding: 30px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        nav { 
+            width: 260px; 
+            background: var(--card); 
+            border-right: 1px solid var(--border); 
+            padding: 30px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            flex-shrink: 0; 
+            /* Fixando o menu na lateral enquanto a página rola */
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto; /* Permite rolar apenas o menu caso tenha muitos itens no futuro */
+        }
+        /* Esconde a scrollbar específica do menu para um visual mais limpo */
+        nav::-webkit-scrollbar { width: 0; }
+
         .nav-logo { font-size: 1.6rem; font-weight: 900; color: var(--primary); margin-bottom: 40px; text-align: center; letter-spacing: -1px; }
         .nav-logo span { color: #fff; }
         
@@ -68,7 +87,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .btn-logout:hover { opacity: 0.7; }
 
         /* Conteúdo Principal */
-        main { flex: 1; padding: 30px; overflow-y: auto; scroll-behavior: smooth; }
+        main { flex: 1; padding: 30px; scroll-behavior: smooth; }
 
         /* Banner Neon do Analisador */
         .neon-banner { 
