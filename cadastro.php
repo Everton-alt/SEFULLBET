@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+session_start();
 $mensagem = ""; 
 $erro = "";
 
@@ -25,11 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$nome, $login, $email, $senha, $perfil_inicial, $creditos_iniciais, $status_inicial, $plano_escolhido]);
         
-        if ($plano_escolhido == 'Grátis') {
-            $mensagem = "Conta criada com sucesso! Você já tem 1 crédito liberado.";
-        } else {
-            $mensagem = "Bem-vindo! Sua conta está liberada no modo Grátis. O plano $plano_escolhido será ativado assim que o Administrador aprovar seu pedido.";
-        }
+        $_SESSION['usuario_id'] = $pdo->lastInsertId();
+        $_SESSION['usuario_nome'] = $nome;
+
+        header("Location: dashboard.php");
+        exit();
+        
     } catch (PDOException $e) { 
         if ($e->getCode() == 23000) {
             $erro = "Este Login ou E-mail já está em uso.";
