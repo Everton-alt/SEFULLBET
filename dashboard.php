@@ -15,23 +15,26 @@ $perfil = $user['perfil'];
 $pode_ver_vip = in_array($perfil, ['VIP', 'Platinum', 'Supervisor', 'Admin']);
 $is_platinum = ($perfil === 'Platinum');
 
-// --- ATUALIZAÇÃO DOS CONTADORES ---
-$stats_gratis = ['t' => 0, 'g' => 0, 'r' => 0, 'p' => '0%'];
-$stats_vip    = ['t' => 0, 'g' => 0, 'r' => 0, 'p' => '0%'];
+// --- ATUALIZAÇÃO DOS CONTADORES (ESPELHADO DA GESTÃO) ---
+function getStats($pdo, $cat) {
+    $t = $pdo->prepare("SELECT COUNT(*) FROM sinais WHERE p_categoria = ?");
+    $t->execute([$cat]);
+    $total = $t->fetchColumn();
 
-try {
-    // Consulta para Grátis
-    $qG = $pdo->query("SELECT COUNT(*) as t, SUM(CASE WHEN status='Green' THEN 1 ELSE 0 END) as g, SUM(CASE WHEN status='Red' THEN 1 ELSE 0 END) as r FROM sinais WHERE tipo='Grátis'")->fetch();
-    if($qG && $qG['t'] > 0) {
-        $stats_gratis = ['t' => $qG['t'], 'g' => $qG['g'], 'r' => $qG['r'], 'p' => round(($qG['g'] / $qG['t']) * 100) . '%'];
-    }
+    $g = $pdo->prepare("SELECT COUNT(*) FROM sinais WHERE p_categoria = ? AND p_status = 'Green'");
+    $g->execute([$cat]);
+    $greens = $g->fetchColumn();
 
-    // Consulta para VIP
-    $qV = $pdo->query("SELECT COUNT(*) as t, SUM(CASE WHEN status='Green' THEN 1 ELSE 0 END) as g, SUM(CASE WHEN status='Red' THEN 1 ELSE 0 END) as r FROM sinais WHERE tipo='VIP'")->fetch();
-    if($qV && $qV['t'] > 0) {
-        $stats_vip = ['t' => $qV['t'], 'g' => $qV['g'], 'r' => $qV['r'], 'p' => round(($qV['g'] / $qV['t']) * 100) . '%'];
-    }
-} catch (Exception $e) { }
+    $r = $pdo->prepare("SELECT COUNT(*) FROM sinais WHERE p_categoria = ? AND p_status = 'Red'");
+    $r->execute([$cat]);
+    $reds = $r->fetchColumn();
+
+    $percent = ($total > 0) ? round(($greens / ($greens + $reds ?: 1)) * 100, 1) : 0;
+    return ['t' => $total, 'g' => $greens, 'r' => $reds, 'p' => $percent . '%'];
+}
+
+$stats_gratis = getStats($pdo, 'Grátis');
+$stats_vip    = getStats($pdo, 'VIP');
 // --- FIM DA ATUALIZAÇÃO ---
 
 $cores = [
@@ -72,7 +75,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             min-height: 100vh;
         }
 
-        /* SIDEBAR - Ajustada para acomodar todos os itens */
         nav { 
             width: 280px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
             border-right: 1px solid var(--border); padding: 30px 15px;
@@ -94,17 +96,15 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .nav-btn.active { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2); }
 
-        /* MAIN CONTENT */
         main { flex: 1; margin-left: 280px; padding: 40px 60px; max-width: 1200px; }
 
-        /* HEADER CARDS */
         .top-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
         .user-status { 
+
             background: var(--card); padding: 20px 30px; border-radius: 20px; border: 1px solid var(--border);
             display: flex; align-items: center; gap: 25px;
         }
 
-        /* PERFORMANCE GRID */
         .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
         .perf-card { 
             background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); 
