@@ -38,6 +38,22 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow: hidden; }
 
+        /* Custom Scrollbar */
+        main::-webkit-scrollbar {
+            width: 8px;
+        }
+        main::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        main::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+            border: 2px solid var(--bg);
+        }
+        main::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
         /* Sidebar Moderna */
         nav { width: 260px; background: var(--card); border-right: 1px solid var(--border); padding: 30px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
         .nav-logo { font-size: 1.6rem; font-weight: 900; color: var(--primary); margin-bottom: 40px; text-align: center; letter-spacing: -1px; }
