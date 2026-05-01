@@ -14,10 +14,11 @@ $user = $stmt->fetch();
 $perfil = $user['perfil']; 
 
 // Busca os dados da tabela BASE_HISTORICA para o processamento da IA
-$stmt_data = $pdo->query("SELECT * FROM BASE_HISTORICA ORDER BY id DESC LIMIT 5000");
+// Note que usamos o nome exato da tabela no banco: base_historica
+$stmt_data = $pdo->query("SELECT * FROM base_historica ORDER BY id DESC LIMIT 5000");
 $dados_historicos = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
 
-// Lógica de Débito de Créditos (Grátis e VIP descontam, Platinum/Admin não)
+// Lógica de Débito de Créditos
 if (isset($_POST['action']) && $_POST['action'] == 'debitar') {
     if (!in_array($perfil, ['Admin', 'Platinum', 'Supervisor'])) {
         $pdo->prepare("UPDATE usuarios SET saldo_creditos = saldo_creditos - 1 WHERE id = ? AND saldo_creditos > 0")->execute([$_SESSION['usuario_id']]);
@@ -54,7 +55,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; }
 
-        /* Menu Lateral (Dashboard Style) */
         nav { 
             width: 280px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
             border-right: 1px solid var(--border); padding: 30px 15px;
@@ -69,7 +69,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 
         main { flex: 1; margin-left: 280px; padding: 40px 60px; max-width: 1400px; }
 
-        /* Interface Input */
         .input-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; gap: 20px; align-items: flex-end; }
         .input-group { flex: 1; }
         .input-group label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
@@ -77,13 +76,11 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .btn-analisar { padding: 0 40px; background: var(--primary); color: #0d1117; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; text-transform: uppercase; height: 55px; transition: 0.3s; }
         .btn-analisar:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 5px 15px var(--primary-glow); }
 
-        /* Top Sugestões */
         .best-entries-container { border: 2px solid var(--primary); border-radius: 20px; padding: 25px; margin-bottom: 30px; background: linear-gradient(135deg, rgba(0, 255, 136, 0.05) 0%, transparent 100%); }
         .best-entries-title { color: var(--primary); font-weight: 900; font-size: 1.1rem; margin-bottom: 20px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
         .entry-row { background: rgba(255,255,255,0.03); border-radius: 50px; padding: 12px 25px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
         .entry-perc { background: var(--primary); color: #000; font-weight: 900; padding: 5px 15px; border-radius: 20px; min-width: 80px; text-align: center; }
 
-        /* Grid Stats */
         .stats-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 30px; }
         .stat-col { background: var(--card); border-radius: 15px; border: 1px solid var(--border); padding: 20px; }
         .stat-col h4 { font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; letter-spacing: 1px; }
@@ -91,7 +88,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .data-row span { color: var(--text-dim); }
         .data-row b { color: var(--primary); }
 
-        /* Loader */
         #loader { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(13,17,23,0.98); z-index:1000; flex-direction:column; justify-content:center; align-items:center; }
         .spinner { width: 60px; height: 60px; border: 5px solid #161b22; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -137,7 +133,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 </nav>
 
 <main>
-    <!-- TOP BAR (Dashboard Style) -->
     <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px;">
         <div>
             <h1 style="color: var(--text-dim); font-weight: 400; font-size: 1.1rem;">Bem-vindo ao Analisador,</h1>
@@ -155,7 +150,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         </div>
     </div>
 
-    <!-- INPUT ODDS -->
     <div class="input-card">
         <div class="input-group"><label>Odd Casa</label><input type="number" id="o-casa" step="0.01" placeholder="1.85"></div>
         <div class="input-group"><label>Odd Empate</label><input type="number" id="o-empate" step="0.01" placeholder="3.40"></div>
@@ -163,7 +157,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         <button class="btn-analisar" onclick="processarIA()"><i class="fas fa-sync-alt"></i> Analisar Agora</button>
     </div>
 
-    <!-- RESULTADO -->
     <div id="resultado-display" style="display: none;">
         <div class="best-entries-container">
             <div class="best-entries-title"><i class="fas fa-fire"></i> Melhores Oportunidades Encontradas</div>
@@ -193,9 +186,13 @@ function processarIA() {
     document.getElementById('loader').style.display = 'flex';
     
     setTimeout(() => {
-        // Algoritmo de Similaridade (Busca os 40 mais próximos)
+        // Algoritmo de Similaridade - Usando nomes de colunas do seu banco
         const similares = DB.map(j => {
-            const diff = Math.sqrt(Math.pow(j.ODD_C-oc, 2) + Math.pow(j.ODD_E-oe, 2) + Math.pow(j.ODD_F-of, 2));
+            const diff = Math.sqrt(
+                Math.pow(parseFloat(j.odd_casa)-oc, 2) + 
+                Math.pow(parseFloat(j.odd_empate)-oe, 2) + 
+                Math.pow(parseFloat(j.odd_fora)-of, 2)
+            );
             return {...j, diff};
         }).sort((a,b) => a.diff - b.diff).slice(0, 40);
 
@@ -209,19 +206,21 @@ function processarIA() {
 
 function renderizar(dados) {
     const total = dados.length;
-    const pRES = (v) => (dados.filter(j => j.RES === v).length / total * 100).toFixed(1);
-    const pAMB = (v) => (dados.filter(j => j.AMBOS === v).length / total * 100).toFixed(1);
+    
+    // Mapeamento das funções para as colunas do banco PostgreSQL
+    const pRES = (v) => (dados.filter(j => j.resultado === v).length / total * 100).toFixed(1);
+    const pAMB = (v) => (dados.filter(j => j.ambos_marcam === v).length / total * 100).toFixed(1);
     const pOVR = (c, v) => (dados.filter(j => j[c] === v).length / total * 100).toFixed(1);
 
     const probCasa = parseFloat(pRES('Casa'));
-    const probEmpa = parseFloat(pRES('Empa'));
+    const probEmpa = parseFloat(pRES('Empate')); // Ajustado para 'Empate' conforme o banco
     const probFora = parseFloat(pRES('Fora'));
     
     const prob1X = (probCasa + probEmpa).toFixed(1);
-    const prob12 = (probCasa + probFora).toFixed(1); // CASA OU FORA
+    const prob12 = (probCasa + probFora).toFixed(1);
     const probX2 = (probFora + probEmpa).toFixed(1);
     
-    const probO45 = parseFloat(pOVR('O4.5', 'Sim'));
+    const probO45 = parseFloat(pOVR('over_45', 'Sim'));
     const probU45 = (100 - probO45).toFixed(1);
 
     // Coluna Vencedor
@@ -232,46 +231,47 @@ function renderizar(dados) {
         <div class="data-row"><span>Ambos Sim</span><b>${pAMB('Sim')}%</b></div>
     `;
 
-    // Coluna Dupla Chance (Incluindo 12)
+    // Coluna Dupla Chance
     document.getElementById('col-dupla').innerHTML = `
         <div class="data-row"><span>Casa ou Empate (1X)</span><b>${prob1X}%</b></div>
         <div class="data-row"><span>Casa ou Fora (12)</span><b>${prob12}%</b></div>
         <div class="data-row"><span>Fora ou Empate (X2)</span><b>${probX2}%</b></div>
     `;
 
-    // Coluna Over (Adicionado +3.5)
+    // Coluna Over (Usando over_05, over_15...)
     document.getElementById('col-over').innerHTML = `
-        <div class="data-row"><span>+0.5 Gols</span><b>${pOVR('O0.5','Sim')}%</b></div>
-        <div class="data-row"><span>+1.5 Gols</span><b>${pOVR('O1.5','Sim')}%</b></div>
-        <div class="data-row"><span>+2.5 Gols</span><b>${pOVR('O2.5','Sim')}%</b></div>
-        <div class="data-row"><span>+3.5 Gols</span><b>${pOVR('O3.5','Sim')}%</b></div>
+        <div class="data-row"><span>+0.5 Gols</span><b>${pOVR('over_05','Sim')}%</b></div>
+        <div class="data-row"><span>+1.5 Gols</span><b>${pOVR('over_15','Sim')}%</b></div>
+        <div class="data-row"><span>+2.5 Gols</span><b>${pOVR('over_25','Sim')}%</b></div>
+        <div class="data-row"><span>+3.5 Gols</span><b>${pOVR('over_35','Sim')}%</b></div>
         <div class="data-row"><span>+4.5 Gols</span><b>${probO45}%</b></div>
     `;
 
-    // Coluna Under (Adicionado -1.5 e -2.5)
+    // Coluna Under
     document.getElementById('col-under').innerHTML = `
-        <div class="data-row"><span>-0.5 Gols</span><b>${(100 - pOVR('O0.5','Sim')).toFixed(1)}%</b></div>
-        <div class="data-row"><span>-1.5 Gols</span><b>${(100 - pOVR('O1.5','Sim')).toFixed(1)}%</b></div>
-        <div class="data-row"><span>-2.5 Gols</span><b>${(100 - pOVR('O2.5','Sim')).toFixed(1)}%</b></div>
-        <div class="data-row"><span>-3.5 Gols</span><b>${(100 - pOVR('O3.5','Sim')).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-0.5 Gols</span><b>${(100 - parseFloat(pOVR('over_05','Sim'))).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-1.5 Gols</span><b>${(100 - parseFloat(pOVR('over_15','Sim'))).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-2.5 Gols</span><b>${(100 - parseFloat(pOVR('over_25','Sim'))).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-3.5 Gols</span><b>${(100 - parseFloat(pOVR('over_35','Sim'))).toFixed(1)}%</b></div>
         <div class="data-row"><span>-4.5 Gols</span><b>${probU45}%</b></div>
     `;
 
-    const mediaGols = (dados.reduce((acc, j) => acc + parseFloat(j.TOTAL), 0) / total).toFixed(2);
+    // Médias de Gols (Usando gols_total)
+    const mediaGols = (dados.reduce((acc, j) => acc + parseFloat(j.gols_total || 0), 0) / total).toFixed(2);
     document.getElementById('col-medias').innerHTML = `
         <div class="data-row"><span>Gols p/ Jogo</span><b>${mediaGols}</b></div>
         <div class="data-row"><span>Amostra (N)</span><b>${total}</b></div>
         <div class="data-row"><span>Confiança</span><b>Alta</b></div>
     `;
 
-    // Ranking Dinâmico das 3 melhores entradas
+    // Ranking Dinâmico
     let ranking = [
         { n: "Casa ou Fora (12)", v: parseFloat(prob12) },
         { n: "Under 4.5 Gols", v: parseFloat(probU45) },
-        { n: "Over 1.5 Gols", v: parseFloat(pOVR('O1.5','Sim')) },
+        { n: "Over 1.5 Gols", v: parseFloat(pOVR('over_15','Sim')) },
         { n: "Casa ou Empate (1X)", v: parseFloat(prob1X) },
         { n: "Ambos Marcam", v: parseFloat(pAMB('Sim')) },
-        { n: "Over 2.5 Gols", v: parseFloat(pOVR('O2.5','Sim')) }
+        { n: "Over 2.5 Gols", v: parseFloat(pOVR('over_25','Sim')) }
     ].sort((a,b) => b.v - a.v).slice(0, 3);
 
     document.getElementById('top-list').innerHTML = ranking.map((item, i) => `
