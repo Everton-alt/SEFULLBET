@@ -190,7 +190,7 @@ $lista_membros = $stmt_membros->fetchAll();
                     </td>
                     <td><?= htmlspecialchars($m['email']) ?></td>
                     <td><span style="color:var(--primary)"><?= htmlspecialchars($m['plano_interesse'] ?? 'Não informado') ?></span></td>
-                    <td style="text-align:center"><b><?= $m['creditos'] ?></b></td>
+                    <td style="text-align:center"><b><?= $m['saldo_creditos'] ?></b></td>
                     <td><span style="color:<?= $m['perfil']=='VIP'?'var(--vip)':'var(--primary)'?>; font-weight:700;"><?= $m['perfil'] ?></span></td>
                     <td style="text-align:right; white-space:nowrap;">
                         <button onclick="abrirModalEditar(<?= htmlspecialchars(json_encode($m)) ?>)" class="btn-action btn-edit" title="Editar">
