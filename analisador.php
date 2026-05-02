@@ -112,7 +112,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 
 <div id="loader">
     <div class="spinner"></div>
-    <p style="color: var(--primary); margin-top:20px; font-weight:800; letter-spacing:2px; text-transform:uppercase;">IA Analisando base histórica...</p>
+    <p style="color: var(--primary); margin-top:20px; font-weight:800; letter-spacing:2px; text-transform:uppercase;">SEFULLBET Analisando suas ODDS aguarde</p>
 </div>
 
 <nav>
