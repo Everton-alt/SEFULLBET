@@ -35,11 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
             $sql = "UPDATE usuarios SET nome=?, login=?, email=?, senha=?, saldo_creditos=?, perfil=?, plano_interesse=? WHERE id=?";
             $stmt_upd = $pdo->prepare($sql);
-            $stmt_upd->execute([$nome, $login, $email, $senha_hash, $creditos, $perfil, $plano_interesse, $id]);
+            $stmt_upd->execute([$nome, $login, $email, $senha_hash, $saldo_creditos, $perfil, $plano_interesse, $id]);
         } else {
             $sql = "UPDATE usuarios SET nome=?, login=?, email=?, saldo_creditos=?, perfil=?, plano_interesse=? WHERE id=?";
             $stmt_upd = $pdo->prepare($sql);
-            $stmt_upd->execute([$nome, $login, $email, $creditos, $perfil, $plano_interesse, $id]);
+            $stmt_upd->execute([$nome, $login, $email, $saldo_creditos, $perfil, $plano_interesse, $id]);
         }
         header("Location: gestao_membros.php?status=updated");
         exit();
