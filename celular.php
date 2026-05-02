@@ -11,226 +11,288 @@ if (!isset($_SESSION['usuario_id'])) {
 $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
 $stmt->execute([$_SESSION['usuario_id']]);
 $user = $stmt->fetch();
+
 $perfil = $user['perfil']; 
+$pode_ver_vip = in_array($perfil, ['VIP', 'Platinum', 'Supervisor', 'Admin']);
 
-// 2. Lógica de Débito de Créditos via AJAX
-if (isset($_POST['action']) && $_POST['action'] == 'debitar') {
-    header('Content-Type: application/json');
-    $is_premium = in_array($perfil, ['Admin', 'Platinum', 'Supervisor']);
+// --- ATUALIZAÇÃO DOS CONTADORES DINÂMICOS ---
+function getStats($pdo, $cat) {
+    // Total de sinais finalizados (Green + Red)
+    $stmt = $pdo->prepare("SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN p_status = 'Green' THEN 1 ELSE 0 END) as greens,
+        SUM(CASE WHEN p_status = 'Red' THEN 1 ELSE 0 END) as reds
+        FROM sinais WHERE p_categoria = ? AND p_status IN ('Green', 'Red')");
+    $stmt->execute([$cat]);
+    $res = $stmt->fetch();
+
+    $total = $res['total'] ?: 0;
+    $greens = $res['greens'] ?: 0;
+    $reds = $res['reds'] ?: 0;
     
-    if (!$is_premium) {
-        if ($user['saldo_creditos'] <= 0) {
-            echo json_encode(['status' => 'erro', 'mensagem' => 'Saldo insuficiente']);
-            exit();
-        }
-        $pdo->prepare("UPDATE usuarios SET saldo_creditos = saldo_creditos - 1 WHERE id = ? AND saldo_creditos > 0")->execute([$_SESSION['usuario_id']]);
-        
-        $stmt_s = $pdo->prepare("SELECT saldo_creditos FROM usuarios WHERE id = ?");
-        $stmt_s->execute([$_SESSION['usuario_id']]);
-        $novo_saldo = $stmt_s->fetchColumn();
-        echo json_encode(['status' => 'sucesso', 'novo_saldo' => $novo_saldo]);
-    } else {
-        echo json_encode(['status' => 'isento', 'novo_saldo' => '∞']);
-    }
-    exit();
+    // Cálculo de assertividade real
+    $percent = ($total > 0) ? round(($greens / $total) * 100, 1) : 0;
+    
+    return ['t' => $total, 'g' => $greens, 'r' => $reds, 'p' => $percent . '%'];
 }
 
-// 3. Busca da base histórica para a IA
-try {
-    $sql = "SELECT odd_casa, odd_empate, odd_fora, resultado, ambos_marcam, gols_total, over_05, over_15, over_25, over_35, over_45 FROM base_analisador"; 
-    $dados_historicos = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $dados_historicos = [];
-}
+$stats_gratis = getStats($pdo, 'Grátis');
+$stats_vip    = getStats($pdo, 'VIP');
+// --- FIM DA ATUALIZAÇÃO ---
 
-$cores = ['Grátis' => '#8b949e', 'VIP' => '#ffd700', 'Platinum' => '#ffffff', 'Supervisor' => '#00e5ff', 'Admin' => '#00ff88'];
+$cores = [
+    'Grátis' => '#8b949e', 'VIP' => '#ffd700', 'Platinum' => '#ffffff',
+    'Supervisor' => '#00e5ff', 'Admin' => '#00ff88'
+];
 $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SefullBet AI | Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | SeFull Bet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #00ff88;
+            --primary-glow: rgba(0, 255, 136, 0.3);
             --bg: #0d1117;
             --card: #161b22;
             --border: #30363d;
-            --text: #f0f6fc;
+            --text-main: #f0f6fc;
             --text-dim: #8b949e;
+            --vip: #ffd700;
+            --danger: #ff4d4d;
+            --info: #00e5ff;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); padding-bottom: 90px; overflow-x: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text-main);
+            background-image: radial-gradient(circle at 0% 0%, rgba(0, 255, 136, 0.05) 0%, transparent 40%);
+            display: flex;
+            min-height: 100vh;
+        }
 
-        /* Header Estilo App */
-        .header { padding: 25px 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, #1c2128, var(--bg)); }
-        .user-badge { background: var(--card); border: 1px solid var(--border); padding: 6px 14px; border-radius: 30px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+        nav { 
+            width: 280px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border); padding: 30px 15px;
+            display: flex; flex-direction: column; position: fixed; height: 100vh;
+            overflow-y: auto; z-index: 100;
+        }
 
-        /* Grade de Odds Mobile */
-        .odds-container { padding: 0 20px; margin-top: -10px; }
-        .odds-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-        .odd-input-group { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px; text-align: center; transition: 0.3s; }
-        .odd-input-group:focus-within { border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
-        .odd-input-group label { display: block; font-size: 10px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
-        .odd-input-group input { width: 100%; background: transparent; border: none; color: var(--primary); font-weight: 800; font-size: 20px; text-align: center; outline: none; }
+        .nav-logo { font-weight: 800; font-size: 1.6rem; letter-spacing: -1px; margin-bottom: 30px; text-align: center; }
+        .nav-logo span { color: var(--primary); }
 
-        /* Botão de Ação */
-        .btn-analyze { width: 100%; height: 60px; background: var(--primary); color: #000; border: none; border-radius: 16px; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3); }
+        .nav-group { margin-bottom: 25px; }
+        .nav-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-left: 15px; margin-bottom: 8px; display: block; font-weight: 700; }
 
-        /* Layout de Resultados Clean */
-        .section-title { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; padding-left: 5px; }
-        .card-result { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-        .data-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .data-item:last-child { border-bottom: none; }
-        .data-label { color: var(--text-dim); font-size: 14px; }
-        .data-value { color: var(--primary); font-weight: 800; font-size: 16px; }
+        .nav-btn { 
+            color: var(--text-dim); padding: 12px 18px; border-radius: 12px; text-decoration: none; 
+            display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 500;
+            transition: 0.3s; margin-bottom: 2px;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .nav-btn.active { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2); }
 
-        /* Barra de Navegação Inferior (Tab Bar) */
-        .tab-bar { position: fixed; bottom: 0; width: 100%; height: 75px; background: rgba(22, 27, 34, 0.98); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: 10px; }
-        .tab-link { color: var(--text-dim); text-decoration: none; text-align: center; font-size: 10px; font-weight: 600; display: flex; flex-direction: column; gap: 4px; }
-        .tab-link i { font-size: 22px; }
-        .tab-link.active { color: var(--primary); }
+        main { flex: 1; margin-left: 280px; padding: 40px 60px; max-width: 1200px; width: 100%; }
 
-        /* Loader */
-        #loader { display: none; position: fixed; inset: 0; background: rgba(13, 17, 23, 0.95); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        .user-status { 
+            background: var(--card); padding: 20px 30px; border-radius: 20px; border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 25px;
+        }
+
+        .perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        .perf-card { 
+            background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); 
+            position: relative;
+        }
+        .perf-vip-card { border: 1px solid var(--vip); }
+        .perf-header { 
+            font-size: 13px; font-weight: 800; text-transform: uppercase; 
+            margin-bottom: 25px; display: flex; align-items: center; gap: 8px; 
+        }
+        .perf-stats-row { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+        .stat-box span { display: block; font-size: 10px; color: var(--text-dim); font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+        .stat-box b { font-size: 24px; font-weight: 800; }
+        .stat-green { color: var(--primary); }
+        .stat-red { color: #ff4d4d; }
+
+        .analisador-cta {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
+            border: 2px solid var(--primary); padding: 30px; border-radius: 20px; margin-bottom: 40px; text-align: center;
+        }
+        .btn-destaque-ai {
+            background: var(--primary); color: #0d1117; padding: 15px 35px; border-radius: 12px;
+            text-decoration: none; font-weight: 800; display: inline-flex; align-items: center; gap: 10px;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .list-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 50px; }
+        .list-item { 
+            background: var(--card); padding: 18px 25px; border-radius: 16px; border: 1px solid var(--border);
+            display: grid; align-items: center; transition: 0.2s; position: relative;
+        }
+        .grid-palpites { grid-template-columns: 100px 1.5fr 1fr 100px 120px; }
+        .grid-vitorias { grid-template-columns: 50px 1.5fr 1fr 120px; }
+        .grid-notas { grid-template-columns: 50px 1fr 120px; }
+
+        .v-icon-circle { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .tag { font-size: 10px; font-weight: 900; padding: 5px 10px; border-radius: 6px; text-transform: uppercase; text-align: center; }
+        .tag-green { background: rgba(0, 255, 136, 0.1); color: var(--primary); }
+        .tag-wait { background: rgba(255, 215, 0, 0.1); color: var(--vip); }
+        .tag-info { background: rgba(0, 229, 255, 0.1); color: var(--info); }
+        .blur-lock { filter: blur(6px); opacity: 0.3; pointer-events: none; }
+
+        @media (max-width: 1100px) {
+            nav { width: 80px; padding: 40px 10px; }
+            .nav-label, .nav-btn span, .nav-logo span, .nav-logo { display: none; }
+            main { margin-left: 80px; padding: 20px; }
+            .list-item { grid-template-columns: 1fr !important; gap: 10px; text-align: center; }
+            .perf-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-<div id="loader">
-    <div class="spinner"></div>
-    <p style="color: var(--primary); margin-top: 15px; font-weight: 800; font-size: 12px; letter-spacing: 2px;">PROCESSANDO IA...</p>
-</div>
-
-<div class="header">
-    <div>
-        <h1 style="font-size: 1.4rem; font-weight: 800;">Olá, <?= explode(' ', $user['nome'])[0] ?></h1>
-        <p style="color: var(--text-dim); font-size: 12px;">Analise as tendências agora</p>
-    </div>
-    <div class="user-badge" style="color: <?= $cor_perfil ?>;">
-        <i class="fas fa-coins"></i>
-        <span id="saldo-display"><?= (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos'] ?></span>
-    </div>
-</div>
-
-<div class="odds-container">
-    <div class="odds-grid">
-        <div class="odd-input-group"><label>Casa</label><input type="number" step="0.01" id="o-casa" placeholder="1.80" inputmode="decimal"></div>
-        <div class="odd-input-group"><label>Empate</label><input type="number" step="0.01" id="o-empate" placeholder="3.40" inputmode="decimal"></div>
-        <div class="odd-input-group"><label>Fora</label><input type="number" step="0.01" id="o-fora" placeholder="4.20" inputmode="decimal"></div>
-    </div>
+<nav>
+    <div class="nav-logo">SEFULL<span>BET</span></div>
     
-    <button class="btn-analyze" onclick="processarIA()">Gerar Sinal <i class="fas fa-bolt"></i></button>
+    <div class="nav-group">
+        <span class="nav-label">Menu Principal</span>
+        <a class="nav-btn active" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
+        <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
+        <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
+        <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
+        <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
+        <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
+        <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
 
-    <div id="resultado-display" style="display: none;">
-        <h3 class="section-title">Oportunidades IA</h3>
-        <div class="card-result" id="top-signals">
-            </div>
-
-        <h3 class="section-title">Probabilidades Detalhadas</h3>
-        <div class="card-result" id="full-stats">
-            </div>
+        <?php if (in_array($perfil, ['Supervisor', 'Admin'])): ?>
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 10px;">
+            <span class="nav-label">Gestão Administrativa</span>
+            <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
+            <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+            <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-file-import"></i> <span>Verificar Dados</span></a>
+            <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
+            <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
+            <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
+            <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
+        <?php endif; ?>
     </div>
-</div>
 
-<nav class="tab-bar">
-    <a href="dashboard.php" class="tab-link"><i class="fas fa-th-large"></i>Feed</a>
-    <a href="analisador.php" class="tab-link active"><i class="fas fa-robot"></i>IA</a>
-    <a href="palpites.php" class="tab-link"><i class="fas fa-bullseye"></i>Palpites</a>
-    <a href="perfil.php" class="tab-link"><i class="fas fa-user-circle"></i>Conta</a>
+    <a class="nav-btn" style="margin-top:auto; color: var(--danger)" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
 </nav>
 
-<script>
-const DB = <?= json_encode($dados_historicos) ?>;
-
-async function processarIA() {
-    const oc = parseFloat(document.getElementById('o-casa').value);
-    const oe = parseFloat(document.getElementById('o-empate').value);
-    const of = parseFloat(document.getElementById('o-fora').value);
-
-    if(!oc || !oe || !of) return alert("⚠️ Por favor, preencha todas as Odds!");
-
-    document.getElementById('loader').style.display = 'flex';
-    
-    // Processamento de débito via PHP
-    try {
-        const response = await fetch('analisador.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'action=debitar'
-        });
-        const res = await response.json();
-
-        if(res.status === 'erro') {
-            document.getElementById('loader').style.display = 'none';
-            return alert("❌ " + res.mensagem);
-        }
-        
-        if(res.novo_saldo) document.getElementById('saldo-display').innerText = res.novo_saldo;
-
-        // Simulação de processamento da IA
-        setTimeout(() => {
-            const similares = DB.filter(j => {
-                const diff = Math.abs(j.odd_casa - oc) + Math.abs(j.odd_empate - oe) + Math.abs(j.odd_fora - of);
-                return diff < 0.25; // Raio de similaridade
-            }).slice(0, 40);
-
-            if(similares.length < 5) {
-                document.getElementById('loader').style.display = 'none';
-                return alert("🔍 Dados insuficientes para este padrão de Odds.");
-            }
-
-            renderizarResultados(similares);
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('resultado-display').style.display = 'block';
-            window.scrollTo({ top: document.getElementById('resultado-display').offsetTop - 20, behavior: 'smooth' });
-        }, 1200);
-
-    } catch (e) {
-        document.getElementById('loader').style.display = 'none';
-        alert("Erro de conexão com o servidor.");
-    }
-}
-
-function renderizarResultados(dados) {
-    const total = dados.length;
-    
-    // Cálculo de probabilidades básicas
-    const pCasa = (dados.filter(j => j.resultado === 'Casa').length / total * 100).toFixed(1);
-    const pEmpate = (dados.filter(j => j.resultado === 'Empate').length / total * 100).toFixed(1);
-    const pFora = (dados.filter(j => j.resultado === 'Fora').length / total * 100).toFixed(1);
-    const pAmbos = (dados.filter(j => j.ambos_marcam === 'Sim').length / total * 100).toFixed(1);
-    const pOver25 = (dados.filter(j => j.over_25 === 'Sim').length / total * 100).toFixed(1);
-
-    // Renderiza os sinais principais (Top 3)
-    let sinais = [
-        { label: 'Vitória Casa', val: pCasa },
-        { label: 'Ambos Marcam', val: pAmbos },
-        { label: 'Over 2.5 Gols', val: pOver25 },
-        { label: 'Vitória Fora', val: pFora }
-    ].sort((a,b) => b.val - a.val).slice(0, 2);
-
-    document.getElementById('top-signals').innerHTML = sinais.map(s => `
-        <div class="data-item">
-            <span class="data-label" style="font-weight: 700; color: var(--text);">${s.label}</span>
-            <span class="data-value">${s.val}%</span>
+<main>
+    <div class="top-bar">
+        <div class="welcome">
+            <h1 style="color: var(--text-dim); font-weight: 400;">Bem-vindo,</h1>
+            <h1><?php echo explode(' ', $user['nome'])[0]; ?> 👋</h1>
         </div>
-    `).join('');
+        <div class="user-status">
+            <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 20px;">
+                <span style="font-size: 10px; color: var(--text-dim); text-transform: uppercase;">Créditos</span>
+                <div style="font-size: 20px; font-weight: 800; color: var(--primary);"><?php echo (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?></div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 11px; color: var(--text-dim);">Status</div>
+                <div style="color: <?php echo $cor_perfil; ?>; font-weight: 800; font-size: 14px;"><?php echo strtoupper($perfil); ?></div>
+            </div>
+        </div>
+    </div>
 
-    // Renderiza estatísticas completas
-    document.getElementById('full-stats').innerHTML = `
-        <div class="data-item"><span class="data-label">Tendência Empate</span><span class="data-value">${pEmpate}%</span></div>
-        <div class="data-item"><span class="data-label">Amostra Analisada</span><span class="data-value">${total} jogos</span></div>
-        <div class="data-item"><span class="data-label">Grau de Confiança</span><span class="data-value">${total > 20 ? 'ALTO' : 'MÉDIO'}</span></div>
-    `;
-}
-</script>
+    <div class="perf-grid">
+        <div class="perf-card">
+            <div class="perf-header"><i class="fas fa-chart-line"></i> PERFORMANCE GRÁTIS</div>
+            <div class="perf-stats-row">
+                <div class="stat-box"><span>TOTAL</span><b><?= $stats_gratis['t'] ?></b></div>
+                <div class="stat-box"><span>GREENS</span><b class="stat-green"><?= $stats_gratis['g'] ?></b></div>
+                <div class="stat-box"><span>REDS</span><b class="stat-red"><?= $stats_gratis['r'] ?></b></div>
+                <div class="stat-box"><span>WIN%</span><b><?= $stats_gratis['p'] ?></b></div>
+            </div>
+        </div>
+
+        <div class="perf-card perf-vip-card">
+            <div class="perf-header" style="color: var(--vip);"><i class="fas fa-gem"></i> PERFORMANCE VIP</div>
+            <div class="perf-stats-row">
+                <div class="stat-box"><span>TOTAL</span><b><?= $stats_vip['t'] ?></b></div>
+                <div class="stat-box"><span>GREENS</span><b class="stat-green"><?= $stats_vip['g'] ?></b></div>
+                <div class="stat-box"><span>REDS</span><b class="stat-red"><?= $stats_vip['r'] ?></b></div>
+                <div class="stat-box"><span>WIN%</span><b><?= $stats_vip['p'] ?></b></div>
+            </div>
+        </div>
+    </div>
+
+    <section class="analisador-cta">
+        <h2 style="margin-bottom: 10px; font-weight: 900;">ANALISADOR SEFULLBET AI</h2>
+        <p style="color: var(--text-dim); margin-bottom: 20px; font-size: 14px;">Inicie sua análise avançada com processamento de dados em tempo real.</p>
+        <a href="analisador.php" class="btn-destaque-ai"><i class="fas fa-robot"></i> Abrir Analisador Agora</a>
+    </section>
+
+    <h3 style="margin-bottom: 20px; font-weight: 800;">🔥 Palpites em Tempo Real</h3>
+    <div class="list-container">
+        <div class="list-item grid-palpites">
+            <div class="tag tag-green">Finalizado</div>
+            <div>
+                <div style="font-weight:700; font-size:14px;">Bayern vs Arsenal</div>
+                <div style="font-size:11px; color:var(--text-dim);">Champions League</div>
+            </div>
+            <div style="font-size:13px; font-weight:600;">Ambas Marcam</div>
+            <div style="text-align:center; background:rgba(255,255,255,0.05); padding:5px; border-radius:5px;"><b>1.80</b></div>
+            <div style="text-align:right;"><span class="tag" style="background:#21262d;">FREE</span></div>
+        </div>
+
+        <div class="list-item grid-palpites">
+            <?php if(!$pode_ver_vip): ?>
+            <div style="position:absolute; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:5; background:rgba(0,0,0,0.3); border-radius:16px; left:0; backdrop-filter: blur(2px);">
+                <a href="perfil.php" style="background:var(--vip); color:#000; padding:8px 20px; border-radius:50px; font-weight:900; font-size:11px; text-decoration:none;"><i class="fas fa-lock"></i> UPGRADE VIP</a>
+            </div>
+            <?php endif; ?>
+            <div class="tag tag-wait <?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">Analisando</div>
+            <div class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">
+                <div style="font-weight:700; font-size:14px;">Real Madrid vs City</div>
+                <div style="font-size:11px; color:var(--text-dim);">Champions League</div>
+            </div>
+            <div style="font-size:13px; font-weight:600;" class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>">Resultado Final</div>
+            <div style="text-align:center; background:rgba(255,255,255,0.05); padding:5px; border-radius:5px;" class="<?php echo !$pode_ver_vip ? 'blur-lock' : ''; ?>"><b>2.45</b></div>
+            <div style="text-align:right;"><span class="tag" style="border:1px solid var(--vip); color:var(--vip);">VIP</span></div>
+        </div>
+    </div>
+
+    <h3 style="margin-bottom: 20px; font-weight: 800;"><i class="fas fa-trophy" style="color: var(--vip)"></i> Últimas Vitórias</h3>
+    <div class="list-container">
+        <div class="list-item grid-vitorias">
+            <div class="v-icon-circle" style="background:rgba(0,255,136,0.1); color:var(--primary);"><i class="fas fa-check"></i></div>
+            <div>
+                <div style="font-weight:700; font-size:14px;">@usuario_gold</div>
+                <div style="font-size:11px; color:var(--text-dim);">Lucrou 2.5 unidades no sinal anterior</div>
+            </div>
+            <div style="font-size:12px; font-style:italic; color:var(--text-dim);">"Analisador perfeito!"</div>
+            <div style="text-align:right;"><span class="tag tag-green">Lucro +R$ 250</span></div>
+        </div>
+    </div>
+
+    <h3 style="margin-bottom: 20px; font-weight: 800;"><i class="fas fa-sticky-note" style="color: var(--info)"></i> Últimas Notas</h3>
+    <div class="list-container">
+        <div class="list-item grid-notas">
+            <div class="v-icon-circle" style="background:rgba(0,229,255,0.1); color:var(--info);"><i class="fas fa-info"></i></div>
+            <div>
+                <div style="font-weight:700; font-size:14px;">Estratégia de Cantos HT</div>
+                <div style="font-size:11px; color:var(--text-dim);">Filtre jogos com 0x0 aos 35 minutos para buscar o canto limite.</div>
+            </div>
+            <div style="text-align:right;"><span class="tag tag-info">Educativo</span></div>
+        </div>
+    </div>
+
+    <footer style="margin-top: 60px; padding: 40px 0; border-top: 1px solid var(--border); color: #444; font-size: 11px; text-align: center;">
+        &copy; 2026 SeFullBet - Jogue com responsabilidade.
+    </footer>
+</main>
 </body>
 </html>
