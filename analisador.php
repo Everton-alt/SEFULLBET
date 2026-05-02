@@ -13,6 +13,29 @@ $stmt->execute([$_SESSION['usuario_id']]);
 $user = $stmt->fetch();
 $perfil = $user['perfil']; 
 
+// 3. Lógica de Débito de Créditos (Movida para cima para processar o fetch antes do HTML)
+if (isset($_POST['action']) && $_POST['action'] == 'debitar') {
+    header('Content-Type: application/json');
+    $is_premium = in_array($perfil, ['Admin', 'Platinum', 'Supervisor']);
+    
+    if (!$is_premium) {
+        if ($user['saldo_creditos'] <= 0) {
+            echo json_encode(['status' => 'erro', 'mensagem' => 'Saldo insuficiente']);
+            exit();
+        }
+        $pdo->prepare("UPDATE usuarios SET saldo_creditos = saldo_creditos - 1 WHERE id = ? AND saldo_creditos > 0")->execute([$_SESSION['usuario_id']]);
+        
+        // Busca o saldo atualizado
+        $stmt_s = $pdo->prepare("SELECT saldo_creditos FROM usuarios WHERE id = ?");
+        $stmt_s->execute([$_SESSION['usuario_id']]);
+        $novo_saldo = $stmt_s->fetchColumn();
+        echo json_encode(['status' => 'sucesso', 'novo_saldo' => $novo_saldo]);
+    } else {
+        echo json_encode(['status' => 'isento', 'novo_saldo' => '∞']);
+    }
+    exit();
+}
+
 /**
  * 2. BUSCA DA BASE COMPLETA
  */
@@ -27,14 +50,6 @@ try {
 } catch (PDOException $e) {
     $dados_historicos = [];
     $erro_db = $e->getMessage();
-}
-
-// 3. Lógica de Débito de Créditos
-if (isset($_POST['action']) && $_POST['action'] == 'debitar') {
-    if (!in_array($perfil, ['Admin', 'Platinum', 'Supervisor'])) {
-        $pdo->prepare("UPDATE usuarios SET saldo_creditos = saldo_creditos - 1 WHERE id = ? AND saldo_creditos > 0")->execute([$_SESSION['usuario_id']]);
-    }
-    exit();
 }
 
 $cores = ['Grátis' => '#8b949e', 'VIP' => '#ffd700', 'Platinum' => '#ffffff', 'Supervisor' => '#00e5ff', 'Admin' => '#00ff88'];
@@ -148,7 +163,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         <div style="background: var(--card); padding: 15px 25px; border-radius: 18px; border: 1px solid var(--border); display: flex; gap: 20px; align-items: center;">
             <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 20px;">
                 <span style="font-size: 9px; color: var(--text-dim); text-transform: uppercase; font-weight: 700;">Créditos</span>
-                <div style="font-size: 18px; font-weight: 800; color: var(--primary);"><?php echo (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?></div>
+                <div id="saldo-display" style="font-size: 18px; font-weight: 800; color: var(--primary);"><?php echo (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?></div>
             </div>
             <div style="text-align: right;">
                 <div style="font-size: 9px; color: var(--text-dim); font-weight: 700;">STATUS</div>
@@ -188,7 +203,7 @@ function limparNumero(val) {
     return parseFloat(val.toString().replace(',', '.'));
 }
 
-function processarIA() {
+async function processarIA() {
     const oc = limparNumero(document.getElementById('o-casa').value);
     const oe = limparNumero(document.getElementById('o-empate').value);
     const of = limparNumero(document.getElementById('o-fora').value);
@@ -196,6 +211,20 @@ function processarIA() {
     if(!oc || !oe || !of) return alert("Por favor, insira as odds para iniciar a análise.");
 
     document.getElementById('loader').style.display = 'flex';
+
+    // 1. Tenta debitar e aguarda resposta
+    const resDebito = await debitar();
+
+    if(resDebito.status === 'erro') {
+        document.getElementById('loader').style.display = 'none';
+        alert("Ops! Seus créditos acabaram. Por favor, RENOVE SEU VIP OU PLATINUM para continuar usando o analisador.");
+        return;
+    }
+
+    // Atualiza saldo na tela se houver retorno
+    if(resDebito.novo_saldo !== undefined) {
+        document.getElementById('saldo-display').innerText = resDebito.novo_saldo;
+    }
     
     setTimeout(() => {
         const similares = DB.map(j => {
@@ -223,7 +252,6 @@ function processarIA() {
         }
 
         renderizar(similares);
-        debitar();
         
         document.getElementById('loader').style.display = 'none';
         document.getElementById('resultado-display').style.display = 'block';
@@ -238,33 +266,28 @@ function renderizar(dados) {
         return ((pesoOcorrido / somaPesos) * 100);
     };
 
-    // Probabilidades Básicas
     const probCasa = calcProb('resultado', 'Casa');
     const probEmpa = calcProb('resultado', 'Empate'); 
     const probFora = calcProb('resultado', 'Fora');
     const pAMB_Sim = calcProb('ambos_marcam', 'Sim');
     const pAMB_Nao = 100 - pAMB_Sim;
 
-    // Over
     const pO05 = calcProb('over_05', 'Sim');
     const pO15 = calcProb('over_15', 'Sim');
     const pO25 = calcProb('over_25', 'Sim');
     const pO35 = calcProb('over_35', 'Sim');
     const pO45 = calcProb('over_45', 'Sim');
 
-    // Under (Inverso do Over)
     const pU05 = 100 - pO05;
     const pU15 = 100 - pO15;
     const pU25 = 100 - pO25;
     const pU35 = 100 - pO35;
     const pU45 = 100 - pO45;
 
-    // Dupla Chance
     const prob1X = probCasa + probEmpa;
     const prob12 = probCasa + probFora;
     const probX2 = probFora + probEmpa;
 
-    // Renderização Colunas
     document.getElementById('col-principal').innerHTML = `
         <div class="data-row"><span>V. Casa</span><b>${probCasa.toFixed(1)}%</b></div>
         <div class="data-row"><span>Empate</span><b>${probEmpa.toFixed(1)}%</b></div>
@@ -304,7 +327,6 @@ function renderizar(dados) {
         <div class="data-row"><span>Confiança</span><b>${dados.length >= 25 ? 'Alta' : 'Média'}</b></div>
     `;
 
-    // TOP 3 DINÂMICO (Calcula entre todos os mercados disponíveis)
     let todosMercados = [
         { n: "Vitória Direta Casa", v: probCasa },
         { n: "Vitória Direta Fora", v: probFora },
@@ -330,12 +352,17 @@ function renderizar(dados) {
     `).join('');
 }
 
-function debitar() {
-    fetch('analisador.php', { 
-        method: 'POST', 
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
-        body: 'action=debitar' 
-    });
+async function debitar() {
+    try {
+        const response = await fetch('analisador.php', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
+            body: 'action=debitar' 
+        });
+        return await response.json();
+    } catch (e) {
+        return { status: 'erro' };
+    }
 }
 </script>
 </body>
