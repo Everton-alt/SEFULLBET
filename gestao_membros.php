@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $nome = $_POST['nome'];
         $login = $_POST['login'];
         $email = $_POST['email'];
-        $creditos = (int)$_POST['creditos'];
+        $creditos = (int)$_POST['saldo_creditos'];
         $perfil = $_POST['perfil'];
         $plano_interesse = $_POST['plano_interesse']; // Novo campo
         $senha = $_POST['senha'];
