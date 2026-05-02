@@ -15,8 +15,6 @@ $perfil = $user['perfil'];
 
 /**
  * 2. BUSCA DA BASE COMPLETA
- * Como o PostgreSQL deu erro no REPLACE, selecionamos os campos diretamente.
- * Certifique-se de que a tabela se chama 'base_analisador'.
  */
 try {
     $sql = "SELECT 
@@ -27,7 +25,6 @@ try {
     $stmt_data = $pdo->query($sql);
     $dados_historicos = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // Caso a tabela tenha outro nome, mude acima ou verifique o erro:
     $dados_historicos = [];
     $erro_db = $e->getMessage();
 }
@@ -65,7 +62,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg); color: var(--text-main); display: flex; min-height: 100vh; }
 
-        /* MENU LATERAL (ESPELHADO DO DASHBOARD) */
         nav { 
             width: 280px; background: rgba(22, 27, 34, 0.8); backdrop-filter: blur(10px);
             border-right: 1px solid var(--border); padding: 30px 15px;
@@ -78,7 +74,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .nav-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
         .nav-btn.active { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2); }
 
-        /* CONTEÚDO PRINCIPAL */
         main { flex: 1; margin-left: 280px; padding: 40px 60px; max-width: 1400px; }
 
         .input-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 30px; display: flex; gap: 20px; align-items: flex-end; }
@@ -162,12 +157,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         </div>
     </div>
 
-    <?php if (isset($erro_db)): ?>
-        <div style="background: #442727; color: #ff8888; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-            Erro na base de dados: <?php echo $erro_db; ?>
-        </div>
-    <?php endif; ?>
-
     <div class="input-card">
         <div class="input-group"><label>Odd Casa</label><input type="text" id="o-casa" placeholder="1.85"></div>
         <div class="input-group"><label>Odd Empate</label><input type="text" id="o-empate" placeholder="3.40"></div>
@@ -196,7 +185,6 @@ const DB = <?php echo json_encode($dados_historicos); ?>;
 
 function limparNumero(val) {
     if (val === null || val === undefined || val === '') return 0;
-    // Se vier como string do banco (ex: "1,85"), troca para ponto.
     return parseFloat(val.toString().replace(',', '.'));
 }
 
@@ -210,18 +198,32 @@ function processarIA() {
     document.getElementById('loader').style.display = 'flex';
     
     setTimeout(() => {
+        // APLICAÇÃO DA NOVA LÓGICA DE PESO E FILTRO 0.1
         const similares = DB.map(j => {
             const ocDB = limparNumero(j.odd_casa);
             const oeDB = limparNumero(j.odd_empate);
             const ofDB = limparNumero(j.odd_fora);
 
-            const diff = Math.sqrt(
+            // Distância Euclidiana
+            const dist = Math.sqrt(
                 Math.pow(ocDB - oc, 2) + 
                 Math.pow(oeDB - oe, 2) + 
                 Math.pow(ofDB - of, 2)
             );
-            return {...j, diff};
-        }).sort((a,b) => a.diff - b.diff).slice(0, 50);
+            
+            // Peso: 1 / (distância + pequena constante para não dividir por zero)
+            const peso = 1 / (dist + 0.001);
+
+            return {...j, dist, peso};
+        })
+        .filter(j => j.dist <= 0.1) // Filtro de similaridade rigorosa
+        .sort((a,b) => a.dist - b.dist)
+        .slice(0, 50);
+
+        if (similares.length === 0) {
+            document.getElementById('loader').style.display = 'none';
+            return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo (Nenhum padrão similar encontrado).");
+        }
 
         renderizar(similares);
         debitar();
@@ -232,25 +234,32 @@ function processarIA() {
 }
 
 function renderizar(dados) {
-    const total = dados.length;
+    // Cálculo de Probabilidade Ponderada (Considerando o Peso)
+    const somaPesos = dados.reduce((acc, j) => acc + j.peso, 0);
     
-    const pRES = (v) => (dados.filter(j => j.resultado === v).length / total * 100).toFixed(1);
-    const pAMB = (v) => (dados.filter(j => j.ambos_marcam === v).length / total * 100).toFixed(1);
-    const pOVR = (c, v) => (dados.filter(j => j[c] === v).length / total * 100).toFixed(1);
+    const calcProb = (campo, valor) => {
+        const pesoOcorrido = dados.filter(j => j[campo] === valor).reduce((acc, j) => acc + j.peso, 0);
+        return ((pesoOcorrido / somaPesos) * 100).toFixed(1);
+    };
 
-    const probCasa = parseFloat(pRES('Casa'));
-    const probEmpa = parseFloat(pRES('Empate')); 
-    const probFora = parseFloat(pRES('Fora'));
+    const probCasa = parseFloat(calcProb('resultado', 'Casa'));
+    const probEmpa = parseFloat(calcProb('resultado', 'Empate')); 
+    const probFora = parseFloat(calcProb('resultado', 'Fora'));
     
     const prob1X = (probCasa + probEmpa).toFixed(1);
     const prob12 = (probCasa + probFora).toFixed(1);
     const probX2 = (probFora + probEmpa).toFixed(1);
     
+    const pAMB = calcProb('ambos_marcam', 'Sim');
+    const pO15 = calcProb('over_15', 'Sim');
+    const pO25 = calcProb('over_25', 'Sim');
+    const pO05 = calcProb('over_05', 'Sim');
+
     document.getElementById('col-principal').innerHTML = `
         <div class="data-row"><span>Vitória Casa</span><b>${probCasa}%</b></div>
         <div class="data-row"><span>Empate</span><b>${probEmpa}%</b></div>
         <div class="data-row"><span>Vitória Fora</span><b>${probFora}%</b></div>
-        <div class="data-row"><span>Ambos Sim</span><b>${pAMB('Sim')}%</b></div>
+        <div class="data-row"><span>Ambos Sim</span><b>${pAMB}%</b></div>
     `;
 
     document.getElementById('col-dupla').innerHTML = `
@@ -260,31 +269,31 @@ function renderizar(dados) {
     `;
 
     document.getElementById('col-over').innerHTML = `
-        <div class="data-row"><span>+0.5 Gols</span><b>${pOVR('over_05','Sim')}%</b></div>
-        <div class="data-row"><span>+1.5 Gols</span><b>${pOVR('over_15','Sim')}%</b></div>
-        <div class="data-row"><span>+2.5 Gols</span><b>${pOVR('over_25','Sim')}%</b></div>
+        <div class="data-row"><span>+0.5 Gols</span><b>${pO05}%</b></div>
+        <div class="data-row"><span>+1.5 Gols</span><b>${pO15}%</b></div>
+        <div class="data-row"><span>+2.5 Gols</span><b>${pO25}%</b></div>
     `;
 
     document.getElementById('col-under').innerHTML = `
-        <div class="data-row"><span>-1.5 Gols</span><b>${(100 - parseFloat(pOVR('over_15','Sim'))).toFixed(1)}%</b></div>
-        <div class="data-row"><span>-2.5 Gols</span><b>${(100 - parseFloat(pOVR('over_25','Sim'))).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-1.5 Gols</span><b>${(100 - pO15).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-2.5 Gols</span><b>${(100 - pO25).toFixed(1)}%</b></div>
     `;
 
-    const somaGols = dados.reduce((acc, j) => acc + limparNumero(j.gols_total || 0), 0);
-    const mediaGols = (somaGols / total).toFixed(2);
+    const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
+    const mediaGols = (somaGolsPonderada / somaPesos).toFixed(2);
 
     document.getElementById('col-medias').innerHTML = `
-        <div class="data-row"><span>Gols p/ Jogo</span><b>${mediaGols}</b></div>
-        <div class="data-row"><span>Amostra (N)</span><b>${total}</b></div>
-        <div class="data-row"><span>Confiança</span><b>${total >= 40 ? 'Alta' : 'Média'}</b></div>
+        <div class="data-row"><span>Gols p/ Jogo (AI)</span><b>${mediaGols}</b></div>
+        <div class="data-row"><span>Amostra (N)</span><b>${dados.length}</b></div>
+        <div class="data-row"><span>Confiança</span><b>${dados.length >= 25 ? 'Alta' : 'Média'}</b></div>
     `;
 
     let ranking = [
         { n: "Casa ou Empate (1X)", v: parseFloat(prob1X) },
-        { n: "Over 1.5 Gols", v: parseFloat(pOVR('over_15','Sim')) },
-        { n: "Ambos Marcam Sim", v: parseFloat(pAMB('Sim')) },
+        { n: "Over 1.5 Gols", v: parseFloat(pO15) },
+        { n: "Ambos Marcam Sim", v: parseFloat(pAMB) },
         { n: "Vitória Casa", v: probCasa },
-        { n: "Over 2.5 Gols", v: parseFloat(pOVR('over_25','Sim')) }
+        { n: "Over 2.5 Gols", v: parseFloat(pO25) }
     ].sort((a,b) => b.v - a.v).slice(0, 3);
 
     document.getElementById('top-list').innerHTML = ranking.map((item, i) => `
