@@ -33,11 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if (!empty($senha)) {
             $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-            $sql = "UPDATE usuarios SET nome=?, login=?, email=?, senha=?, creditos=?, perfil=?, plano_interesse=? WHERE id=?";
+            $sql = "UPDATE usuarios SET nome=?, login=?, email=?, senha=?, saldo_creditos=?, perfil=?, plano_interesse=? WHERE id=?";
             $stmt_upd = $pdo->prepare($sql);
             $stmt_upd->execute([$nome, $login, $email, $senha_hash, $creditos, $perfil, $plano_interesse, $id]);
         } else {
-            $sql = "UPDATE usuarios SET nome=?, login=?, email=?, creditos=?, perfil=?, plano_interesse=? WHERE id=?";
+            $sql = "UPDATE usuarios SET nome=?, login=?, email=?, saldo_creditos=?, perfil=?, plano_interesse=? WHERE id=?";
             $stmt_upd = $pdo->prepare($sql);
             $stmt_upd->execute([$nome, $login, $email, $creditos, $perfil, $plano_interesse, $id]);
         }
@@ -79,7 +79,7 @@ $total_registros = $stmt_count->fetchColumn();
 $total_paginas = ceil($total_registros / $itens_por_pagina);
 
 // SQL buscando o campo plano_interesse
-$sql_membros = "SELECT id, nome, login, email, creditos, perfil, plano_interesse FROM usuarios" . $where_clause . " ORDER BY id DESC LIMIT ? OFFSET ?";
+$sql_membros = "SELECT id, nome, login, email, saldo_creditos, perfil, plano_interesse FROM usuarios" . $where_clause . " ORDER BY id DESC LIMIT ? OFFSET ?";
 $stmt_membros = $pdo->prepare($sql_membros);
 $idx = 1;
 foreach ($params as $p) { $stmt_membros->bindValue($idx++, $p); }
@@ -261,7 +261,7 @@ function abrirModalEditar(dados) {
     document.getElementById('edit_nome').value = dados.nome;
     document.getElementById('edit_login').value = dados.login;
     document.getElementById('edit_email').value = dados.email;
-    document.getElementById('edit_creditos').value = dados.creditos;
+    document.getElementById('edit_saldo_creditos').value = dados.saldo_creditos;
     document.getElementById('edit_perfil').value = dados.perfil;
     document.getElementById('edit_plano_interesse').value = dados.plano_interesse; // Carrega o plano
     document.getElementById('modalEditar').style.display = 'flex';
