@@ -198,25 +198,22 @@ function processarIA() {
     document.getElementById('loader').style.display = 'flex';
     
     setTimeout(() => {
-        // APLICAÇÃO DA NOVA LÓGICA DE PESO E FILTRO 0.1
         const similares = DB.map(j => {
             const ocDB = limparNumero(j.odd_casa);
             const oeDB = limparNumero(j.odd_empate);
             const ofDB = limparNumero(j.odd_fora);
 
-            // Distância Euclidiana
             const dist = Math.sqrt(
                 Math.pow(ocDB - oc, 2) + 
                 Math.pow(oeDB - oe, 2) + 
                 Math.pow(ofDB - of, 2)
             );
             
-            // Peso: 1 / (distância + pequena constante para não dividir por zero)
             const peso = 1 / (dist + 0.001);
 
             return {...j, dist, peso};
         })
-        .filter(j => j.dist <= 0.1) // Filtro de similaridade rigorosa
+        .filter(j => j.dist <= 0.1) 
         .sort((a,b) => a.dist - b.dist)
         .slice(0, 50);
 
@@ -234,67 +231,96 @@ function processarIA() {
 }
 
 function renderizar(dados) {
-    // Cálculo de Probabilidade Ponderada (Considerando o Peso)
     const somaPesos = dados.reduce((acc, j) => acc + j.peso, 0);
     
     const calcProb = (campo, valor) => {
         const pesoOcorrido = dados.filter(j => j[campo] === valor).reduce((acc, j) => acc + j.peso, 0);
-        return ((pesoOcorrido / somaPesos) * 100).toFixed(1);
+        return ((pesoOcorrido / somaPesos) * 100);
     };
 
-    const probCasa = parseFloat(calcProb('resultado', 'Casa'));
-    const probEmpa = parseFloat(calcProb('resultado', 'Empate')); 
-    const probFora = parseFloat(calcProb('resultado', 'Fora'));
-    
-    const prob1X = (probCasa + probEmpa).toFixed(1);
-    const prob12 = (probCasa + probFora).toFixed(1);
-    const probX2 = (probFora + probEmpa).toFixed(1);
-    
-    const pAMB = calcProb('ambos_marcam', 'Sim');
+    // Probabilidades Básicas
+    const probCasa = calcProb('resultado', 'Casa');
+    const probEmpa = calcProb('resultado', 'Empate'); 
+    const probFora = calcProb('resultado', 'Fora');
+    const pAMB_Sim = calcProb('ambos_marcam', 'Sim');
+    const pAMB_Nao = 100 - pAMB_Sim;
+
+    // Over
+    const pO05 = calcProb('over_05', 'Sim');
     const pO15 = calcProb('over_15', 'Sim');
     const pO25 = calcProb('over_25', 'Sim');
-    const pO05 = calcProb('over_05', 'Sim');
+    const pO35 = calcProb('over_35', 'Sim');
+    const pO45 = calcProb('over_45', 'Sim');
 
+    // Under (Inverso do Over)
+    const pU05 = 100 - pO05;
+    const pU15 = 100 - pO15;
+    const pU25 = 100 - pO25;
+    const pU35 = 100 - pO35;
+    const pU45 = 100 - pO45;
+
+    // Dupla Chance
+    const prob1X = probCasa + probEmpa;
+    const prob12 = probCasa + probFora;
+    const probX2 = probFora + probEmpa;
+
+    // Renderização Colunas
     document.getElementById('col-principal').innerHTML = `
-        <div class="data-row"><span>Vitória Casa</span><b>${probCasa}%</b></div>
-        <div class="data-row"><span>Empate</span><b>${probEmpa}%</b></div>
-        <div class="data-row"><span>Vitória Fora</span><b>${probFora}%</b></div>
-        <div class="data-row"><span>Ambos Sim</span><b>${pAMB}%</b></div>
+        <div class="data-row"><span>V. Casa</span><b>${probCasa.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Empate</span><b>${probEmpa.toFixed(1)}%</b></div>
+        <div class="data-row"><span>V. Fora</span><b>${probFora.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Ambos Sim</span><b>${pAMB_Sim.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Ambos Não</span><b>${pAMB_Nao.toFixed(1)}%</b></div>
     `;
 
     document.getElementById('col-dupla').innerHTML = `
-        <div class="data-row"><span>Casa ou Empate (1X)</span><b>${prob1X}%</b></div>
-        <div class="data-row"><span>Casa ou Fora (12)</span><b>${prob12}%</b></div>
-        <div class="data-row"><span>Fora ou Empate (X2)</span><b>${probX2}%</b></div>
+        <div class="data-row"><span>Casa ou Empate 1X</span><b>${prob1X.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Casa ou Fora 12</span><b>${prob12.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Empate ou Fora X2</span><b>${probX2.toFixed(1)}%</b></div>
     `;
 
     document.getElementById('col-over').innerHTML = `
-        <div class="data-row"><span>+0.5 Gols</span><b>${pO05}%</b></div>
-        <div class="data-row"><span>+1.5 Gols</span><b>${pO15}%</b></div>
-        <div class="data-row"><span>+2.5 Gols</span><b>${pO25}%</b></div>
+        <div class="data-row"><span>+0.5 Gols</span><b>${pO05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+1.5 Gols</span><b>${pO15.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+2.5 Gols</span><b>${pO25.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+3.5 Gols</span><b>${pO35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+4.5 Gols</span><b>${pO45.toFixed(1)}%</b></div>
     `;
 
     document.getElementById('col-under').innerHTML = `
-        <div class="data-row"><span>-1.5 Gols</span><b>${(100 - pO15).toFixed(1)}%</b></div>
-        <div class="data-row"><span>-2.5 Gols</span><b>${(100 - pO25).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-0.5 Gols</span><b>${pU05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-1.5 Gols</span><b>${pU15.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-2.5 Gols</span><b>${pU25.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-3.5 Gols</span><b>${pU35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-4.5 Gols</span><b>${pU45.toFixed(1)}%</b></div>
     `;
 
     const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
     const mediaGols = (somaGolsPonderada / somaPesos).toFixed(2);
 
     document.getElementById('col-medias').innerHTML = `
-        <div class="data-row"><span>Gols p/ Jogo (AI)</span><b>${mediaGols}</b></div>
+        <div class="data-row"><span>Média Gols (AI)</span><b>${mediaGols}</b></div>
         <div class="data-row"><span>Amostra (N)</span><b>${dados.length}</b></div>
         <div class="data-row"><span>Confiança</span><b>${dados.length >= 25 ? 'Alta' : 'Média'}</b></div>
     `;
 
-    let ranking = [
-        { n: "Casa ou Empate (1X)", v: parseFloat(prob1X) },
-        { n: "Over 1.5 Gols", v: parseFloat(pO15) },
-        { n: "Ambos Marcam Sim", v: parseFloat(pAMB) },
-        { n: "Vitória Casa", v: probCasa },
-        { n: "Over 2.5 Gols", v: parseFloat(pO25) }
-    ].sort((a,b) => b.v - a.v).slice(0, 3);
+    // TOP 3 DINÂMICO (Calcula entre todos os mercados disponíveis)
+    let todosMercados = [
+        { n: "Vitória Direta Casa", v: probCasa },
+        { n: "Vitória Direta Fora", v: probFora },
+        { n: "1X (Casa ou Empate)", v: prob1X },
+        { n: "X2 (Fora ou Empate)", v: probX2 },
+        { n: "12 (Casa ou Fora)", v: prob12 },
+        { n: "Over 0.5 Gols", v: pO05 },
+        { n: "Over 1.5 Gols", v: pO15 },
+        { n: "Over 2.5 Gols", v: pO25 },
+        { n: "Under 2.5 Gols", v: pU25 },
+        { n: "Under 3.5 Gols", v: pU35 },
+        { n: "Ambos Marcam Sim", v: pAMB_Sim },
+        { n: "Ambos Marcam Não", v: pAMB_Nao }
+    ];
+
+    let ranking = todosMercados.sort((a,b) => b.v - a.v).slice(0, 3);
 
     document.getElementById('top-list').innerHTML = ranking.map((item, i) => `
         <div class="entry-row">
