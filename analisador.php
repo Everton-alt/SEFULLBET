@@ -177,7 +177,7 @@ const DB = <?= json_encode($dados_historicos) ?>;
 
 // Função universal para tratar números (aceita ponto ou vírgula)
 function limparNumero(val) {
-    if (!val) return 0;
+    if (val === null || val === undefined || val === '') return 0;
     return parseFloat(val.toString().replace(',', '.'));
 }
 
@@ -191,8 +191,8 @@ function processarIA() {
     document.getElementById('loader').style.display = 'flex';
     
     setTimeout(() => {
+        // Encontra os jogos mais próximos usando distância euclidiana
         const similares = DB.map(j => {
-            // Tratamento das odds do Banco de Dados (vêm com vírgula nas imagens)
             const ocDB = limparNumero(j.odd_casa);
             const oeDB = limparNumero(j.odd_empate);
             const ofDB = limparNumero(j.odd_fora);
@@ -232,7 +232,7 @@ function renderizar(dados) {
     const probO45 = parseFloat(pOVR('over_45', 'Sim'));
     const probU45 = (100 - probO45).toFixed(1);
 
-    // Renderização Principal
+    // Renderização das Colunas
     document.getElementById('col-principal').innerHTML = `
         <div class="data-row"><span>Vitória Casa</span><b>${probCasa}%</b></div>
         <div class="data-row"><span>Empate</span><b>${probEmpa}%</b></div>
@@ -262,7 +262,6 @@ function renderizar(dados) {
         <div class="data-row"><span>-4.5 Gols</span><b>${probU45}%</b></div>
     `;
 
-    // Média de Gols (Tratando possíveis erros de string no gols_total)
     const somaGols = dados.reduce((acc, j) => acc + limparNumero(j.gols_total || 0), 0);
     const mediaGols = (somaGols / total).toFixed(2);
 
@@ -272,7 +271,7 @@ function renderizar(dados) {
         <div class="data-row"><span>Confiança</span><b>${total >= 40 ? 'Alta' : 'Média'}</b></div>
     `;
 
-    // --- Ranking Dinâmico ---
+    // --- Ranking das 3 melhores chances ---
     let ranking = [
         { n: "Vitória Casa", v: probCasa },
         { n: "Vitória Fora", v: probFora },
@@ -285,11 +284,8 @@ function renderizar(dados) {
         { n: "Over 2.5 Gols", v: parseFloat(pOVR('over_25','Sim')) },
         { n: "Over 3.5 Gols", v: parseFloat(pOVR('over_35','Sim')) },
         { n: "Over 4.5 Gols", v: probO45 },
-        { n: "Under 0.5 Gols", v: (100 - parseFloat(pOVR('over_05','Sim'))) },
         { n: "Under 1.5 Gols", v: (100 - parseFloat(pOVR('over_15','Sim'))) },
         { n: "Under 2.5 Gols", v: (100 - parseFloat(pOVR('over_25','Sim'))) },
-        { n: "Under 3.5 Gols", v: (100 - parseFloat(pOVR('over_35','Sim'))) },
-        { n: "Under 4.5 Gols", v: probU45 },
         { n: "Ambos Marcam Sim", v: parseFloat(pAMB('Sim')) },
         { n: "Ambos Marcam Não", v: (100 - parseFloat(pAMB('Sim'))) }
     ].sort((a,b) => b.v - a.v).slice(0, 3);
