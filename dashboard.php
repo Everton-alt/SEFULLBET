@@ -184,7 +184,6 @@ $stat_v = getStats($pdo, 'VIP');
         
         <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
     </div>
-
 <!-- HEADER -->
 <header>
     <div class="menu-icon" onClick="openNav()">☰</div>
@@ -196,20 +195,24 @@ $stat_v = getStats($pdo, 'VIP');
         </div>
         <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
             <?php 
-                // Define a exibição e a cor baseada no plano_interesse salvo no cadastro
+                // Buscamos o plano que foi salvo no banco durante o cadastro
+                // Se estiver vazio, ele assume 'Grátis' para não dar erro de "null"
                 $exibir_plano = $user['plano_interesse'] ?? 'Grátis';
+
+                // Lógica de cores automática
                 $cor_badge = '#2ECC71'; // Verde padrão
                 if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f'; // Dourado
                 if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3'; // Azul
             ?>
             <span style="color: <?= $cor_badge ?>; text-transform: uppercase;">
                 <i class="fa-solid fa-crown" style="font-size: 9px;"></i> 
-                <?= htmlspecialchars($exibir_plano) ?>
+                <?= htmlspecialchars((string)$exibir_plano) ?>
             </span>
             <span style="color: var(--text-dim);">
                 Créditos: <b id="header-saldo" style="color: var(--primary);">
                     <?php 
-                        if (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) {
+                        // Verificamos o perfil para créditos infinitos ou o saldo real
+                        if (isset($perfil) && in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) {
                             echo '∞';
                         } else {
                             echo ($user['saldo_creditos'] ?? 0);
