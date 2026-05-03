@@ -18,19 +18,19 @@ if (!in_array($perfil, ['Supervisor', 'Admin'])) {
     exit();
 }
 
-// 2. Lógica de Banco de Dados (Criar tabela se não existir)
-$pdo->exec("CREATE TABLE IF NOT EXISTS vitorias (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    titulo VARCHAR(255) NOT NULL,
-    foto_principal TEXT,
-    foto_miniatura TEXT,
-    texto_completo TEXT,
-    data_publicacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+// 2. Lógica de Banco de Dados (Ajustada para PostgreSQL e prefixos v_)
+$pdo->exec("CREATE TABLE IF NOT EXISTS v_vitorias (
+    v_id SERIAL PRIMARY KEY,
+    v_titulo VARCHAR(255) NOT NULL,
+    v_foto_principal TEXT,
+    v_foto_miniatura TEXT,
+    v_texto_completo TEXT,
+    v_data_publicacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )");
 
 // 3. Processamento de Ações (Excluir)
 if (isset($_GET['delete'])) {
-    $stmt = $pdo->prepare("DELETE FROM vitorias WHERE id = ?");
+    $stmt = $pdo->prepare("DELETE FROM v_vitorias WHERE v_id = ?");
     $stmt->execute([$_GET['delete']]);
     header("Location: gestao_vitorias.php?msg=sucesso_del");
     exit();
@@ -43,13 +43,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['btn_publicar'])) {
     $foto2 = $_POST['foto2'];
     $texto = $_POST['texto'];
 
-    $stmt = $pdo->prepare("INSERT INTO vitorias (titulo, foto_principal, foto_miniatura, texto_completo) VALUES (?, ?, ?, ?)");
+    $stmt = $pdo->prepare("INSERT INTO v_vitorias (v_titulo, v_foto_principal, v_foto_miniatura, v_texto_completo) VALUES (?, ?, ?, ?)");
     $stmt->execute([$titulo, $foto1, $foto2, $texto]);
     $msg_sucesso = "Vitória publicada com sucesso!";
 }
 
 // 5. Busca as últimas 10 para o painel de gestão
-$vitorias_gestao = $pdo->query("SELECT * FROM vitorias ORDER BY id DESC LIMIT 10")->fetchAll();
+$vitorias_gestao = $pdo->query("SELECT * FROM v_vitorias ORDER BY v_id DESC LIMIT 10")->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -67,7 +67,7 @@ $vitorias_gestao = $pdo->query("SELECT * FROM vitorias ORDER BY id DESC LIMIT 10
 
         body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); padding-bottom: 50px; }
 
-        /* --- SIDEBAR & HEADER (ESTRUTURA SOLICITADA) --- */
+        /* --- SIDEBAR & HEADER --- */
         .sidebar { height: 100%; width: 280px; position: fixed; z-index: 2000; top: 0; left: -280px; background-color: #2d3436; overflow-x: hidden; transition: 0.4s; padding-top: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
         .sidebar .nav-btn { padding: 12px 25px; text-decoration: none; font-size: 15px; color: #b2bec3; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #3d4648; transition: 0.3s; }
         .sidebar .nav-btn i { width: 20px; text-align: center; }
@@ -104,6 +104,8 @@ $vitorias_gestao = $pdo->query("SELECT * FROM vitorias ORDER BY id DESC LIMIT 10
         .btn-tool { padding: 6px 10px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; font-weight: bold; }
         .btn-del { background: #fdf2f2; color: var(--danger); }
         .alert-success { background: #eafaf1; color: var(--primary); padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.85rem; font-weight: 700; text-align: center; }
+        
+        footer { text-align: center; padding: 20px; font-size: 12px; color: var(--text-dim); }
     </style>
 </head>
 <body>
@@ -138,6 +140,10 @@ $vitorias_gestao = $pdo->query("SELECT * FROM vitorias ORDER BY id DESC LIMIT 10
     <div class="admin-content">
         <?php if(isset($msg_sucesso)): ?>
             <div class="alert-success"><?= $msg_sucesso ?></div>
+        <?php endif; ?>
+        
+        <?php if(isset($_GET['msg']) && $_GET['msg'] == 'sucesso_del'): ?>
+            <div class="alert-success" style="background: #fdf2f2; color: var(--danger);">Publicação excluída com sucesso!</div>
         <?php endif; ?>
 
         <div class="section-title"><i class="fas fa-plus-circle"></i> Nova Publicação de Vitória</div>
@@ -176,10 +182,10 @@ $vitorias_gestao = $pdo->query("SELECT * FROM vitorias ORDER BY id DESC LIMIT 10
                 <tbody>
                     <?php foreach($vitorias_gestao as $v): ?>
                     <tr>
-                        <td><img src="<?= $v['foto_miniatura'] ?>" class="mini-thumb" onerror="this.src='https://via.placeholder.com/40'"></td>
-                        <td><strong><?= substr($v['titulo'], 0, 25) ?>...</strong></td>
+                        <td><img src="<?= $v['v_foto_miniatura'] ?>" class="mini-thumb" onerror="this.src='https://via.placeholder.com/40'"></td>
+                        <td><strong><?= substr($v['v_titulo'], 0, 25) ?>...</strong></td>
                         <td>
-                            <a href="?delete=<?= $v['id'] ?>" class="btn-tool btn-del" onclick="return confirm('Apagar permanentemente?')"><i class="fas fa-trash"></i></a>
+                            <a href="?delete=<?= $v['v_id'] ?>" class="btn-tool btn-del" onclick="return confirm('Apagar permanentemente?')"><i class="fas fa-trash"></i></a>
                         </td>
                     </tr>
                     <?php endforeach; ?>
