@@ -75,7 +75,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; }
 
-        /* --- SIDEBAR E OVERLAY (Estilo Dashboard) --- */
         .sidebar { height: 100%; width: 280px; position: fixed; z-index: 2000; top: 0; left: -280px; background-color: #2d3436; overflow-x: hidden; transition: 0.4s; padding-top: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
         .sidebar .nav-btn { padding: 12px 25px; text-decoration: none; font-size: 15px; color: #b2bec3; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #3d4648; transition: 0.3s; }
         .sidebar .nav-btn i { width: 20px; text-align: center; }
@@ -85,19 +84,16 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .nav-label { color: var(--primary); font-size: 11px; text-transform: uppercase; padding: 15px 25px 5px; display: block; font-weight: 800; letter-spacing: 1px; }
         .overlay { display: none; position: fixed; width: 100%; height: 100%; top: 0; left: 0; background: rgba(0,0,0,0.5); z-index: 1500; }
 
-        /* --- HEADER (Estilo Dashboard) --- */
         header { background-color: #ffffff; color: var(--primary); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #eee; }
         .menu-icon { font-size: 24px; cursor: pointer; color: #2d3436; }
         .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; color: #2d3436; }
         .logo span { color: var(--primary); }
 
-        /* --- CONTEÚDO --- */
         main { padding: 30px 15px; max-width: 1200px; margin: 0 auto; }
         
         .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
         .status-badge { background: var(--card-bg); padding: 10px 20px; border-radius: 15px; border: 1px solid var(--border); display: flex; gap: 20px; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 
-        /* --- INPUT CARD --- */
         .input-card { background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: flex-end; margin-bottom: 30px; border: 1px solid var(--border); flex-wrap: wrap; }
         .input-group { flex: 1; min-width: 120px; }
         .input-group label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
@@ -107,7 +103,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .btn-analisar { height: 58px; padding: 0 35px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3); width: 100%; max-width: 250px; }
         .btn-analisar:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
-        /* --- RESULTADOS --- */
         .best-entries-card { background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 20px; padding: 25px; margin-bottom: 30px; color: #fff; }
         .entry-row { background: rgba(255,255,255,0.15); border-radius: 15px; padding: 15px 25px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
         .entry-perc { background: #fff; color: var(--primary); padding: 5px 15px; border-radius: 10px; font-weight: 900; }
@@ -118,7 +113,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .data-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #4b5563; }
         .data-row b { color: var(--primary); font-weight: 800; font-size: 14px; }
 
-        /* LOADER */
         #loader { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.9); z-index:2000; flex-direction:column; justify-content:center; align-items:center; }
         .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -137,10 +131,8 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     <p style="color: var(--primary); margin-top:20px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">IA Sefullbet Processando...</p>
 </div>
 
-<!-- OVERLAY DO MENU -->
 <div id="overlay" class="overlay" onClick="closeNav()"></div>
 
-<!-- SIDEBAR -->
 <div id="mySidebar" class="sidebar">
     <span class="close-btn" onClick="closeNav()">&times;</span>
     <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Início</span></a>
@@ -165,7 +157,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     
     <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
 </div>
-<!-- HEADER -->
+
 <header>
     <div class="menu-icon" onClick="openNav()">☰</div>
     <div class="logo">SEFULL<span>BET</span></div>
@@ -176,14 +168,10 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         </div>
         <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
             <?php 
-                // Buscamos o plano que foi salvo no banco durante o cadastro
-                // Se estiver vazio, ele assume 'Grátis' para não dar erro de "null"
                 $exibir_plano = $user['plano_interesse'] ?? 'Grátis';
-
-                // Lógica de cores automática
-                $cor_badge = '#2ECC71'; // Verde padrão
-                if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f'; // Dourado
-                if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3'; // Azul
+                $cor_badge = '#2ECC71'; 
+                if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f';
+                if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3';
             ?>
             <span style="color: <?= $cor_badge ?>; text-transform: uppercase;">
                 <i class="fa-solid fa-crown" style="font-size: 9px;"></i> 
@@ -192,7 +180,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
             <span style="color: var(--text-dim);">
                 Créditos: <b id="header-saldo" style="color: var(--primary);">
                     <?php 
-                        // Verificamos o perfil para créditos infinitos ou o saldo real
                         if (isset($perfil) && in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) {
                             echo '∞';
                         } else {
@@ -204,6 +191,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         </div>
     </div>
 </header>
+
 <main>
     <div class="header-top">
         <div class="welcome-text">
@@ -248,11 +236,9 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 </main>
 
 <script>
-// SCRIPT DO MENU
 function openNav() { document.getElementById("mySidebar").style.left = "0"; document.getElementById("overlay").style.display = "block"; }
 function closeNav() { document.getElementById("mySidebar").style.left = "-280px"; document.getElementById("overlay").style.display = "none"; }
 
-// SCRIPT DA IA Sefullbet
 const DB = <?php echo json_encode($dados_historicos); ?>;
 
 function limparNumero(val) {
@@ -269,19 +255,8 @@ async function processarIA() {
 
     document.getElementById('loader').style.display = 'flex';
 
-    const resDebito = await debitar();
-
-    if(resDebito.status === 'erro') {
-        document.getElementById('loader').style.display = 'none';
-        alert("Ops! Seus créditos acabaram. Por favor, RENOVE SEU VIP OU PLATINUM para continuar usando o analisador.");
-        return;
-    }
-
-    if(resDebito.novo_saldo !== undefined) {
-        document.getElementById('saldo-display').innerText = resDebito.novo_saldo;
-    }
-    
-    setTimeout(() => {
+    // 1. PRIMEIRO: Tenta encontrar jogos similares ANTES de cobrar
+    setTimeout(async () => {
         const similares = DB.map(j => {
             const ocDB = limparNumero(j.odd_casa);
             const oeDB = limparNumero(j.odd_empate);
@@ -300,15 +275,34 @@ async function processarIA() {
         .sort((a,b) => a.dist - b.dist)
         .slice(0, 50);
 
+        // SE NÃO ENCONTRAR: Cancela tudo e não cobra crédito
         if (similares.length === 0) {
             document.getElementById('loader').style.display = 'none';
-            return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo (Nenhum padrão similar encontrado).");
+            return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo (Nenhum padrão similar encontrado). Nenhum crédito foi consumido.");
         }
 
+        // SE ENCONTRAR: Agora sim faz o débito
+        const resDebito = await debitar();
+
+        if(resDebito.status === 'erro') {
+            document.getElementById('loader').style.display = 'none';
+            alert("Ops! Seus créditos acabaram. Por favor, RENOVE SEU VIP OU PLATINUM para continuar usando o analisador.");
+            return;
+        }
+
+        // Atualiza saldos na tela
+        if(resDebito.novo_saldo !== undefined) {
+            document.getElementById('saldo-display').innerText = resDebito.novo_saldo;
+            if(document.getElementById('header-saldo')) {
+                document.getElementById('header-saldo').innerText = resDebito.novo_saldo;
+            }
+        }
+
+        // Finaliza renderização
         renderizar(similares);
         document.getElementById('loader').style.display = 'none';
         document.getElementById('resultado-display').style.display = 'block';
-    }, 1500);
+    }, 1200);
 }
 
 function renderizar(dados) {
@@ -331,11 +325,8 @@ function renderizar(dados) {
     const pO35 = calcProb('over_35', 'Sim');
     const pO45 = calcProb('over_45', 'Sim');
 
-    const pU05 = 100 - pO05;
-    const pU15 = 100 - pO15;
     const pU25 = 100 - pO25;
     const pU35 = 100 - pO35;
-    const pU45 = 100 - pO45;
 
     const prob1X = probCasa + probEmpa;
     const prob12 = probCasa + probFora;
@@ -364,11 +355,8 @@ function renderizar(dados) {
     `;
 
     document.getElementById('col-under').innerHTML = `
-        <div class="data-row"><span>-0.5 Gols</span><b>${pU05.toFixed(1)}%</b></div>
-        <div class="data-row"><span>-1.5 Gols</span><b>${pU15.toFixed(1)}%</b></div>
         <div class="data-row"><span>-2.5 Gols</span><b>${pU25.toFixed(1)}%</b></div>
         <div class="data-row"><span>-3.5 Gols</span><b>${pU35.toFixed(1)}%</b></div>
-        <div class="data-row"><span>-4.5 Gols</span><b>${pU45.toFixed(1)}%</b></div>
     `;
 
     const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
