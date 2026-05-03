@@ -61,39 +61,50 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         :root {
             --primary: #2ECC71; 
             --bg-body: #f4f7f6; 
+            --bg-secondary: #f8f9fa;
             --sidebar-bg: #2d3436;
             --card-bg: #ffffff;
             --text-main: #2d3436;
             --text-dim: #636e72;
             --border: #edf2f7;
+            --accent-blue: #0984e3;
+            --danger: #d63031;
+            --warning: #f1c40f;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-main); display: flex; min-height: 100vh; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; }
 
-        /* --- SIDEBAR --- */
-        nav { width: 280px; background: var(--sidebar-bg); padding: 30px 15px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000; }
-        .nav-logo { font-weight: 800; font-size: 1.6rem; color: #fff; text-align: center; margin-bottom: 40px; }
-        .nav-logo span { color: var(--primary); }
-        .nav-label { font-size: 10px; color: #b2bec3; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 15px; font-weight: 700; }
-        .nav-btn { color: #b2bec3; padding: 12px 18px; border-radius: 12px; text-decoration: none; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: 0.3s; }
-        .nav-btn:hover { background: rgba(255,255,255,0.05); color: var(--primary); }
-        .nav-btn.active { background: rgba(46, 204, 113, 0.1); color: var(--primary); font-weight: 700; }
+        /* --- SIDEBAR E OVERLAY (Estilo Dashboard) --- */
+        .sidebar { height: 100%; width: 280px; position: fixed; z-index: 2000; top: 0; left: -280px; background-color: #2d3436; overflow-x: hidden; transition: 0.4s; padding-top: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
+        .sidebar .nav-btn { padding: 12px 25px; text-decoration: none; font-size: 15px; color: #b2bec3; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #3d4648; transition: 0.3s; }
+        .sidebar .nav-btn i { width: 20px; text-align: center; }
+        .sidebar .nav-btn:hover, .sidebar .nav-btn.active { background: #3d4648; color: var(--primary); }
+        .sidebar .logout-btn { color: #ff7675 !important; font-weight: bold; border-bottom: none !important; }
+        .sidebar .close-btn { position: absolute; top: 10px; right: 25px; font-size: 30px; cursor: pointer; color: var(--primary); z-index: 2001; }
+        .nav-label { color: var(--primary); font-size: 11px; text-transform: uppercase; padding: 15px 25px 5px; display: block; font-weight: 800; letter-spacing: 1px; }
+        .overlay { display: none; position: fixed; width: 100%; height: 100%; top: 0; left: 0; background: rgba(0,0,0,0.5); z-index: 1500; }
+
+        /* --- HEADER (Estilo Dashboard) --- */
+        header { background-color: #ffffff; color: var(--primary); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #eee; }
+        .menu-icon { font-size: 24px; cursor: pointer; color: #2d3436; }
+        .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; color: #2d3436; }
+        .logo span { color: var(--primary); }
 
         /* --- CONTEÚDO --- */
-        main { flex: 1; margin-left: 280px; padding: 40px; width: calc(100% - 280px); }
+        main { padding: 30px 15px; max-width: 1200px; margin: 0 auto; }
         
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
         .status-badge { background: var(--card-bg); padding: 10px 20px; border-radius: 15px; border: 1px solid var(--border); display: flex; gap: 20px; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 
         /* --- INPUT CARD --- */
-        .input-card { background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: flex-end; margin-bottom: 30px; border: 1px solid var(--border); }
-        .input-group { flex: 1; }
+        .input-card { background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: flex-end; margin-bottom: 30px; border: 1px solid var(--border); flex-wrap: wrap; }
+        .input-group { flex: 1; min-width: 120px; }
         .input-group label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
         .input-group input { width: 100%; padding: 15px; background: #f8fafc; border: 2px solid #edf2f7; border-radius: 12px; color: var(--text-main); font-weight: 800; font-size: 1.2rem; text-align: center; transition: 0.3s; }
         .input-group input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        .btn-analisar { height: 58px; padding: 0 35px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3); }
+        .btn-analisar { height: 58px; padding: 0 35px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3); width: 100%; max-width: 250px; }
         .btn-analisar:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
         /* --- RESULTADOS --- */
@@ -112,11 +123,10 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        @media (max-width: 1024px) {
-            nav { width: 70px; padding: 20px 5px; }
-            .nav-label, .nav-btn span, .nav-logo { display: none; }
-            main { margin-left: 70px; padding: 20px; width: calc(100% - 70px); }
-            .input-card { flex-direction: column; align-items: stretch; }
+        @media (max-width: 768px) {
+            .btn-analisar { max-width: 100%; }
+            .header-top { flex-direction: column; align-items: flex-start; }
+            .status-badge { width: 100%; justify-content: space-between; }
         }
     </style>
 </head>
@@ -127,25 +137,41 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     <p style="color: var(--primary); margin-top:20px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">IA Sefullbet Processando...</p>
 </div>
 
-<nav>
-    <div class="nav-logo">SEFULL<span>BET</span></div>
-    
-    <span class="nav-label">Menu</span>
-    <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Feed Usuário</span></a>
+<!-- OVERLAY DO MENU -->
+<div id="overlay" class="overlay" onClick="closeNav()"></div>
+
+<!-- SIDEBAR -->
+<div id="mySidebar" class="sidebar">
+    <span class="close-btn" onClick="closeNav()">&times;</span>
+    <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Início</span></a>
     <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
     <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
-    <a class="nav-btn active" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analista Pro AI</span></a>
-    <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
+    <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
     <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
-
+    <a class="nav-btn active" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
+    <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
+    
     <?php if (in_array($perfil, ['Supervisor', 'Admin'])): ?>
-        <span class="nav-label">Admin</span>
-        <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Sinais</span></a>
-        <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Membros</span></a>
+        <hr style="border: 0; border-top: 1px solid #3d4648; margin: 15px 10px;">
+        <span class="nav-label">Gestão Administrativa</span>
+        <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
+        <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+        <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-database"></i> <span>Verificar Dados AI</span></a>
+        <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
+        <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
+        <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
+        <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
     <?php endif; ?>
     
-    <a class="nav-btn" style="margin-top:auto; color: #ff7675" href="logout.php"><i class="fas fa-power-off"></i> <span>Sair</span></a>
-</nav>
+    <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
+</div>
+
+<!-- HEADER -->
+<header>
+    <div class="menu-icon" onClick="openNav()">☰</div>
+    <div class="logo">SEFULL<span>BET</span></div>
+    <div style="font-size: 14px; font-weight: 800; color: var(--text-dim)">Olá, <?= explode(' ', $user['nome'])[0] ?></div>
+</header>
 
 <main>
     <div class="header-top">
@@ -191,6 +217,11 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 </main>
 
 <script>
+// SCRIPT DO MENU
+function openNav() { document.getElementById("mySidebar").style.left = "0"; document.getElementById("overlay").style.display = "block"; }
+function closeNav() { document.getElementById("mySidebar").style.left = "-280px"; document.getElementById("overlay").style.display = "none"; }
+
+// SCRIPT DA IA Sefullbet
 const DB = <?php echo json_encode($dados_historicos); ?>;
 
 function limparNumero(val) {
