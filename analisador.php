@@ -166,8 +166,6 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
 </div>
 
-<!-- HEADER -->
-<!-- HEADER -->
 <header>
     <div class="menu-icon" onClick="openNav()">☰</div>
     <div class="logo">SEFULL<span>BET</span></div>
@@ -178,7 +176,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
         </div>
         <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
             <span style="color: <?= $cor_perfil ?>; text-transform: uppercase;">
-                <i class="fas fa-crown" style="font-size: 9px;"></i> <?= $perfil ?>
+                <i class="fa-solid fa-crown" style="font-size: 9px;"></i> <?= htmlspecialchars($user['plano']) ?>
             </span>
             <span style="color: var(--text-dim);">
                 Créditos: <b id="header-saldo" style="color: var(--primary);">
