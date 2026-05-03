@@ -12,15 +12,13 @@ if (!isset($_SESSION['usuario_id'])) {
 $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
 $stmt->execute([$_SESSION['usuario_id']]);
 $user = $stmt->fetch();
-}
 
-// 2. Busca dados atualizados do usuário
-$stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
-$stmt->execute([$_SESSION['usuario_id']]);
-$user = $stmt->fetch();
-
-$perfil = $user['perfil']; 
+// Definição do perfil e permissões
+$perfil = $user['perfil']; 
 $pode_ver_vip = in_array($perfil, ['VIP', 'Platinum', 'Supervisor', 'Admin']);
+
+// --- LÓGICA DE PAGINAÇÃO PALPITES ---
+// ... restante do código segue normal daqui ...
 
 // --- LÓGICA DE PAGINAÇÃO PALPITES ---
 $itens_por_pagina = 5;
