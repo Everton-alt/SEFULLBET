@@ -195,9 +195,16 @@ $stat_v = getStats($pdo, 'VIP');
             Olá, <?= explode(' ', ($user['nome'] ?? 'Usuário'))[0] ?>
         </div>
         <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
-            <span style="color: <?= $cor_perfil ?>; text-transform: uppercase;">
+            <?php 
+                // Define a exibição e a cor baseada no plano_interesse salvo no cadastro
+                $exibir_plano = $user['plano_interesse'] ?? 'Grátis';
+                $cor_badge = '#2ECC71'; // Verde padrão
+                if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f'; // Dourado
+                if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3'; // Azul
+            ?>
+            <span style="color: <?= $cor_badge ?>; text-transform: uppercase;">
                 <i class="fa-solid fa-crown" style="font-size: 9px;"></i> 
-                <?= htmlspecialchars($plano_pre_selecionado) ?>
+                <?= htmlspecialchars($exibir_plano) ?>
             </span>
             <span style="color: var(--text-dim);">
                 Créditos: <b id="header-saldo" style="color: var(--primary);">
@@ -213,7 +220,6 @@ $stat_v = getStats($pdo, 'VIP');
         </div>
     </div>
 </header>
-
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-value"><?= $stat_g['total'] > 0 ? round(($stat_g['greens']/$stat_g['total'])*100) : 0 ?>%</div>
