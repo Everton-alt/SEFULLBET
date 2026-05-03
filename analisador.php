@@ -166,21 +166,36 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
 </div>
 
+<!-- HEADER -->
 <header>
     <div class="menu-icon" onClick="openNav()">☰</div>
     <div class="logo">SEFULL<span>BET</span></div>
     
     <div style="text-align: right; line-height: 1.2;">
         <div style="font-size: 14px; font-weight: 800; color: #2d3436">
-            Olá, <?= explode(' ', $user['nome'])[0] ?>
+            Olá, <?= explode(' ', ($user['nome'] ?? 'Usuário'))[0] ?>
         </div>
         <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
-            <span style="color: <?= $cor_perfil ?>; text-transform: uppercase;">
-                <i class="fa-solid fa-crown" style="font-size: 9px;"></i> <?= htmlspecialchars($user['plano']) ?>
+            <?php 
+                // Define a exibição e a cor baseada no plano_interesse salvo no cadastro
+                $exibir_plano = $user['plano_interesse'] ?? 'Grátis';
+                $cor_badge = '#2ECC71'; // Verde padrão
+                if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f'; // Dourado
+                if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3'; // Azul
+            ?>
+            <span style="color: <?= $cor_badge ?>; text-transform: uppercase;">
+                <i class="fa-solid fa-crown" style="font-size: 9px;"></i> 
+                <?= htmlspecialchars($exibir_plano) ?>
             </span>
             <span style="color: var(--text-dim);">
                 Créditos: <b id="header-saldo" style="color: var(--primary);">
-                    <?= (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?>
+                    <?php 
+                        if (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) {
+                            echo '∞';
+                        } else {
+                            echo ($user['saldo_creditos'] ?? 0);
+                        }
+                    ?>
                 </b>
             </span>
         </div>
