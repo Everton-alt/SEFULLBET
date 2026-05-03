@@ -52,8 +52,7 @@ $lista_vitorias = $stmt_vitorias->fetchAll();
 
 // 4. Estatísticas Dinâmicas
 function getStats($pdo, $cat) {
-    $stmt = $pdo->prepare("SELECT 
-        COUNT(*) as total, 
+    $stmt = $pdo->prepare("SELECT COUNT(*) as total, 
         SUM(CASE WHEN p_status = 'Green' THEN 1 ELSE 0 END) as greens,
         SUM(CASE WHEN p_status = 'Red' THEN 1 ELSE 0 END) as reds
         FROM sinais WHERE p_categoria = ?");
