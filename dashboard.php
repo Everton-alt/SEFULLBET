@@ -32,7 +32,7 @@ $stmt_sinais->bindValue(2, $offset, PDO::PARAM_INT);
 $stmt_sinais->execute();
 $lista_sinais = $stmt_sinais->fetchAll();
 
-// --- LÓGICA DE PAGINAÇÃO VITÓRIAS (CORRIGIDA PARA FIXAÇÃO) ---
+// --- LÓGICA DE PAGINAÇÃO VITÓRIAS (CORRIGIDA PARA v_fixado) ---
 $vitorias_por_pagina = 5;
 $v_pagina_atual = isset($_GET['vp']) ? (int)$_GET['vp'] : 1;
 if ($v_pagina_atual < 1) $v_pagina_atual = 1;
@@ -41,8 +41,8 @@ $v_offset = ($v_pagina_atual - 1) * $vitorias_por_pagina;
 $total_vitorias = $pdo->query("SELECT COUNT(*) FROM v_vitorias")->fetchColumn();
 $v_total_paginas = ceil($total_vitorias / $vitorias_por_pagina);
 
-// AQUI A MUDANÇA: Ordenamos primeiro pelo 'v_fixar' (1 vem antes de 0) e depois pelo ID
-$stmt_vitorias = $pdo->prepare("SELECT * FROM v_vitorias ORDER BY v_fixar DESC, v_id DESC LIMIT ? OFFSET ?");
+// Ordenação prioritária por v_fixado DESC (1 sobe, 0 desce)
+$stmt_vitorias = $pdo->prepare("SELECT * FROM v_vitorias ORDER BY v_fixado DESC, v_id DESC LIMIT ? OFFSET ?");
 $stmt_vitorias->bindValue(1, $vitorias_por_pagina, PDO::PARAM_INT);
 $stmt_vitorias->bindValue(2, $v_offset, PDO::PARAM_INT);
 $stmt_vitorias->execute();
@@ -141,7 +141,7 @@ $stat_v = getStats($pdo, 'VIP');
         .victory-info { flex: 1; overflow: hidden; }
         .victory-title { font-weight: 700; font-size: 0.9rem; color: var(--text-main); display: block; margin-bottom: 2px; }
         .victory-excerpt { font-size: 0.75rem; color: var(--text-dim); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pin-badge { position: absolute; top: -5px; right: -5px; background: var(--warning); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .pin-badge { position: absolute; top: -5px; right: -5px; background: var(--warning); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 5; }
 
         /* MODAL */
         .v-modal-bg { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index: 3000; padding: 20px; box-sizing: border-box; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
@@ -191,7 +191,6 @@ $stat_v = getStats($pdo, 'VIP');
         <div style="font-size: 14px; font-weight: 800; color: var(--text-dim)">Olá, <?= explode(' ', $user['nome'])[0] ?></div>
     </header>
 
-    <!-- Estatísticas e Botão Analisador Omitidos para brevidade se necessário, mas mantidos no código funcional -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-value"><?= $stat_g['total'] > 0 ? round(($stat_g['greens']/$stat_g['total'])*100) : 0 ?>%</div>
@@ -245,8 +244,6 @@ $stat_v = getStats($pdo, 'VIP');
         <?php endforeach; ?>
     </div>
 
-    <!-- Paginação Palpites Omitida para focar na solução das Vitórias -->
-
     <div class="section-title"><i class="fas fa-trophy" style="color: var(--warning)"></i> Últimas Vitórias</div>
     <div class="content-container">
         <?php foreach($lista_vitorias as $v): ?>
@@ -256,7 +253,7 @@ $stat_v = getStats($pdo, 'VIP');
                 data-foto2="<?= $v['v_foto_miniatura'] ?>"
                 data-texto="<?= htmlspecialchars($v['v_texto_completo']) ?>">
                 
-                <?php if(isset($v['v_fixar']) && $v['v_fixar'] == 1): ?>
+                <?php if(isset($v['v_fixado']) && $v['v_fixado'] == 1): ?>
                     <div class="pin-badge"><i class="fas fa-thumbtack"></i> FIXADO</div>
                 <?php endif; ?>
                 
@@ -272,13 +269,11 @@ $stat_v = getStats($pdo, 'VIP');
         <?php endforeach; ?>
     </div>
 
-    <!-- Paginação Vitórias -->
     <div class="pagination-box">
         <a href="?p=<?= $pagina_atual ?>&vp=<?= $v_pagina_atual - 1 ?>" class="pg-btn <?= $v_pagina_atual <= 1 ? 'disabled' : '' ?>"><i class="fas fa-chevron-left"></i> Ant. Vitórias</a>
         <a href="?p=<?= $pagina_atual ?>&vp=<?= $v_pagina_atual + 1 ?>" class="pg-btn <?= $v_pagina_atual >= $v_total_paginas ? 'disabled' : '' ?>">Prox. Vitórias <i class="fas fa-chevron-right"></i></a>
     </div>
 
-    <!-- MODAL DE LEITURA -->
     <div id="vModal" class="v-modal-bg" onclick="fecharLeitura(event)">
         <div class="v-modal-content">
             <div class="v-modal-body">
