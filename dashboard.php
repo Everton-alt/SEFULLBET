@@ -185,11 +185,27 @@ $stat_v = getStats($pdo, 'VIP');
         <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
     </div>
 
-    <header>
-        <div class="menu-icon" onClick="openNav()">☰</div>
-        <div class="logo">SEFULL<span>BET</span></div>
-        <div style="font-size: 14px; font-weight: 800; color: var(--text-dim)">Olá, <?= explode(' ', $user['nome'])[0] ?></div>
-    </header>
+<!-- HEADER -->
+<header>
+    <div class="menu-icon" onClick="openNav()">☰</div>
+    <div class="logo">SEFULL<span>BET</span></div>
+    
+    <div style="text-align: right; line-height: 1.2;">
+        <div style="font-size: 14px; font-weight: 800; color: #2d3436">
+            Olá, <?= explode(' ', $user['nome'])[0] ?>
+        </div>
+        <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
+            <span style="color: <?= $cor_perfil ?>; text-transform: uppercase;">
+                <i class="fas fa-crown" style="font-size: 9px;"></i> <?= $perfil ?>
+            </span>
+            <span style="color: var(--text-dim);">
+                Créditos: <b id="header-saldo" style="color: var(--primary);">
+                    <?= (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?>
+                </b>
+            </span>
+        </div>
+    </div>
+</header>
 
     <div class="stats-grid">
         <div class="stat-card">
