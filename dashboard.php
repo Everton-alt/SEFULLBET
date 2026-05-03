@@ -1,12 +1,17 @@
-atualiza o dashboard que expelhe a exibição das vitorias da gestão
-_vitorias a opção de fixar em destaque e no top: <?php
+<?php
 session_start();
 require_once 'config.php';
 
 // 1. Verificação de Login
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
-    exit();
+    header("Location: login.php");
+    exit();
+}
+
+// 2. Busca dados atualizados do usuário
+$stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
+$stmt->execute([$_SESSION['usuario_id']]);
+$user = $stmt->fetch();
 }
 
 // 2. Busca dados atualizados do usuário
