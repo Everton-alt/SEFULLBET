@@ -75,7 +75,7 @@ $stat_v = getStats($pdo, 'VIP');
             padding-bottom: 50px;
         }
 
-        /* --- SIDEBAR ATUALIZADA --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             height: 100%; width: 280px; position: fixed; z-index: 2000;
             top: 0; left: -280px; background-color: #2d3436;
@@ -117,7 +117,7 @@ $stat_v = getStats($pdo, 'VIP');
         /* --- PALPITES & PAGINAÇÃO --- */
         .section-title { padding: 20px 15px 10px; font-size: 0.85rem; font-weight: 800; color: #2d3436; text-transform: uppercase; }
         .content-container { padding: 0 10px; }
-        .history-row { background: var(--card-bg); margin-bottom: 12px; border-radius: 15px; padding: 15px; border-left: 6px solid #dfe6e9; box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; }
+        .history-row { background: var(--card-bg); margin-bottom: 12px; border-radius: 15px; padding: 15px; border-left: 6px solid #dfe6e9; box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; overflow: hidden; }
         .history-row.vip-row { border-left-color: var(--warning); }
         .history-row.free-row { border-left-color: var(--accent-blue); }
         .row-top { display: flex; justify-content: space-between; font-size: 0.7rem; color: #b2bec3; margin-bottom: 10px; border-bottom: 1px solid #f1f1f1; padding-bottom: 6px; }
@@ -133,7 +133,7 @@ $stat_v = getStats($pdo, 'VIP');
         .pg-btn.disabled { opacity: 0.4; pointer-events: none; }
 
         .locked-content { filter: blur(5px); opacity: 0.3; pointer-events: none; }
-        .lock-notice { position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:10; color: var(--warning); font-weight:bold; font-size: 11px; }
+        .lock-notice { position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; z-index:10; color: var(--warning); font-weight:bold; font-size: 11px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
 
         footer { text-align: center; padding: 40px 20px; font-size: 0.75rem; color: #b2bec3; background: #f8f9fa; margin-top: 30px; }
     </style>
@@ -210,7 +210,12 @@ $stat_v = getStats($pdo, 'VIP');
                 <div class="row-top">
                     <span>
                         <i class="far fa-calendar-alt"></i> 
-                        <?= date('d/m', strtotime($s['p_data'])) ?> - <?= $s['p_hora'] ?>
+                        <?php 
+                            // Lógica de correção da data: p_data ou data_criacao
+                            $data_valida = $s['p_data'] ?? $s['data_criacao'] ?? date('Y-m-d');
+                            echo date('d/m', strtotime($data_valida)); 
+                        ?> 
+                        - <?= $s['p_hora'] ?>
                     </span>
                     <span><?= strtoupper($s['p_categoria']) ?></span>
                 </div>
