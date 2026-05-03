@@ -208,7 +208,10 @@ $stat_v = getStats($pdo, 'VIP');
 
             <div class="<?= $bloqueado ? 'locked-content' : '' ?>">
                 <div class="row-top">
-                    <span><?= $s['p_hora'] ?></span>
+                    <span>
+                        <i class="far fa-calendar-alt"></i> 
+                        <?= date('d/m', strtotime($s['p_data'])) ?> - <?= $s['p_hora'] ?>
+                    </span>
                     <span><?= strtoupper($s['p_categoria']) ?></span>
                 </div>
                 <div class="row-main">
