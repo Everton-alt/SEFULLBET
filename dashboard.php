@@ -192,15 +192,22 @@ $stat_v = getStats($pdo, 'VIP');
     
     <div style="text-align: right; line-height: 1.2;">
         <div style="font-size: 14px; font-weight: 800; color: #2d3436">
-            Olá, <?= explode(' ', $user['nome'])[0] ?>
+            Olá, <?= explode(' ', ($user['nome'] ?? 'Usuário'))[0] ?>
         </div>
         <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
             <span style="color: <?= $cor_perfil ?>; text-transform: uppercase;">
-                <i class="fa-solid fa-crown" style="font-size: 9px;"></i> <?= htmlspecialchars($user['plano']) ?>
+                <i class="fa-solid fa-crown" style="font-size: 9px;"></i> 
+                <?= htmlspecialchars($plano_exibicao) ?>
             </span>
             <span style="color: var(--text-dim);">
                 Créditos: <b id="header-saldo" style="color: var(--primary);">
-                    <?= (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?>
+                    <?php 
+                        if (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) {
+                            echo '∞';
+                        } else {
+                            echo ($user['saldo_creditos'] ?? 0);
+                        }
+                    ?>
                 </b>
             </span>
         </div>
