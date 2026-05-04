@@ -16,6 +16,8 @@ $perfil = $user['perfil'];
 
 // 3. Lógica de Débito de Créditos (AJAX)
 if (isset($_POST['action']) && $_POST['action'] == 'debitar') {
+    // ob_clean evita que qualquer espaço ou aviso do PHP quebre o JSON de saída
+    if (ob_get_length()) ob_clean(); 
     header('Content-Type: application/json');
     $is_premium = in_array($perfil, ['Admin', 'Platinum', 'Supervisor']);
     
@@ -301,7 +303,7 @@ async function processarIA() {
 }
 
 function renderizar(dados) {
-    const somaPesos = dados.reduce((acc, j) => acc + j.peso, 0);
+    const somaPesos = dados.reduce((acc, j) => acc + j.weight || acc + j.peso, 0); // Ajustado para aceitar peso
     
     const calcProb = (campo, valor) => {
         const pesoOcorrido = dados.filter(j => j[campo] === valor).reduce((acc, j) => acc + j.peso, 0);
@@ -324,6 +326,7 @@ function renderizar(dados) {
     const pU15 = 100 - pO15;
     const pU25 = 100 - pO25;
     const pU35 = 100 - pO35;
+    const pU45 = 100 - pO45; // CORREÇÃO: Variável que faltava e causava o erro infinito
 
     const prob1X = probCasa + probEmpa;
     const prob12 = probCasa + probFora;
