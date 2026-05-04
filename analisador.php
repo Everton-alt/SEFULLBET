@@ -271,9 +271,9 @@ async function processarIA() {
             const peso = 1 / (dist + 0.001);
             return {...j, dist, peso};
         })
-        .filter(j => j.dist <= 0.1) 
+        .filter(j => j.dist <= 0.03) 
         .sort((a,b) => a.dist - b.dist)
-        .slice(0, 50);
+        .slice(0, 100);
 
         // SE NÃO ENCONTRAR: Cancela tudo e não cobra crédito
         if (similares.length === 0) {
