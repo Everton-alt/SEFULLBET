@@ -271,7 +271,7 @@ async function processarIA() {
             const peso = 1 / (dist + 0.001);
             return {...j, dist, peso};
         })
-        .filter(j => j.dist <= 0.03) 
+        .filter(j => j.dist <= 0.05) 
         .sort((a,b) => a.dist - b.dist)
         .slice(0, 100);
 
@@ -355,8 +355,11 @@ function renderizar(dados) {
     `;
 
     document.getElementById('col-under').innerHTML = `
+        <div class="data-row"><span>-0.5 Gols</span><b>${pU05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-1.5 Gols</span><b>${pU15.toFixed(1)}%</b></div>
         <div class="data-row"><span>-2.5 Gols</span><b>${pU25.toFixed(1)}%</b></div>
         <div class="data-row"><span>-3.5 Gols</span><b>${pU35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-4.5 Gols</span><b>${pU45.toFixed(1)}%</b></div>
     `;
 
     const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
@@ -377,8 +380,13 @@ function renderizar(dados) {
         { n: "Over 0.5 Gols", v: pO05 },
         { n: "Over 1.5 Gols", v: pO15 },
         { n: "Over 2.5 Gols", v: pO25 },
+        { n: "Over 3.5 Gols", v: p325 },
+        { n: "Over 4.5 Gols", v: p425 },
+        { n: "Under 0.5 Gols", v: pU05 },
+        { n: "Under 1.5 Gols", v: pU15 },
         { n: "Under 2.5 Gols", v: pU25 },
         { n: "Under 3.5 Gols", v: pU35 },
+        { n: "Under 4.5 Gols", v: pU45 },
         { n: "Ambos Marcam Sim", v: pAMB_Sim },
         { n: "Ambos Marcam Não", v: pAMB_Nao }
     ];
