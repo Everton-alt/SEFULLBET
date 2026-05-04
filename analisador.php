@@ -255,7 +255,6 @@ async function processarIA() {
 
     document.getElementById('loader').style.display = 'flex';
 
-    // 1. PRIMEIRO: Tenta encontrar jogos similares ANTES de cobrar
     setTimeout(async () => {
         const similares = DB.map(j => {
             const ocDB = limparNumero(j.odd_casa);
@@ -275,13 +274,11 @@ async function processarIA() {
         .sort((a,b) => a.dist - b.dist)
         .slice(0, 50);
 
-        // SE NÃO ENCONTRAR: Cancela tudo e não cobra crédito
         if (similares.length === 0) {
             document.getElementById('loader').style.display = 'none';
             return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo (Nenhum padrão similar encontrado). Nenhum crédito foi consumido.");
         }
 
-        // SE ENCONTRAR: Agora sim faz o débito
         const resDebito = await debitar();
 
         if(resDebito.status === 'erro') {
@@ -290,7 +287,6 @@ async function processarIA() {
             return;
         }
 
-        // Atualiza saldos na tela
         if(resDebito.novo_saldo !== undefined) {
             document.getElementById('saldo-display').innerText = resDebito.novo_saldo;
             if(document.getElementById('header-saldo')) {
@@ -298,7 +294,6 @@ async function processarIA() {
             }
         }
 
-        // Finaliza renderização
         renderizar(similares);
         document.getElementById('loader').style.display = 'none';
         document.getElementById('resultado-display').style.display = 'block';
@@ -325,6 +320,8 @@ function renderizar(dados) {
     const pO35 = calcProb('over_35', 'Sim');
     const pO45 = calcProb('over_45', 'Sim');
 
+    const pU05 = 100 - pO05;
+    const pU15 = 100 - pO15;
     const pU25 = 100 - pO25;
     const pU35 = 100 - pO35;
 
@@ -355,8 +352,11 @@ function renderizar(dados) {
     `;
 
     document.getElementById('col-under').innerHTML = `
+        <div class="data-row"><span>-0.5 Gols</span><b>${pU05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-1.5 Gols</span><b>${pU15.toFixed(1)}%</b></div>
         <div class="data-row"><span>-2.5 Gols</span><b>${pU25.toFixed(1)}%</b></div>
         <div class="data-row"><span>-3.5 Gols</span><b>${pU35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-4.5 Gols</span><b>${pU45.toFixed(1)}%</b></div>
     `;
 
     const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
