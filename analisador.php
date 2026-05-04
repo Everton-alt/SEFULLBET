@@ -193,225 +193,217 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 </header>
 
 <main>
-    <div class="header-top">
-        <div class="welcome-text">
-            <h1 style="color: var(--text-dim); font-weight: 400; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Módulo de Inteligência Artificial</h1>
-            <h1 style="font-weight: 800; font-size: 1.8rem;">Analista Pro AI 🚀</h1>
-        </div>
-        <div class="status-badge">
-            <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 20px;">
-                <span style="font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">Meus Créditos</span>
-                <div id="saldo-display" style="font-size: 18px; font-weight: 800; color: var(--primary);"><?php echo (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?></div>
-            </div>
-            <div style="text-align: right;">
-                <span style="font-size: 10px; color: var(--text-dim); font-weight: 700;">PLANO ATIVO</span>
-                <div style="color: <?php echo $cor_perfil; ?>; font-weight: 800;"><?php echo strtoupper($perfil); ?></div>
-            </div>
-        </div>
-    </div>
+    <div class="header-top">
+        <div class="welcome-text">
+            <h1 style="color: var(--text-dim); font-weight: 400; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Módulo de Inteligência Artificial</h1>
+            <h1 style="font-weight: 800; font-size: 1.8rem;">Analista Pro AI 🚀</h1>
+        </div>
+        <div class="status-badge">
+            <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 20px;">
+                <span style="font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">Meus Créditos</span>
+                <div id="saldo-display" style="font-size: 18px; font-weight: 800; color: var(--primary);"><?php echo (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?></div>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 10px; color: var(--text-dim); font-weight: 700;">PLANO ATIVO</span>
+                <div style="color: <?php echo $cor_perfil; ?>; font-weight: 800;"><?php echo strtoupper($perfil); ?></div>
+            </div>
+        </div>
+    </div>
 
-    <div class="input-card">
-        <div class="input-group"><label>Odd Casa</label><input type="text" id="o-casa" placeholder="1.80"></div>
-        <div class="input-group"><label>Odd Empate</label><input type="text" id="o-empate" placeholder="3.40"></div>
-        <div class="input-group"><label>Odd Fora</label><input type="text" id="o-fora" placeholder="4.20"></div>
-        <button class="btn-analisar" onclick="processarIA()">Iniciar Análise</button>
-    </div>
+    <div class="input-card">
+        <div class="input-group"><label>Odd Casa</label><input type="text" id="o-casa" placeholder="1.80"></div>
+        <div class="input-group"><label>Odd Empate</label><input type="text" id="o-empate" placeholder="3.40"></div>
+        <div class="input-group"><label>Odd Fora</label><input type="text" id="o-fora" placeholder="4.20"></div>
+        <button class="btn-analisar" onclick="processarIA()">Iniciar Análise</button>
+    </div>
 
-    <div id="resultado-display" style="display: none;">
-        <div class="best-entries-card">
-            <div style="font-weight: 800; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 14px;">
-                <i class="fas fa-star"></i> Top 3 Entradas de Alta Confiança
-            </div>
-            <div id="top-list"></div>
-        </div>
+    <div id="resultado-display" style="display: none;">
+        <div class="best-entries-card">
+            <div style="font-weight: 800; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 14px;">
+                <i class="fas fa-star"></i> Top 3 Entradas de Alta Confiança
+            </div>
+            <div id="top-list"></div>
+        </div>
 
-        <div class="stats-grid">
-            <div class="stat-card"><h4><i class="fas fa-trophy"></i> Resultado Final</h4><div id="col-principal"></div></div>
-            <div class="stat-card"><h4><i class="fas fa-shield-alt"></i> Dupla Chance</h4><div id="col-dupla"></div></div>
-            <div class="stat-card"><h4><i class="fas fa-arrow-up"></i> Mercados Over</h4><div id="col-over"></div></div>
-            <div class="stat-card"><h4><i class="fas fa-arrow-down"></i> Mercados Under</h4><div id="col-under"></div></div>
-            <div class="stat-card"><h4><i class="fas fa-chart-line"></i> Métricas IA</h4><div id="col-medias"></div></div>
-        </div>
-    </div>
+        <div class="stats-grid">
+            <div class="stat-card"><h4><i class="fas fa-trophy"></i> Resultado Final</h4><div id="col-principal"></div></div>
+            <div class="stat-card"><h4><i class="fas fa-shield-alt"></i> Dupla Chance</h4><div id="col-dupla"></div></div>
+            <div class="stat-card"><h4><i class="fas fa-arrow-up"></i> Mercados Over</h4><div id="col-over"></div></div>
+            <div class="stat-card"><h4><i class="fas fa-arrow-down"></i> Mercados Under</h4><div id="col-under"></div></div>
+            <div class="stat-card"><h4><i class="fas fa-chart-line"></i> Métricas IA</h4><div id="col-medias"></div></div>
+        </div>
+    </div>
 </main>
 
 <script>
+// SCRIPT DO MENU
 function openNav() { document.getElementById("mySidebar").style.left = "0"; document.getElementById("overlay").style.display = "block"; }
 function closeNav() { document.getElementById("mySidebar").style.left = "-280px"; document.getElementById("overlay").style.display = "none"; }
 
+// SCRIPT DA IA Sefullbet
 const DB = <?php echo json_encode($dados_historicos); ?>;
 
 function limparNumero(val) {
-    if (val === null || val === undefined || val === '') return 0;
-    return parseFloat(val.toString().replace(',', '.'));
+    if (val === null || val === undefined || val === '') return 0;
+    return parseFloat(val.toString().replace(',', '.'));
 }
 
 async function processarIA() {
-    const oc = limparNumero(document.getElementById('o-casa').value);
-    const oe = limparNumero(document.getElementById('o-empate').value);
-    const of = limparNumero(document.getElementById('o-fora').value);
+    const oc = limparNumero(document.getElementById('o-casa').value);
+    const oe = limparNumero(document.getElementById('o-empate').value);
+    const of = limparNumero(document.getElementById('o-fora').value);
 
-    if(!oc || !oe || !of) return alert("Por favor, insira as odds para iniciar a análise.");
+    if(!oc || !oe || !of) return alert("Por favor, insira as odds para iniciar a análise.");
 
-    document.getElementById('loader').style.display = 'flex';
+    document.getElementById('loader').style.display = 'flex';
 
-    // 1. PRIMEIRO: Tenta encontrar jogos similares ANTES de cobrar
-    setTimeout(async () => {
-        const similares = DB.map(j => {
-            const ocDB = limparNumero(j.odd_casa);
-            const oeDB = limparNumero(j.odd_empate);
-            const ofDB = limparNumero(j.odd_fora);
+    const resDebito = await debitar();
 
-            const dist = Math.sqrt(
-                Math.pow(ocDB - oc, 2) + 
-                Math.pow(oeDB - oe, 2) + 
-                Math.pow(ofDB - of, 2)
-            );
-            
-            const peso = 1 / (dist + 0.001);
-            return {...j, dist, peso};
-        })
-        .filter(j => j.dist <= 0.05) 
-        .sort((a,b) => a.dist - b.dist)
-        .slice(0, 100);
+    if(resDebito.status === 'erro') {
+        document.getElementById('loader').style.display = 'none';
+        alert("Ops! Seus créditos acabaram. Por favor, RENOVE SEU VIP OU PLATINUM para continuar usando o analisador.");
+        return;
+    }
 
-        // SE NÃO ENCONTRAR: Cancela tudo e não cobra crédito
-        if (similares.length === 0) {
-            document.getElementById('loader').style.display = 'none';
-            return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo (Nenhum padrão similar encontrado). Nenhum crédito foi consumido.");
-        }
+    if(resDebito.novo_saldo !== undefined) {
+        document.getElementById('saldo-display').innerText = resDebito.novo_saldo;
+    }
+    
+    setTimeout(() => {
+        const similares = DB.map(j => {
+            const ocDB = limparNumero(j.odd_casa);
+            const oeDB = limparNumero(j.odd_empate);
+            const ofDB = limparNumero(j.odd_fora);
 
-        // SE ENCONTRAR: Agora sim faz o débito
-        const resDebito = await debitar();
+            const dist = Math.sqrt(
+                Math.pow(ocDB - oc, 2) + 
+                Math.pow(oeDB - oe, 2) + 
+                Math.pow(ofDB - of, 2)
+            );
+            
+            const peso = 1 / (dist + 0.001);
+            return {...j, dist, peso};
+        })
+        .filter(j => j.dist <= 0.5) 
+        .sort((a,b) => a.dist - b.dist)
+        .slice(0, 100);
 
-        if(resDebito.status === 'erro') {
-            document.getElementById('loader').style.display = 'none';
-            alert("Ops! Seus créditos acabaram. Por favor, RENOVE SEU VIP OU PLATINUM para continuar usando o analisador.");
-            return;
-        }
+        if (similares.length === 0) {
+            document.getElementById('loader').style.display = 'none';
+            return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo (Nenhum padrão similar encontrado).");
+        }
 
-        // Atualiza saldos na tela
-        if(resDebito.novo_saldo !== undefined) {
-            document.getElementById('saldo-display').innerText = resDebito.novo_saldo;
-            if(document.getElementById('header-saldo')) {
-                document.getElementById('header-saldo').innerText = resDebito.novo_saldo;
-            }
-        }
-
-        // Finaliza renderização
-        renderizar(similares);
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('resultado-display').style.display = 'block';
-    }, 1200);
+        renderizar(similares);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('resultado-display').style.display = 'block';
+    }, 1500);
 }
 
 function renderizar(dados) {
-    const somaPesos = dados.reduce((acc, j) => acc + j.peso, 0);
-    
-    const calcProb = (campo, valor) => {
-        const pesoOcorrido = dados.filter(j => j[campo] === valor).reduce((acc, j) => acc + j.peso, 0);
-        return ((pesoOcorrido / somaPesos) * 100);
-    };
+    const somaPesos = dados.reduce((acc, j) => acc + j.peso, 0);
+    
+    const calcProb = (campo, valor) => {
+        const pesoOcorrido = dados.filter(j => j[campo] === valor).reduce((acc, j) => acc + j.peso, 0);
+        return ((pesoOcorrido / somaPesos) * 100);
+    };
 
-    const probCasa = calcProb('resultado', 'Casa');
-    const probEmpa = calcProb('resultado', 'Empate'); 
-    const probFora = calcProb('resultado', 'Fora');
-    const pAMB_Sim = calcProb('ambos_marcam', 'Sim');
-    const pAMB_Nao = 100 - pAMB_Sim;
+    const probCasa = calcProb('resultado', 'Casa');
+    const probEmpa = calcProb('resultado', 'Empate'); 
+    const probFora = calcProb('resultado', 'Fora');
+    const pAMB_Sim = calcProb('ambos_marcam', 'Sim');
+    const pAMB_Nao = 100 - pAMB_Sim;
 
-    const pO05 = calcProb('over_05', 'Sim');
-    const pO15 = calcProb('over_15', 'Sim');
-    const pO25 = calcProb('over_25', 'Sim');
-    const pO35 = calcProb('over_35', 'Sim');
-    const pO45 = calcProb('over_45', 'Sim');
+    const pO05 = calcProb('over_05', 'Sim');
+    const pO15 = calcProb('over_15', 'Sim');
+    const pO25 = calcProb('over_25', 'Sim');
+    const pO35 = calcProb('over_35', 'Sim');
+    const pO45 = calcProb('over_45', 'Sim');
 
-    const pU25 = 100 - pO25;
-    const pU35 = 100 - pO35;
+    const pU05 = 100 - pO05;
+    const pU15 = 100 - pO15;
+    const pU25 = 100 - pO25;
+    const pU35 = 100 - pO35;
+    const pU45 = 100 - pO45;
 
-    const prob1X = probCasa + probEmpa;
-    const prob12 = probCasa + probFora;
-    const probX2 = probFora + probEmpa;
+    const prob1X = probCasa + probEmpa;
+    const prob12 = probCasa + probFora;
+    const probX2 = probFora + probEmpa;
 
-    document.getElementById('col-principal').innerHTML = `
-        <div class="data-row"><span>V. Casa</span><b>${probCasa.toFixed(1)}%</b></div>
-        <div class="data-row"><span>Empate</span><b>${probEmpa.toFixed(1)}%</b></div>
-        <div class="data-row"><span>V. Fora</span><b>${probFora.toFixed(1)}%</b></div>
-        <div class="data-row"><span>Ambos Sim</span><b>${pAMB_Sim.toFixed(1)}%</b></div>
-        <div class="data-row"><span>Ambos Não</span><b>${pAMB_Nao.toFixed(1)}%</b></div>
-    `;
+    document.getElementById('col-principal').innerHTML = `
+        <div class="data-row"><span>V. Casa</span><b>${probCasa.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Empate</span><b>${probEmpa.toFixed(1)}%</b></div>
+        <div class="data-row"><span>V. Fora</span><b>${probFora.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Ambos Sim</span><b>${pAMB_Sim.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Ambos Não</span><b>${pAMB_Nao.toFixed(1)}%</b></div>
+    `;
 
-    document.getElementById('col-dupla').innerHTML = `
-        <div class="data-row"><span>Casa ou Empate (1X)</span><b>${prob1X.toFixed(1)}%</b></div>
-        <div class="data-row"><span>Casa ou Fora (12)</span><b>${prob12.toFixed(1)}%</b></div>
-        <div class="data-row"><span>Empate ou Fora (X2)</span><b>${probX2.toFixed(1)}%</b></div>
-    `;
+    document.getElementById('col-dupla').innerHTML = `
+        <div class="data-row"><span>Casa ou Empate (1X)</span><b>${prob1X.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Casa ou Fora (12)</span><b>${prob12.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Empate ou Fora (X2)</span><b>${probX2.toFixed(1)}%</b></div>
+    `;
 
-    document.getElementById('col-over').innerHTML = `
-        <div class="data-row"><span>+0.5 Gols</span><b>${pO05.toFixed(1)}%</b></div>
-        <div class="data-row"><span>+1.5 Gols</span><b>${pO15.toFixed(1)}%</b></div>
-        <div class="data-row"><span>+2.5 Gols</span><b>${pO25.toFixed(1)}%</b></div>
-        <div class="data-row"><span>+3.5 Gols</span><b>${pO35.toFixed(1)}%</b></div>
-        <div class="data-row"><span>+4.5 Gols</span><b>${pO45.toFixed(1)}%</b></div>
-    `;
+    document.getElementById('col-over').innerHTML = `
+        <div class="data-row"><span>+0.5 Gols</span><b>${pO05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+1.5 Gols</span><b>${pO15.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+2.5 Gols</span><b>${pO25.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+3.5 Gols</span><b>${pO35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+4.5 Gols</span><b>${pO45.toFixed(1)}%</b></div>
+    `;
 
-    document.getElementById('col-under').innerHTML = `
-        <div class="data-row"><span>-0.5 Gols</span><b>${pU05.toFixed(1)}%</b></div>
-        <div class="data-row"><span>-1.5 Gols</span><b>${pU15.toFixed(1)}%</b></div>
-        <div class="data-row"><span>-2.5 Gols</span><b>${pU25.toFixed(1)}%</b></div>
-        <div class="data-row"><span>-3.5 Gols</span><b>${pU35.toFixed(1)}%</b></div>
-        <div class="data-row"><span>-4.5 Gols</span><b>${pU45.toFixed(1)}%</b></div>
-    `;
+    document.getElementById('col-under').innerHTML = `
+        <div class="data-row"><span>-0.5 Gols</span><b>${pU05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-1.5 Gols</span><b>${pU15.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-2.5 Gols</span><b>${pU25.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-3.5 Gols</span><b>${pU35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-4.5 Gols</span><b>${pU45.toFixed(1)}%</b></div>
+    `;
 
-    const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
-    const mediaGols = (somaGolsPonderada / somaPesos).toFixed(2);
+    const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
+    const mediaGols = (somaGolsPonderada / somaPesos).toFixed(2);
 
-    document.getElementById('col-medias').innerHTML = `
-        <div class="data-row"><span>Média Gols (AI)</span><b>${mediaGols}</b></div>
-        <div class="data-row"><span>Amostra (N)</span><b>${dados.length} jogos</b></div>
-        <div class="data-row"><span>Confiança</span><b style="color:${dados.length >= 25 ? '#2ecc71':'#f1c40f'}">${dados.length >= 25 ? 'ALTA' : 'MÉDIA'}</b></div>
-    `;
+    document.getElementById('col-medias').innerHTML = `
+        <div class="data-row"><span>Média Gols (AI)</span><b>${mediaGols}</b></div>
+        <div class="data-row"><span>Amostra (N)</span><b>${dados.length} jogos</b></div>
+        <div class="data-row"><span>Confiança</span><b style="color:${dados.length >= 25 ? '#2ecc71':'#f1c40f'}">${dados.length >= 25 ? 'ALTA' : 'MÉDIA'}</b></div>
+    `;
 
-    let todosMercados = [
-        { n: "Vitória Direta Casa", v: probCasa },
-        { n: "Vitória Direta Fora", v: probFora },
-        { n: "1X (Casa ou Empate)", v: prob1X },
-        { n: "X2 (Fora ou Empate)", v: probX2 },
-        { n: "12 (Casa ou Fora)", v: prob12 },
-        { n: "Over 0.5 Gols", v: pO05 },
-        { n: "Over 1.5 Gols", v: pO15 },
-        { n: "Over 2.5 Gols", v: pO25 },
-        { n: "Over 3.5 Gols", v: p325 },
-        { n: "Over 4.5 Gols", v: p425 },
-        { n: "Under 0.5 Gols", v: pU05 },
-        { n: "Under 1.5 Gols", v: pU15 },
-        { n: "Under 2.5 Gols", v: pU25 },
-        { n: "Under 3.5 Gols", v: pU35 },
-        { n: "Under 4.5 Gols", v: pU45 },
-        { n: "Ambos Marcam Sim", v: pAMB_Sim },
-        { n: "Ambos Marcam Não", v: pAMB_Nao }
-    ];
+    let todosMercados = [
+        { n: "Vitória Direta Casa", v: probCasa },
+        { n: "Vitória Direta Fora", v: probFora },
+        { n: "1X (Casa ou Empate)", v: prob1X },
+        { n: "X2 (Fora ou Empate)", v: probX2 },
+        { n: "12 (Casa ou Fora)", v: prob12 },
+        { n: "Over 0.5 Gols", v: pO05 },
+        { n: "Over 1.5 Gols", v: pO15 },
+        { n: "Over 2.5 Gols", v: pO25 },
+        { n: "Under 2.5 Gols", v: pU25 },
+        { n: "Under 3.5 Gols", v: pU35 },
+        { n: "Ambos Marcam Sim", v: pAMB_Sim },
+        { n: "Ambos Marcam Não", v: pAMB_Nao }
+    ];
 
-    let ranking = todosMercados.sort((a,b) => b.v - a.v).slice(0, 3);
+    let ranking = todosMercados.sort((a,b) => b.v - a.v).slice(0, 3);
 
-    document.getElementById('top-list').innerHTML = ranking.map((item, i) => `
-        <div class="entry-row">
-            <span style="font-weight:700;">#${i+1} ${item.n}</span>
-            <div class="entry-perc">${item.v.toFixed(1)}%</div>
-        </div>
-    `).join('');
+    document.getElementById('top-list').innerHTML = ranking.map((item, i) => `
+        <div class="entry-row">
+            <span style="font-weight:700;">#${i+1} ${item.n}</span>
+            <div class="entry-perc">${item.v.toFixed(1)}%</div>
+        </div>
+    `).join('');
 }
 
 async function debitar() {
-    try {
-        const response = await fetch('analisador.php', { 
-            method: 'POST', 
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
-            body: 'action=debitar' 
-        });
-        return await response.json();
-    } catch (e) {
-        return { status: 'erro' };
-    }
+    try {
+        const response = await fetch('analisador.php', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
+            body: 'action=debitar' 
+        });
+        return await response.json();
+    } catch (e) {
+        return { status: 'erro' };
+    }
 }
 </script>
 </body>
