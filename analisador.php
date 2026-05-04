@@ -195,8 +195,8 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 <main>
     <div class="header-top">
         <div class="welcome-text">
-            <h1 style="color: var(--text-dim); font-weight: 400; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Módulo de Inteligência Artificial</h1>
-            <h1 style="font-weight: 800; font-size: 1.8rem;">Analista Pro AI 🚀</h1>
+            <h1 style="color: var(--text-dim); font-weight: 400; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Bem Vindo ao Analisador</h1>
+            <h1 style="font-weight: 800; font-size: 1.8rem;">ANALISADOR SEFULLBET 🚀</h1>
         </div>
         <div class="status-badge">
             <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 20px;">
@@ -290,7 +290,7 @@ async function processarIA() {
 
         if (similares.length === 0) {
             document.getElementById('loader').style.display = 'none';
-            return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo (Nenhum padrão similar encontrado).");
+            return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo. No cenário atual, identificamos uma volatilidade acentuada nas odds, o que compromete a previsibilidade estatística e eleva a exposição ao risco. Sugerimos priorizar eventos com maior estabilidade técnica.).");
         }
 
         renderizar(similares);
