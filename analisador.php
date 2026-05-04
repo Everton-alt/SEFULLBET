@@ -188,199 +188,117 @@ $stat_v = getStats($pdo, 'VIP');
 <header>
     <div class="menu-icon" onClick="openNav()">☰</div>
     <div class="logo">SEFULL<span>BET</span></div>
-    
-    <div style="text-align: right; line-height: 1.2;">
-        <div style="font-size: 14px; font-weight: 800; color: #2d3436">
-            Olá, <?= explode(' ', ($user['nome'] ?? 'Usuário'))[0] ?>
-        </div>
-        <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
-            <?php 
-                // Buscamos o plano que foi salvo no banco durante o cadastro
-                // Se estiver vazio, ele assume 'Grátis' para não dar erro de "null"
-                $exibir_plano = $user['plano_interesse'] ?? 'Grátis';
-
-                // Lógica de cores automática
-                $cor_badge = '#2ECC71'; // Verde padrão
-                if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f'; // Dourado
-                if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3'; // Azul
-            ?>
-            <span style="color: <?= $cor_badge ?>; text-transform: uppercase;">
-                <i class="fa-solid fa-crown" style="font-size: 9px;"></i> 
-                <?= htmlspecialchars((string)$exibir_plano) ?>
-            </span>
-            <span style="color: var(--text-dim);">
-                Créditos: <b id="header-saldo" style="color: var(--primary);">
-                    <?php 
-                        // Verificamos o perfil para créditos infinitos ou o saldo real
-                        if (isset($perfil) && in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) {
-                            echo '∞';
-                        } else {
-                            echo ($user['saldo_creditos'] ?? 0);
-                        }
-                    ?>
-                </b>
-            </span>
-        </div>
-    </div>
+    <div style="font-size: 11px; font-weight: 700;">CRÉDITOS: <b id="saldo-display" style="color: var(--primary);"><?= in_array($perfil, ['Admin','Supervisor','Platinum']) ? '∞' : $user['saldo_creditos'] ?></b></div>
 </header>
-    <div class="stats-grid">
-        <div class="stat-card">
-        <div class="input-group"><label>ODD CASA</label><input type="text" id="o-casa" placeholder="1.80"></div>
-        <div class="input-group"><label>ODD EMPATE</label><input type="text" id="o-empate" placeholder="3.40"></div>
-        <div class="input-group"><label>ODD FORA</label><input type="text" id="o-fora" placeholder="4.20"></div>
-        <button class="btn-analisar" onclick="processarIA()">ANALISAR</button>
+
+<main class="analyzer-main">
+    <div class="input-card">
+        <div class="input-group"><label>Odd Casa</label><input type="text" id="o-casa" placeholder="1.85"></div>
+        <div class="input-group"><label>Odd Empate</label><input type="text" id="o-empate" placeholder="3.40"></div>
+        <div class="input-group"><label>Odd Fora</label><input type="text" id="o-fora" placeholder="4.50"></div>
+        <button class="btn-analisar" onclick="processarIA()"><i class="fas fa-robot"></i> Analisar</button>
     </div>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <p style="margin-top: 10px; font-weight: 700;">IA CRUZANDO DADOS...</p>
-    </div>
+    <div id="loader"><div class="spinner"></div><p style="font-weight: 800; margin-top: 15px; color: var(--primary);">IA PROCESSANDO...</p></div>
 
-    <div id="best-entries" class="best-entries">
-        <h3 style="font-size: 14px;"><i class="fas fa-star"></i> MELHORES ENTRADAS</h3>
-        <div id="top-list"></div>
-    </div>
+    <div id="resultado-display" style="display: none;">
+        <div class="best-entries-container">
+            <div id="top-list"></div>
+        </div>
 
-    <div id="stats-grid" class="stats-grid">
-    <div class="stat-card"><h4>VENCEDOR (RES)</h4><div id="col-res"></div></div>
-    <div class="stat-card"><h4>DUPLA CHANCE</h4><div id="col-dc"></div></div>
-    <div class="stat-card"><h4>MERCADO OVER (+)</h4><div id="col-over"></div></div>
-    <div class="stat-card"><h4>MERCADO UNDER (-)</h4><div id="col-under"></div></div>
-    <div class="stat-card"><h4>DADOS DO JOGO</h4><div id="col-ia"></div></div>
-</div>
+        <div class="stats-grid-5">
+            <div class="stat-col"><h4>Vencedor (RES)</h4><div id="col-principal"></div></div>
+            <div class="stat-col"><h4>Dupla Chance</h4><div id="col-dupla"></div></div>
+            <div class="stat-col"><h4>Mercado Over (+)</h4><div id="col-over"></div></div>
+            <div class="stat-col"><h4>Mercado Under (-)</h4><div id="col-under"></div></div>
+            <div class="stat-col"><h4>Dados da IA</h4><div id="col-medias"></div></div>
+        </div>
+    </div>
 </main>
 
 <script>
-// Log para conferir se os dados chegaram
 const DB = <?php echo json_encode($dados_historicos); ?>;
-console.log("Base carregada:", DB.length, "registros");
+function openNav() { document.getElementById("mySidebar").style.left = "0"; document.getElementById("overlay").style.display = "block"; }
+function closeNav() { document.getElementById("mySidebar").style.left = "-280px"; document.getElementById("overlay").style.display = "none"; }
 
-function limparNumero(v) {
-    if(!v) return 0;
-    return parseFloat(v.toString().replace(',', '.'));
-}
+function limparNumero(val) { return val ? parseFloat(val.toString().replace(',', '.')) : 0; }
 
 async function processarIA() {
     const oc = limparNumero(document.getElementById('o-casa').value);
     const oe = limparNumero(document.getElementById('o-empate').value);
     const of = limparNumero(document.getElementById('o-fora').value);
-
-    if(!oc || !oe || !of) return alert("Preencha as odds!");
+    if(!oc || !oe || !of) return alert("Preencha as odds.");
 
     document.getElementById('loader').style.display = 'flex';
-    document.getElementById('stats-grid').style.display = 'none';
-    document.getElementById('best-entries').style.display = 'none';
+    document.getElementById('resultado-display').style.display = 'none';
 
-    // Simulação de delay para IA
-    setTimeout(async () => {
+    const resDebito = await fetch('analisador.php', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'action=debitar' }).then(r => r.json());
+    if(resDebito.status === 'erro') { document.getElementById('loader').style.display = 'none'; return alert("Créditos insuficientes."); }
+    if(resDebito.novo_saldo) document.getElementById('saldo-display').innerText = resDebito.novo_saldo;
+
+    setTimeout(() => {
         const similares = DB.map(j => {
-            const dCasa = Math.pow(limparNumero(j.odd_casa) - oc, 2);
-            const dEmpa = Math.pow(limparNumero(j.odd_empate) - oe, 2);
-            const dFora = Math.pow(limparNumero(j.odd_fora) - of, 2);
-            const dist = Math.sqrt(dCasa + dEmpa + dFora);
-            const peso = 1 / (dist + 0.005);
-            return {...j, dist, peso};
-        })
-        .filter(j => j.dist <= 0.15) // Filtro um pouco mais aberto para garantir resultados
-        .sort((a,b) => a.dist - b.dist)
-        .slice(0, 50);
+            const dist = Math.sqrt(Math.pow(limparNumero(j.odd_casa)-oc,2)+Math.pow(limparNumero(j.odd_empate)-oe,2)+Math.pow(limparNumero(j.odd_fora)-of,2));
+            return {...j, dist, peso: 1 / (dist + 0.001)};
+        }).filter(j => j.dist <= 0.15).sort((a,b) => a.dist - b.dist).slice(0, 50);
 
-        if(similares.length === 0) {
-            document.getElementById('loader').style.display = 'none';
-            return alert("Nenhum jogo similar encontrado na base para estas odds.");
-        }
-
-        const debito = await debitar();
-        if(debito.status === 'erro') {
-            document.getElementById('loader').style.display = 'none';
-            return alert("Saldo insuficiente.");
-        }
-
+        if (similares.length === 0) { document.getElementById('loader').style.display = 'none'; return alert("Sem similaridade."); }
         renderizar(similares);
         document.getElementById('loader').style.display = 'none';
-        document.getElementById('stats-grid').style.display = 'grid';
-        document.getElementById('best-entries').style.display = 'block';
+        document.getElementById('resultado-display').style.display = 'block';
     }, 1000);
 }
 
 function renderizar(dados) {
-    const totalPeso = dados.reduce((a, b) => a + b.peso, 0);
-    
-    const getProb = (campo, valor) => {
-        const pesoOcorrido = dados.filter(j => j[campo] === valor).reduce((a, b) => a + b.peso, 0);
-        return ((pesoOcorrido / totalPeso) * 100);
-    };
+    const somaPesos = dados.reduce((acc, j) => acc + j.peso, 0);
+    const calcProb = (campo, valor) => ((dados.filter(j => j[campo] === valor).reduce((acc, j) => acc + j.peso, 0) / somaPesos) * 100);
 
-    const row = (l, v) => `<div class="data-row"><span>${l}</span><b>${v.toFixed(1)}%</b></div>`;
+    const pCasa = calcProb('resultado', 'Casa'), pEmpa = calcProb('resultado', 'Empate'), pFora = calcProb('resultado', 'Fora'), pAMB = calcProb('ambos_marcam', 'Sim');
+    const pO05 = calcProb('over_05', 'Sim'), pO15 = calcProb('over_15', 'Sim'), pO25 = calcProb('over_25', 'Sim'), pO35 = calcProb('over_35', 'Sim'), pO45 = calcProb('over_45', 'Sim');
 
-    // Probabilidades base
-    const pcasa = getProb('resultado', 'Casa');
-    const pempa = getProb('resultado', 'Empate');
-    const pfora = getProb('resultado', 'Fora');
-    const pambos = getProb('ambos_marcam', 'Sim');
-
-    // 1. Coluna Vencedor
-    document.getElementById('col-res').innerHTML = 
-        row('V. Casa', pcasa) + 
-        row('Empate', pempa) + 
-        row('V. Fora', pfora) +
-        row('Ambos Sim', pambos) +
-        row('Ambos Não', 100 - pambos);
-
-    // 2. Coluna Dupla Chance (Cálculo conforme imagem)
-    document.getElementById('col-dc').innerHTML = 
-        row('Casa ou Empate 1X', pcasa + pempa) + 
-        row('Casa ou Fora 12', pcasa + pfora) + 
-        row('Empate ou Fora X2', pempa + pfora);
-
-    // 3. Coluna Over
-    const o05 = getProb('over_05', 'Sim');
-    const o15 = getProb('over_15', 'Sim');
-    const o25 = getProb('over_25', 'Sim');
-    const o35 = getProb('over_35', 'Sim');
-    const o45 = getProb('over_45', 'Sim');
-    
-    document.getElementById('col-over').innerHTML = 
-        row('+0.5 Gols', o05) + row('+1.5 Gols', o15) + row('+2.5 Gols', o25) + row('+3.5 Gols', o35) + row('+4.5 Gols', o45);
-
-    // 4. Coluna Under (Inverso do Over)
-    document.getElementById('col-under').innerHTML = 
-        row('-0.5 Gols', 100 - o05) + row('-1.5 Gols', 100 - o15) + row('-2.5 Gols', 100 - o25) + row('-3.5 Gols', 100 - o35) + row('-4.5 Gols', 100 - o45);
-
-    // 5. Coluna Dados da IA
-    // Calcula a média de gols somando a coluna gols_total da sua base
-    const somaGols = dados.reduce((acc, j) => acc + (parseFloat(j.gols_total) || 0), 0);
-    const mediaGols = (somaGols / dados.length).toFixed(2);
-    const confianca = dados.length > 15 ? "Alta" : (dados.length > 5 ? "Média" : "Baixa");
-
-    document.getElementById('col-ia').innerHTML = `
-        <div class="data-row"><span>Média Gols (AI)</span><b>${mediaGols}</b></div>
-        <div class="data-row"><span>Amostra (N)</span><b>${dados.length}</b></div>
-        <div class="data-row"><span>Confiança</span><b>${confianca}</b></div>
+    document.getElementById('col-principal').innerHTML = `
+        <div class="data-row"><span>V. Casa</span><b>${pCasa.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Empate</span><b>${pEmpa.toFixed(1)}%</b></div>
+        <div class="data-row"><span>V. Fora</span><b>${pFora.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Ambos Sim</span><b>${pAMB.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Ambos Não</span><b>${(100-pAMB).toFixed(1)}%</b></div>
     `;
 
-    // Melhores Oportunidades (Top 3 Automático)
-    const ranking = [
-        {n: '1X (Casa ou Empate)', v: pcasa + pempa},
-        {n: 'Over 0.5 Gols', v: o05},
-        {n: 'Vitória Direta Casa', v: pcasa},
-        {n: 'Ambos Marcam', v: pambos}
-    ].sort((a,b) => b.v - a.v).slice(0,3);
+    document.getElementById('col-dupla').innerHTML = `
+        <div class="data-row"><span>1X (Casa ou Emp)</span><b>${(pCasa+pEmpa).toFixed(1)}%</b></div>
+        <div class="data-row"><span>12 (Casa ou Fora)</span><b>${(pCasa+pFora).toFixed(1)}%</b></div>
+        <div class="data-row"><span>X2 (Fora ou Emp)</span><b>${(pFora+pEmpa).toFixed(1)}%</b></div>
+    `;
 
-    document.getElementById('top-list').innerHTML = ranking.map((m, i) => `
-        <div class="entry-row"><span>#${i+1} ${m.n}</span><span>${m.v.toFixed(1)}%</span></div>
-    `).join('');
-}
+    document.getElementById('col-over').innerHTML = `
+        <div class="data-row"><span>+0.5 Gols</span><b>${pO05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+1.5 Gols</span><b>${pO15.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+2.5 Gols</span><b>${pO25.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+3.5 Gols</span><b>${pO35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+4.5 Gols</span><b>${pO45.toFixed(1)}%</b></div>
+    `;
 
-async function debitar() {
-    try {
-        const res = await fetch('analisador.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'action=debitar'
-        });
-        return await res.json();
-    } catch (e) { return {status: 'erro'}; }
+    document.getElementById('col-under').innerHTML = `
+        <div class="data-row"><span>-0.5 Gols</span><b>${(100-pO05).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-1.5 Gols</span><b>${(100-pO15).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-2.5 Gols</span><b>${(100-pO25).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-3.5 Gols</span><b>${(100-pO35).toFixed(1)}%</b></div>
+        <div class="data-row"><span>-4.5 Gols</span><b>${(100-pO45).toFixed(1)}%</b></div>
+    `;
+
+    const mGols = (dados.reduce((acc, j) => acc + (limparNumero(j.gols_total)*j.peso), 0) / somaPesos).toFixed(2);
+    const mCasa = (dados.reduce((acc, j) => acc + (limparNumero(j.gols_casa)*j.peso), 0) / somaPesos).toFixed(2);
+    const mFora = (dados.reduce((acc, j) => acc + (limparNumero(j.gols_fora)*j.peso), 0) / somaPesos).toFixed(2);
+
+    document.getElementById('col-medias').innerHTML = `
+        <div class="data-row"><span>Média Gols Jogo</span><b>${mGols}</b></div>
+        <div class="data-row"><span>Média Gols Casa</span><b>${mCasa}</b></div>
+        <div class="data-row"><span>Média Gols Fora</span><b>${mFora}</b></div>
+        <div class="data-row"><span>Amostra (N)</span><b>${dados.length}</b></div>
+    `;
+
+    let rank = [{n:"1X", v:pCasa+pEmpa}, {n:"+0.5", v:pO05}, {n:"+1.5", v:pO15}, {n:"Ambos", v:pAMB}].sort((a,b)=>b.v-a.v).slice(0,3);
+    document.getElementById('top-list').innerHTML = rank.map((item, i) => `<div class="entry-row"><b>#${i+1} ${item.n}</b><span class="entry-perc">${item.v.toFixed(1)}%</span></div>`).join('');
 }
 </script>
 </body>
