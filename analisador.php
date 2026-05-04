@@ -355,8 +355,11 @@ function renderizar(dados) {
     `;
 
     document.getElementById('col-under').innerHTML = `
+        <div class="data-row"><span>-0.5 Gols</span><b>${pU05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-1.5 Gols</span><b>${pU15.toFixed(1)}%</b></div>
         <div class="data-row"><span>-2.5 Gols</span><b>${pU25.toFixed(1)}%</b></div>
         <div class="data-row"><span>-3.5 Gols</span><b>${pU35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-4.5 Gols</span><b>${pU45.toFixed(1)}%</b></div>
     `;
 
     const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
