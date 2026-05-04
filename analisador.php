@@ -113,7 +113,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 
 <div id="loader">
     <div class="spinner"></div>
-    <p style="color: var(--primary); margin-top:20px; font-weight:800; text-transform:uppercase;">IA Sefullbet Analisando...</p>
+    <p style="color: var(--primary); margin-top:20px; font-weight:800; text-transform:uppercase;">Sefullbet Analisando Suas Odds...</p>
 </div>
 
 <div id="overlay" class="overlay" onClick="closeNav()"></div>
@@ -154,7 +154,7 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 
 <main>
     <div class="header-top">
-        <h1 style="font-weight: 800; font-size: 1.8rem;">Analista Pro AI 🚀</h1>
+        <h1 style="font-weight: 800; font-size: 1.8rem;">Sefullbet 🚀</h1>
         <div class="status-badge">
             <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 20px;">
                 <span style="font-size: 10px; color: var(--text-dim); font-weight: 700;">SALDO</span>
