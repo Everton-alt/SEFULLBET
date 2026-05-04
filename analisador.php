@@ -8,262 +8,403 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-// 2. Busca dados do usuário e saldo
-$user_id = (int)$_SESSION['usuario_id'];
+// 2. Busca dados do usuário atualizados
 $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE id = ?");
-$stmt->execute([$user_id]);
+$stmt->execute([$_SESSION['usuario_id']]);
 $user = $stmt->fetch();
 $perfil = $user['perfil']; 
 
-// 3. Lógica de Débito de Créditos (via AJAX)
+// 3. Lógica de Débito de Créditos (AJAX)
 if (isset($_POST['action']) && $_POST['action'] == 'debitar') {
     header('Content-Type: application/json');
     $is_premium = in_array($perfil, ['Admin', 'Platinum', 'Supervisor']);
     
     if (!$is_premium) {
-        if (($user['saldo_creditos'] ?? 0) <= 0) {
-            echo json_encode(['status' => 'erro']);
+        if ($user['saldo_creditos'] <= 0) {
+            echo json_encode(['status' => 'erro', 'mensagem' => 'Saldo insuficiente']);
             exit();
         }
-        $pdo->prepare("UPDATE usuarios SET saldo_creditos = saldo_creditos - 1 WHERE id = ? AND saldo_creditos > 0")->execute([$user_id]);
+        // Debita 1 crédito
+        $pdo->prepare("UPDATE usuarios SET saldo_creditos = saldo_creditos - 1 WHERE id = ? AND saldo_creditos > 0")->execute([$_SESSION['usuario_id']]);
+        
         $stmt_s = $pdo->prepare("SELECT saldo_creditos FROM usuarios WHERE id = ?");
-        $stmt_s->execute([$user_id]);
-        echo json_encode(['status' => 'sucesso', 'novo_saldo' => $stmt_s->fetchColumn()]);
+        $stmt_s->execute([$_SESSION['usuario_id']]);
+        $novo_saldo = $stmt_s->fetchColumn();
+        echo json_encode(['status' => 'sucesso', 'novo_saldo' => $novo_saldo]);
     } else {
         echo json_encode(['status' => 'isento', 'novo_saldo' => '∞']);
     }
     exit();
 }
 
-// 4. Busca base de dados para o Analisador
+// 4. Busca da base histórica para a IA
 try {
-    $stmt_data = $pdo->query("SELECT * FROM base_analisador LIMIT 8000");
+    $stmt_data = $pdo->query("SELECT odd_casa, odd_empate, odd_fora, resultado, ambos_marcam, gols_total, over_05, over_15, over_25, over_35, over_45 FROM base_analisador");
     $dados_historicos = $stmt_data->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) { $dados_historicos = []; }
+} catch (PDOException $e) {
+    $dados_historicos = [];
+}
+
+// Definição de cores por perfil
+$cores = ['Grátis' => '#8b949e', 'VIP' => '#ffd700', 'Platinum' => '#2ecc71', 'Supervisor' => '#00e5ff', 'Admin' => '#2ecc71'];
+$cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sefullbet - Analisador AI Pro</title>
+    <title>Analista Pro AI - Sefullbet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2ECC71; --bg-body: #ffffff; --bg-secondary: #f8f9fa;
-            --card-bg: #ffffff; --text-main: #2d3436; --text-dim: #636e72;
-            --accent-blue: #0984e3; --border: #f1f1f1; --dark-card: #0b0e11;
+            --primary: #2ECC71; 
+            --bg-body: #f4f7f6; 
+            --bg-secondary: #f8f9fa;
+            --sidebar-bg: #2d3436;
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+            --text-dim: #636e72;
+            --border: #edf2f7;
+            --accent-blue: #0984e3;
+            --danger: #d63031;
+            --warning: #f1c40f;
         }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); padding-bottom: 50px; }
-        
-        /* Sidebar & Nav */
-        .sidebar { height: 100%; width: 280px; position: fixed; z-index: 2000; top: 0; left: -280px; background-color: #2d3436; transition: 0.4s; padding-top: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); min-height: 100vh; }
+
+        .sidebar { height: 100%; width: 280px; position: fixed; z-index: 2000; top: 0; left: -280px; background-color: #2d3436; overflow-x: hidden; transition: 0.4s; padding-top: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
         .sidebar .nav-btn { padding: 12px 25px; text-decoration: none; font-size: 15px; color: #b2bec3; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #3d4648; transition: 0.3s; }
+        .sidebar .nav-btn i { width: 20px; text-align: center; }
         .sidebar .nav-btn:hover, .sidebar .nav-btn.active { background: #3d4648; color: var(--primary); }
-        .sidebar .close-btn { position: absolute; top: 10px; right: 25px; font-size: 30px; cursor: pointer; color: var(--primary); }
+        .sidebar .logout-btn { color: #ff7675 !important; font-weight: bold; border-bottom: none !important; }
+        .sidebar .close-btn { position: absolute; top: 10px; right: 25px; font-size: 30px; cursor: pointer; color: var(--primary); z-index: 2001; }
+        .nav-label { color: var(--primary); font-size: 11px; text-transform: uppercase; padding: 15px 25px 5px; display: block; font-weight: 800; letter-spacing: 1px; }
         .overlay { display: none; position: fixed; width: 100%; height: 100%; top: 0; left: 0; background: rgba(0,0,0,0.5); z-index: 1500; }
-        
-        header { background-color: #ffffff; color: var(--primary); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+
+        header { background-color: #ffffff; color: var(--primary); padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #eee; }
         .menu-icon { font-size: 24px; cursor: pointer; color: #2d3436; }
-        .logo { font-weight: 900; font-size: 1.3rem; color: #2d3436; }
+        .logo { font-weight: 900; font-size: 1.3rem; letter-spacing: 1px; color: #2d3436; }
         .logo span { color: var(--primary); }
 
-        .admin-content { padding: 15px; max-width: 1200px; margin: auto; }
+        main { padding: 30px 15px; max-width: 1200px; margin: 0 auto; }
+        
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px; }
+        .status-badge { background: var(--card-bg); padding: 10px 20px; border-radius: 15px; border: 1px solid var(--border); display: flex; gap: 20px; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 
-        /* Analisador Specific CSS */
-        .input-card-dark { background: var(--dark-card); border-radius: 15px; padding: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .input-group label { display: block; color: #848d95; font-size: 10px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
-        .input-group input { width: 100%; background: #1c2127; border: 1px solid #2b2f36; padding: 12px; border-radius: 8px; color: var(--primary); font-weight: 800; text-align: center; box-sizing: border-box; }
-        .btn-analisar { background: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        .btn-analisar:hover { filter: brightness(1.1); }
+        .input-card { background: var(--card-bg); padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); display: flex; gap: 15px; align-items: flex-end; margin-bottom: 30px; border: 1px solid var(--border); flex-wrap: wrap; }
+        .input-group { flex: 1; min-width: 120px; }
+        .input-group label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
+        .input-group input { width: 100%; padding: 15px; background: #f8fafc; border: 2px solid #edf2f7; border-radius: 12px; color: var(--text-main); font-weight: 800; font-size: 1.2rem; text-align: center; transition: 0.3s; }
+        .input-group input:focus { border-color: var(--primary); outline: none; background: #fff; }
 
-        /* Results Grid */
-        .results-container { display: none; }
-        .best-entry-box { background: #eafaf1; border-left: 5px solid var(--primary); padding: 20px; border-radius: 12px; margin-bottom: 25px; }
-        .entry-line { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #badbcc; }
-        .badge-prob { background: var(--primary); color: white; padding: 4px 10px; border-radius: 20px; font-weight: 900; font-size: 12px; }
+        .btn-analisar { height: 58px; padding: 0 35px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.3s; box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3); width: 100%; max-width: 250px; }
+        .btn-analisar:hover { transform: translateY(-3px); filter: brightness(1.1); }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-        .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 15px; padding: 18px; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .stat-card h4 { margin: 0 0 15px 0; font-size: 11px; color: var(--text-dim); text-transform: uppercase; border-bottom: 2px solid #f8f9fa; padding-bottom: 8px; font-weight: 800; }
-        .data-row { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; border-bottom: 1px solid #f8f9fa; }
-        .data-row b { color: var(--primary); font-weight: 800; }
+        .best-entries-card { background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 20px; padding: 25px; margin-bottom: 30px; color: #fff; }
+        .entry-row { background: rgba(255,255,255,0.15); border-radius: 15px; padding: 15px 25px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
+        .entry-perc { background: #fff; color: var(--primary); padding: 5px 15px; border-radius: 10px; font-weight: 900; }
 
-        #loader { display: none; text-align: center; padding: 50px; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+        .stat-card { background: #fff; border-radius: 20px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .stat-card h4 { font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #f8fafc; padding-bottom: 10px; display: flex; justify-content: space-between; }
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 13px; font-weight: 600; color: #4b5563; }
+        .data-row b { color: var(--primary); font-weight: 800; font-size: 14px; }
+
+        #loader { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.9); z-index:2000; flex-direction:column; justify-content:center; align-items:center; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s infinite linear; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            .btn-analisar { max-width: 100%; }
+            .header-top { flex-direction: column; align-items: flex-start; }
+            .status-badge { width: 100%; justify-content: space-between; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="overlay" class="overlay" onClick="closeNav()"></div>
+<div id="loader">
+    <div class="spinner"></div>
+    <p style="color: var(--primary); margin-top:20px; font-weight:800; text-transform:uppercase; letter-spacing:1px;">IA Sefullbet Processando...</p>
+</div>
 
-    <div id="mySidebar" class="sidebar">
-        <span class="close-btn" onClick="closeNav()">&times;</span>
-        <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Início</span></a>
-        <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
-        <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
-        <a class="nav-btn active" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
-        <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
+<div id="overlay" class="overlay" onClick="closeNav()"></div>
 
-        <?php if (in_array($perfil, ['Supervisor', 'Admin'])): ?>
-            <hr style="border: 0; border-top: 1px solid #3d4648; margin: 15px 10px;">
-            <span class="nav-label" style="color: var(--primary); font-size: 11px; padding: 15px 25px 5px; display: block; font-weight: 800;">Gestão Administrativa</span>
-            <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
-            <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
-            <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
-        <?php endif; ?>
+<div id="mySidebar" class="sidebar">
+    <span class="close-btn" onClick="closeNav()">&times;</span>
+    <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Início</span></a>
+    <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
+    <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
+    <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
+    <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
+    <a class="nav-btn active" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
+    <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
+    
+    <?php if (in_array($perfil, ['Supervisor', 'Admin'])): ?>
+        <hr style="border: 0; border-top: 1px solid #3d4648; margin: 15px 10px;">
+        <span class="nav-label">Gestão Administrativa</span>
+        <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
+        <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+        <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-database"></i> <span>Verificar Dados AI</span></a>
+        <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
+        <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
+        <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
+        <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
+    <?php endif; ?>
+    
+    <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
+</div>
 
-        <a href="logout.php" class="nav-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair</a>
+<header>
+    <div class="menu-icon" onClick="openNav()">☰</div>
+    <div class="logo">SEFULL<span>BET</span></div>
+    
+    <div style="text-align: right; line-height: 1.2;">
+        <div style="font-size: 14px; font-weight: 800; color: #2d3436">
+            Olá, <?= explode(' ', ($user['nome'] ?? 'Usuário'))[0] ?>
+        </div>
+        <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
+            <?php 
+                $exibir_plano = $user['plano_interesse'] ?? 'Grátis';
+                $cor_badge = '#2ECC71'; 
+                if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f';
+                if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3';
+            ?>
+            <span style="color: <?= $cor_badge ?>; text-transform: uppercase;">
+                <i class="fa-solid fa-crown" style="font-size: 9px;"></i> 
+                <?= htmlspecialchars((string)$exibir_plano) ?>
+            </span>
+            <span style="color: var(--text-dim);">
+                Créditos: <b id="header-saldo" style="color: var(--primary);">
+                    <?php 
+                        if (isset($perfil) && in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) {
+                            echo '∞';
+                        } else {
+                            echo ($user['saldo_creditos'] ?? 0);
+                        }
+                    ?>
+                </b>
+            </span>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="header-top">
+        <div class="welcome-text">
+            <h1 style="color: var(--text-dim); font-weight: 400; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">Módulo de Inteligência Artificial</h1>
+            <h1 style="font-weight: 800; font-size: 1.8rem;">Analista Pro AI 🚀</h1>
+        </div>
+        <div class="status-badge">
+            <div style="text-align: center; border-right: 1px solid var(--border); padding-right: 20px;">
+                <span style="font-size: 10px; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">Meus Créditos</span>
+                <div id="saldo-display" style="font-size: 18px; font-weight: 800; color: var(--primary);"><?php echo (in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) ? '∞' : $user['saldo_creditos']; ?></div>
+            </div>
+            <div style="text-align: right;">
+                <span style="font-size: 10px; color: var(--text-dim); font-weight: 700;">PLANO ATIVO</span>
+                <div style="color: <?php echo $cor_perfil; ?>; font-weight: 800;"><?php echo strtoupper($perfil); ?></div>
+            </div>
+        </div>
     </div>
 
-    <header>
-        <div class="menu-icon" onClick="openNav()">☰</div>
-        <div class="logo">SEFULL<span>BET</span> AI</div>
-        <div style="font-size: 13px; font-weight: 800;">CRÉDITOS: <span id="saldo-display" style="color: var(--primary);"><?= in_array($perfil, ['Admin','Supervisor','Platinum']) ? '∞' : $user['saldo_creditos'] ?></span></div>
-    </header>
-
-    <div class="admin-content">
-        <div style="padding: 10px 0 20px; font-weight: 800; text-transform: uppercase; font-size: 14px;">Analisador de Probabilidades</div>
-        
-        <!-- Input de Odds -->
-        <div class="input-card-dark">
-            <div class="input-group"><label>Odd Casa</label><input type="number" step="0.01" id="o-casa" placeholder="1.80"></div>
-            <div class="input-group"><label>Odd Empate</label><input type="number" step="0.01" id="o-empate" placeholder="3.40"></div>
-            <div class="input-group"><label>Odd Fora</label><input type="number" step="0.01" id="o-fora" placeholder="4.20"></div>
-            <button class="btn-analisar" onclick="iniciarAnalise()"><i class="fas fa-robot"></i> Analisar Jogo</button>
-        </div>
-
-        <!-- Loader -->
-        <div id="loader">
-            <div class="spinner"></div>
-            <div style="font-weight: 800; color: var(--primary); font-size: 12px; letter-spacing: 1px;">IA CALCULANDO PROBABILIDADES...</div>
-        </div>
-
-        <!-- Resultados -->
-        <div id="resultado-display" class="results-container">
-            <div class="best-entry-box">
-                <div style="font-weight: 900; font-size: 12px; color: #27ae60; margin-bottom: 10px;"><i class="fas fa-star"></i> MELHORES ENTRADAS IDENTIFICADAS</div>
-                <div id="top-rank"></div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card"><h4>Resultado Final</h4><div id="res-final"></div></div>
-                <div class="stat-card"><h4>Gols Over (+)</h4><div id="res-over"></div></div>
-                <div class="stat-card"><h4>Gols Under (-)</h4><div id="res-under"></div></div>
-                <div class="stat-card"><h4>Métricas da IA</h4><div id="res-metrics"></div></div>
-            </div>
-        </div>
+    <div class="input-card">
+        <div class="input-group"><label>Odd Casa</label><input type="text" id="o-casa" placeholder="1.80"></div>
+        <div class="input-group"><label>Odd Empate</label><input type="text" id="o-empate" placeholder="3.40"></div>
+        <div class="input-group"><label>Odd Fora</label><input type="text" id="o-fora" placeholder="4.20"></div>
+        <button class="btn-analisar" onclick="processarIA()">Iniciar Análise</button>
     </div>
 
-    <script>
-        const BASE_DADOS = <?php echo json_encode($dados_historicos); ?>;
+    <div id="resultado-display" style="display: none;">
+        <div class="best-entries-card">
+            <div style="font-weight: 800; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; font-size: 14px;">
+                <i class="fas fa-star"></i> Top 3 Entradas de Alta Confiança
+            </div>
+            <div id="top-list"></div>
+        </div>
 
-        function openNav() { document.getElementById("mySidebar").style.left = "0"; document.getElementById("overlay").style.display = "block"; }
-        function closeNav() { document.getElementById("mySidebar").style.left = "-280px"; document.getElementById("overlay").style.display = "none"; }
+        <div class="stats-grid">
+            <div class="stat-card"><h4><i class="fas fa-trophy"></i> Resultado Final</h4><div id="col-principal"></div></div>
+            <div class="stat-card"><h4><i class="fas fa-shield-alt"></i> Dupla Chance</h4><div id="col-dupla"></div></div>
+            <div class="stat-card"><h4><i class="fas fa-arrow-up"></i> Mercados Over</h4><div id="col-over"></div></div>
+            <div class="stat-card"><h4><i class="fas fa-arrow-down"></i> Mercados Under</h4><div id="col-under"></div></div>
+            <div class="stat-card"><h4><i class="fas fa-chart-line"></i> Métricas IA</h4><div id="col-medias"></div></div>
+        </div>
+    </div>
+</main>
 
-        async function iniciarAnalise() {
-            const oc = parseFloat(document.getElementById('o-casa').value);
-            const oe = parseFloat(document.getElementById('o-empate').value);
-            const of = parseFloat(document.getElementById('o-fora').value);
+<script>
+function openNav() { document.getElementById("mySidebar").style.left = "0"; document.getElementById("overlay").style.display = "block"; }
+function closeNav() { document.getElementById("mySidebar").style.left = "-280px"; document.getElementById("overlay").style.display = "none"; }
 
-            if(!oc || !oe || !of) { alert("Por favor, insira as 3 odds."); return; }
+const DB = <?php echo json_encode($dados_historicos); ?>;
 
-            document.getElementById('loader').style.display = 'block';
-            document.getElementById('resultado-display').style.display = 'none';
+function limparNumero(val) {
+    if (val === null || val === undefined || val === '') return 0;
+    return parseFloat(val.toString().replace(',', '.'));
+}
 
-            // Processa débito
-            const response = await fetch('analisador.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'action=debitar'
-            }).then(r => r.json());
+async function processarIA() {
+    const oc = limparNumero(document.getElementById('o-casa').value);
+    const oe = limparNumero(document.getElementById('o-empate').value);
+    const of = limparNumero(document.getElementById('o-fora').value);
 
-            if(response.status === 'erro') {
-                alert("Créditos insuficientes!");
-                document.getElementById('loader').style.display = 'none';
-                return;
+    if(!oc || !oe || !of) return alert("Por favor, insira as odds para iniciar a análise.");
+
+    document.getElementById('loader').style.display = 'flex';
+
+    // 1. PRIMEIRO: Tenta encontrar jogos similares ANTES de cobrar
+    setTimeout(async () => {
+        const similares = DB.map(j => {
+            const ocDB = limparNumero(j.odd_casa);
+            const oeDB = limparNumero(j.odd_empate);
+            const ofDB = limparNumero(j.odd_fora);
+
+            const dist = Math.sqrt(
+                Math.pow(ocDB - oc, 2) + 
+                Math.pow(oeDB - oe, 2) + 
+                Math.pow(ofDB - of, 2)
+            );
+            
+            const peso = 1 / (dist + 0.001);
+            return {...j, dist, peso};
+        })
+        .filter(j => j.dist <= 0.1) 
+        .sort((a,b) => a.dist - b.dist)
+        .slice(0, 50);
+
+        // SE NÃO ENCONTRAR: Cancela tudo e não cobra crédito
+        if (similares.length === 0) {
+            document.getElementById('loader').style.display = 'none';
+            return alert("SEFULLBET: Recomendamos a seleção de um confronto alternativo (Nenhum padrão similar encontrado). Nenhum crédito foi consumido.");
+        }
+
+        // SE ENCONTRAR: Agora sim faz o débito
+        const resDebito = await debitar();
+
+        if(resDebito.status === 'erro') {
+            document.getElementById('loader').style.display = 'none';
+            alert("Ops! Seus créditos acabaram. Por favor, RENOVE SEU VIP OU PLATINUM para continuar usando o analisador.");
+            return;
+        }
+
+        // Atualiza saldos na tela
+        if(resDebito.novo_saldo !== undefined) {
+            document.getElementById('saldo-display').innerText = resDebito.novo_saldo;
+            if(document.getElementById('header-saldo')) {
+                document.getElementById('header-saldo').innerText = resDebito.novo_saldo;
             }
-            if(response.novo_saldo) document.getElementById('saldo-display').innerText = response.novo_saldo;
-
-            setTimeout(() => {
-                // Cálculo de Similaridade Euclidiana
-                const similares = BASE_DADOS.map(jogo => {
-                    const d = Math.sqrt(
-                        Math.pow(parseFloat(jogo.odd_casa) - oc, 2) +
-                        Math.pow(parseFloat(jogo.odd_empate) - oe, 2) +
-                        Math.pow(parseFloat(jogo.odd_fora) - of, 2)
-                    );
-                    return { ...jogo, dist: d, peso: 1 / (d + 0.001) };
-                }).filter(j => j.dist <= 0.18).sort((a,b) => a.dist - b.dist).slice(0, 60);
-
-                if(similares.length < 2) {
-                    alert("Dados insuficientes para este padrão de odds.");
-                    document.getElementById('loader').style.display = 'none';
-                    return;
-                }
-
-                gerarRelatorio(similares);
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('resultado-display').style.display = 'block';
-            }, 1200);
         }
 
-        function gerarRelatorio(dados) {
-            const somaPesos = dados.reduce((a, b) => a + b.peso, 0);
-            const prob = (campo, valor) => (dados.filter(j => j[campo] === valor).reduce((a, b) => a + b.peso, 0) / somaPesos * 100);
+        // Finaliza renderização
+        renderizar(similares);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('resultado-display').style.display = 'block';
+    }, 1200);
+}
 
-            const pCasa = prob('resultado', 'Casa'), pEmp = prob('resultado', 'Empate'), pFora = prob('resultado', 'Fora');
-            const pO05 = prob('over_05', 'Sim'), pO15 = prob('over_15', 'Sim'), pO25 = prob('over_25', 'Sim'), pO35 = prob('over_35', 'Sim'), pO45 = prob('over_45', 'Sim');
-            const pAMB = prob('ambos_marcam', 'Sim');
+function renderizar(dados) {
+    const somaPesos = dados.reduce((acc, j) => acc + j.peso, 0);
+    
+    const calcProb = (campo, valor) => {
+        const pesoOcorrido = dados.filter(j => j[campo] === valor).reduce((acc, j) => acc + j.peso, 0);
+        return ((pesoOcorrido / somaPesos) * 100);
+    };
 
-            // Renderizar Colunas
-            document.getElementById('res-final').innerHTML = `
-                <div class="data-row"><span>Vitória Casa</span><b>${pCasa.toFixed(1)}%</b></div>
-                <div class="data-row"><span>Empate</span><b>${pEmp.toFixed(1)}%</b></div>
-                <div class="data-row"><span>Vitória Fora</span><b>${pFora.toFixed(1)}%</b></div>
-                <div class="data-row"><span>Ambos Marcam</span><b>${pAMB.toFixed(1)}%</b></div>
-            `;
+    const probCasa = calcProb('resultado', 'Casa');
+    const probEmpa = calcProb('resultado', 'Empate'); 
+    const probFora = calcProb('resultado', 'Fora');
+    const pAMB_Sim = calcProb('ambos_marcam', 'Sim');
+    const pAMB_Nao = 100 - pAMB_Sim;
 
-            document.getElementById('res-over').innerHTML = `
-                <div class="data-row"><span>Over 0.5</span><b>${pO05.toFixed(1)}%</b></div>
-                <div class="data-row"><span>Over 1.5</span><b>${pO15.toFixed(1)}%</b></div>
-                <div class="data-row"><span>Over 2.5</span><b>${pO25.toFixed(1)}%</b></div>
-                <div class="data-row"><span>Over 4.5</span><b>${pO45.toFixed(1)}%</b></div>
-            `;
+    const pO05 = calcProb('over_05', 'Sim');
+    const pO15 = calcProb('over_15', 'Sim');
+    const pO25 = calcProb('over_25', 'Sim');
+    const pO35 = calcProb('over_35', 'Sim');
+    const pO45 = calcProb('over_45', 'Sim');
 
-            document.getElementById('res-under').innerHTML = `
-                <div class="data-row"><span>Under 0.5</span><b>${(100-pO05).toFixed(1)}%</b></div>
-                <div class="data-row"><span>Under 2.5</span><b>${(100-pO25).toFixed(1)}%</b></div>
-                <div class="data-row"><span>Under 3.5</span><b>${(100-pO35).toFixed(1)}%</b></div>
-                <div class="data-row"><span>Under 4.5</span><b>${(100-pO45).toFixed(1)}%</b></div>
-            `;
+    const pU25 = 100 - pO25;
+    const pU35 = 100 - pO35;
 
-            // Médias baseadas nas colunas gol_casa e gol_fora
-            const mCasa = (dados.reduce((a, b) => a + (parseFloat(b.gol_casa)*b.peso), 0) / somaPesos).toFixed(2);
-            const mFora = (dados.reduce((a, b) => a + (parseFloat(b.gol_fora)*b.peso), 0) / somaPesos).toFixed(2);
+    const prob1X = probCasa + probEmpa;
+    const prob12 = probCasa + probFora;
+    const probX2 = probFora + probEmpa;
 
-            document.getElementById('res-metrics').innerHTML = `
-                <div class="data-row"><span>Média Gols Casa</span><b>${mCasa}</b></div>
-                <div class="data-row"><span>Média Gols Fora</span><b>${mFora}</b></div>
-                <div class="data-row"><span>Similaridade (N)</span><b>${dados.length}</b></div>
-            `;
+    document.getElementById('col-principal').innerHTML = `
+        <div class="data-row"><span>V. Casa</span><b>${probCasa.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Empate</span><b>${probEmpa.toFixed(1)}%</b></div>
+        <div class="data-row"><span>V. Fora</span><b>${probFora.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Ambos Sim</span><b>${pAMB_Sim.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Ambos Não</span><b>${pAMB_Nao.toFixed(1)}%</b></div>
+    `;
 
-            // Top Rank
-            let entries = [
-                {n: "Casa ou Empate", v: pCasa + pEmp},
-                {n: "Over 1.5 Gols", v: pO15},
-                {n: "Fora ou Empate", v: pFora + pEmp},
-                {n: "Ambos Marcam", v: pAMB}
-            ].sort((a,b) => b.v - a.v).slice(0, 3);
+    document.getElementById('col-dupla').innerHTML = `
+        <div class="data-row"><span>Casa ou Empate (1X)</span><b>${prob1X.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Casa ou Fora (12)</span><b>${prob12.toFixed(1)}%</b></div>
+        <div class="data-row"><span>Empate ou Fora (X2)</span><b>${probX2.toFixed(1)}%</b></div>
+    `;
 
-            document.getElementById('top-rank').innerHTML = entries.map((e, i) => `
-                <div class="entry-line">
-                    <span><b>#${i+1}</b> ${e.n}</span>
-                    <span class="badge-prob">${e.v.toFixed(1)}%</span>
-                </div>
-            `).join('');
-        }
-    </script>
+    document.getElementById('col-over').innerHTML = `
+        <div class="data-row"><span>+0.5 Gols</span><b>${pO05.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+1.5 Gols</span><b>${pO15.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+2.5 Gols</span><b>${pO25.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+3.5 Gols</span><b>${pO35.toFixed(1)}%</b></div>
+        <div class="data-row"><span>+4.5 Gols</span><b>${pO45.toFixed(1)}%</b></div>
+    `;
+
+    document.getElementById('col-under').innerHTML = `
+        <div class="data-row"><span>-2.5 Gols</span><b>${pU25.toFixed(1)}%</b></div>
+        <div class="data-row"><span>-3.5 Gols</span><b>${pU35.toFixed(1)}%</b></div>
+    `;
+
+    const somaGolsPonderada = dados.reduce((acc, j) => acc + (limparNumero(j.gols_total) * j.peso), 0);
+    const mediaGols = (somaGolsPonderada / somaPesos).toFixed(2);
+
+    document.getElementById('col-medias').innerHTML = `
+        <div class="data-row"><span>Média Gols (AI)</span><b>${mediaGols}</b></div>
+        <div class="data-row"><span>Amostra (N)</span><b>${dados.length} jogos</b></div>
+        <div class="data-row"><span>Confiança</span><b style="color:${dados.length >= 25 ? '#2ecc71':'#f1c40f'}">${dados.length >= 25 ? 'ALTA' : 'MÉDIA'}</b></div>
+    `;
+
+    let todosMercados = [
+        { n: "Vitória Direta Casa", v: probCasa },
+        { n: "Vitória Direta Fora", v: probFora },
+        { n: "1X (Casa ou Empate)", v: prob1X },
+        { n: "X2 (Fora ou Empate)", v: probX2 },
+        { n: "12 (Casa ou Fora)", v: prob12 },
+        { n: "Over 0.5 Gols", v: pO05 },
+        { n: "Over 1.5 Gols", v: pO15 },
+        { n: "Over 2.5 Gols", v: pO25 },
+        { n: "Under 2.5 Gols", v: pU25 },
+        { n: "Under 3.5 Gols", v: pU35 },
+        { n: "Ambos Marcam Sim", v: pAMB_Sim },
+        { n: "Ambos Marcam Não", v: pAMB_Nao }
+    ];
+
+    let ranking = todosMercados.sort((a,b) => b.v - a.v).slice(0, 3);
+
+    document.getElementById('top-list').innerHTML = ranking.map((item, i) => `
+        <div class="entry-row">
+            <span style="font-weight:700;">#${i+1} ${item.n}</span>
+            <div class="entry-perc">${item.v.toFixed(1)}%</div>
+        </div>
+    `).join('');
+}
+
+async function debitar() {
+    try {
+        const response = await fetch('analisador.php', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'}, 
+            body: 'action=debitar' 
+        });
+        return await response.json();
+    } catch (e) {
+        return { status: 'erro' };
+    }
+}
+</script>
 </body>
 </html>
