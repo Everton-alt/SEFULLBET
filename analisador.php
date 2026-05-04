@@ -110,11 +110,12 @@ $cor_perfil = $cores[$perfil] ?? $cores['Grátis'];
     </div>
 
     <div id="stats-grid" class="stats-grid">
-        <div class="stat-card"><h4>RESULTADOS</h4><div id="col-res"></div></div>
-        <div class="stat-card"><h4>GOLS OVER</h4><div id="col-over"></div></div>
-        <div class="stat-card"><h4>GOLS UNDER</h4><div id="col-under"></div></div>
-        <div class="stat-card"><h4>OUTROS</h4><div id="col-outros"></div></div>
-    </div>
+    <div class="stat-card"><h4>VENCEDOR (RES)</h4><div id="col-res"></div></div>
+    <div class="stat-card"><h4>DUPLA CHANCE</h4><div id="col-dc"></div></div>
+    <div class="stat-card"><h4>MERCADO OVER (+)</h4><div id="col-over"></div></div>
+    <div class="stat-card"><h4>MERCADO UNDER (-)</h4><div id="col-under"></div></div>
+    <div class="stat-card"><h4>DADOS DO JOGO</h4><div id="col-ia"></div></div>
+</div>
 </main>
 
 <script>
@@ -178,26 +179,64 @@ function renderizar(dados) {
         return ((pesoOcorrido / totalPeso) * 100);
     };
 
+    const row = (l, v) => `<div class="data-row"><span>${l}</span><b>${v.toFixed(1)}%</b></div>`;
+
+    // Probabilidades base
     const pcasa = getProb('resultado', 'Casa');
     const pempa = getProb('resultado', 'Empate');
     const pfora = getProb('resultado', 'Fora');
     const pambos = getProb('ambos_marcam', 'Sim');
 
-    const row = (l, v) => `<div class="data-row"><span>${l}</span><b>${v.toFixed(1)}%</b></div>`;
+    // 1. Coluna Vencedor
+    document.getElementById('col-res').innerHTML = 
+        row('V. Casa', pcasa) + 
+        row('Empate', pempa) + 
+        row('V. Fora', pfora) +
+        row('Ambos Sim', pambos) +
+        row('Ambos Não', 100 - pambos);
 
-    document.getElementById('col-res').innerHTML = row('Casa', pcasa) + row('Empate', pempa) + row('Fora', pfora);
-    document.getElementById('col-over').innerHTML = row('Over 0.5', getProb('over_05', 'Sim')) + row('Over 1.5', getProb('over_15', 'Sim')) + row('Over 2.5', getProb('over_25', 'Sim'));
-    document.getElementById('col-under').innerHTML = row('Under 2.5', 100 - getProb('over_25', 'Sim')) + row('Under 3.5', 100 - getProb('over_35', 'Sim'));
-    document.getElementById('col-outros').innerHTML = row('Ambos Marcam', pambos) + `<div class="data-row"><span>Amostra</span><b>${dados.length} jogos</b></div>`;
+    // 2. Coluna Dupla Chance (Cálculo conforme imagem)
+    document.getElementById('col-dc').innerHTML = 
+        row('Casa ou Empate 1X', pcasa + pempa) + 
+        row('Casa ou Fora 12', pcasa + pfora) + 
+        row('Empate ou Fora X2', pempa + pfora);
 
-    // TOP 3
-    const mercados = [
-        {n: 'Vitória Casa', v: pcasa}, {n: 'Ambos Marcam', v: pambos}, 
-        {n: 'Over 1.5 Gols', v: getProb('over_15', 'Sim')}, {n: 'Casa ou Empate', v: pcasa + pempa}
+    // 3. Coluna Over
+    const o05 = getProb('over_05', 'Sim');
+    const o15 = getProb('over_15', 'Sim');
+    const o25 = getProb('over_25', 'Sim');
+    const o35 = getProb('over_35', 'Sim');
+    const o45 = getProb('over_45', 'Sim');
+    
+    document.getElementById('col-over').innerHTML = 
+        row('+0.5 Gols', o05) + row('+1.5 Gols', o15) + row('+2.5 Gols', o25) + row('+3.5 Gols', o35) + row('+4.5 Gols', o45);
+
+    // 4. Coluna Under (Inverso do Over)
+    document.getElementById('col-under').innerHTML = 
+        row('-0.5 Gols', 100 - o05) + row('-1.5 Gols', 100 - o15) + row('-2.5 Gols', 100 - o25) + row('-3.5 Gols', 100 - o35) + row('-4.5 Gols', 100 - o45);
+
+    // 5. Coluna Dados da IA
+    // Calcula a média de gols somando a coluna gols_total da sua base
+    const somaGols = dados.reduce((acc, j) => acc + (parseFloat(j.gols_total) || 0), 0);
+    const mediaGols = (somaGols / dados.length).toFixed(2);
+    const confianca = dados.length > 15 ? "Alta" : (dados.length > 5 ? "Média" : "Baixa");
+
+    document.getElementById('col-ia').innerHTML = `
+        <div class="data-row"><span>Média Gols (AI)</span><b>${mediaGols}</b></div>
+        <div class="data-row"><span>Amostra (N)</span><b>${dados.length}</b></div>
+        <div class="data-row"><span>Confiança</span><b>${confianca}</b></div>
+    `;
+
+    // Melhores Oportunidades (Top 3 Automático)
+    const ranking = [
+        {n: '1X (Casa ou Empate)', v: pcasa + pempa},
+        {n: 'Over 0.5 Gols', v: o05},
+        {n: 'Vitória Direta Casa', v: pcasa},
+        {n: 'Ambos Marcam', v: pambos}
     ].sort((a,b) => b.v - a.v).slice(0,3);
 
-    document.getElementById('top-list').innerHTML = mercados.map(m => `
-        <div class="entry-row"><span>${m.n}</span><span>${m.v.toFixed(1)}%</span></div>
+    document.getElementById('top-list').innerHTML = ranking.map((m, i) => `
+        <div class="entry-row"><span>#${i+1} ${m.n}</span><span>${m.v.toFixed(1)}%</span></div>
     `).join('');
 }
 
