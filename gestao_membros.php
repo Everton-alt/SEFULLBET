@@ -18,18 +18,18 @@ if (!in_array($perfil, ['Supervisor', 'Admin'])) {
     exit();
 }
 
-// --- LÓGICA DE EXPIRAÇÃO AUTOMÁTICA ---
+// --- LÓGICA DE EXPIRAÇÃO AUTOMÁTICA (CORRIGIDA) ---
 $hoje = date('Y-m-d');
 
 // 1. Se for Platinum e venceu: Volta pra Grátis e ZERA créditos
 $pdo->query("UPDATE usuarios SET perfil = 'Grátis', plano_interesse = 'Grátis', saldo_creditos = 0 
              WHERE (perfil = 'Platinum' OR plano_interesse = 'Platinum') 
-             AND data_validade < '$hoje' AND data_validade IS NOT NULL AND data_validade != '0000-00-00'");
+             AND data_validade < '$hoje' AND data_validade IS NOT NULL");
 
 // 2. Se for VIP e venceu: Volta pra Grátis e MANTÉM créditos
 $pdo->query("UPDATE usuarios SET perfil = 'Grátis', plano_interesse = 'Grátis' 
              WHERE (perfil = 'VIP' OR plano_interesse = 'VIP') 
-             AND data_validade < '$hoje' AND data_validade IS NOT NULL AND data_validade != '0000-00-00'");
+             AND data_validade < '$hoje' AND data_validade IS NOT NULL");
 
 
 // 2. Lógica de Processamento (Update e Delete)
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $saldo = $_POST['saldo_creditos'];
         $perf = $_POST['perfil'];
         $plano = $_POST['plano_interesse'];
-        $validade = $_POST['data_validade']; // Nova coluna
+        $validade = !empty($_POST['data_validade']) ? $_POST['data_validade'] : null;
 
         if (!empty($_POST['senha'])) {
             $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
@@ -99,7 +99,6 @@ $lista_membros = $stmt_m->fetchAll();
 
         body { font-family: 'Segoe UI', Roboto, sans-serif; margin: 0; background-color: var(--bg-body); color: var(--text-main); }
 
-        /* SIDEBAR ESPELHADA */
         .sidebar { height: 100%; width: 280px; position: fixed; z-index: 2000; top: 0; left: -280px; background-color: #2d3436; transition: 0.4s; padding-top: 20px; box-shadow: 5px 0 15px rgba(0,0,0,0.1); overflow-y: auto; }
         .sidebar .nav-btn { padding: 12px 25px; text-decoration: none; font-size: 15px; color: #b2bec3; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #3d4648; transition: 0.3s; }
         .sidebar .nav-btn:hover, .sidebar .nav-btn.active { background: #3d4648; color: var(--primary); }
@@ -139,36 +138,36 @@ $lista_membros = $stmt_m->fetchAll();
 
 <div id="overlay" class="overlay" onClick="closeNav()"></div>
 
- <div id="mySidebar" class="sidebar">
-        <span class="close-btn" onClick="closeNav()">&times;</span>
-        <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Início</span></a>
-        <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
-        <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
-        <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
-        <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
-        <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
-        <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
+<div id="mySidebar" class="sidebar">
+    <span class="close-btn" onClick="closeNav()">&times;</span>
+    <a class="nav-btn" href="dashboard.php"><i class="fas fa-th-large"></i> <span>Início</span></a>
+    <a class="nav-btn" href="palpites.php"><i class="fas fa-list-ul"></i> <span>Palpites</span></a>
+    <a class="nav-btn" href="vitorias.php"><i class="fas fa-award"></i> <span>Vitórias</span></a>
+    <a class="nav-btn" href="notas.php"><i class="fas fa-sticky-note"></i> <span>Notas</span></a>
+    <a class="nav-btn" href="perfil.php"><i class="fas fa-user-circle"></i> <span>Minha Conta</span></a>
+    <a class="nav-btn" href="analisador.php"><i class="fas fa-microchip"></i> <span>Analisador AI</span></a>
+    <a class="nav-btn" href="gestao.php"><i class="fas fa-wallet"></i> <span>Minha Banca</span></a>
 
-        <?php if (in_array($perfil, ['Supervisor', 'Admin'])): ?>
-            <hr style="border: 0; border-top: 1px solid #3d4648; margin: 15px 10px;">
-            <span class="nav-label">Gestão Administrativa</span>
-            <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
-            <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
-            <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-database"></i> <span>Verificar Dados AI</span></a>
-            <a class="nav-btn active" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
-            <a class="nav-btn" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
-            <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
-            <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
-        <?php endif; ?>
+    <?php if (in_array($perfil, ['Supervisor', 'Admin'])): ?>
+        <hr style="border: 0; border-top: 1px solid #3d4648; margin: 15px 10px;">
+        <span class="nav-label">Gestão Administrativa</span>
+        <a class="nav-btn" href="gestao_sinais.php"><i class="fas fa-signal"></i> <span>Gestão de Sinais</span></a>
+        <a class="nav-btn" href="importar_dados.php"><i class="fas fa-file-import"></i> <span>Importar Dados</span></a>
+        <a class="nav-btn" href="base_dados_ai.php"><i class="fas fa-database"></i> <span>Verificar Dados AI</span></a>
+        <a class="nav-btn" href="gestao_vitorias.php"><i class="fas fa-trophy"></i> <span>Gestão de Vitórias</span></a>
+        <a class="nav-btn active" href="gestao_membros.php"><i class="fas fa-users-cog"></i> <span>Gestão de Membros</span></a>
+        <a class="nav-btn" href="gestao_noticias.php"><i class="fas fa-newspaper"></i> <span>Gestão de Notícias</span></a>
+        <a class="nav-btn" href="gestao_notas.php"><i class="fas fa-edit"></i> <span>Gestão de Notas</span></a>
+    <?php endif; ?>
 
-        <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
-    </div>
+    <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
+</div>
 
-    <header>
-        <div class="menu-icon" onClick="openNav()">☰</div>
-        <div class="logo">SEFULL<span>BET</span></div>
-        <div style="font-size: 14px; font-weight: 800; color: var(--text-dim)">Admin: <?= explode(' ', $user['nome'])[0] ?></div>
-    </header>
+<header>
+    <div class="menu-icon" onClick="openNav()">☰</div>
+    <div class="logo">SEFULL<span>BET</span></div>
+    <div style="font-size: 14px; font-weight: 800; color: var(--text-dim)">Admin: <?= explode(' ', $user['nome'])[0] ?></div>
+</header>
 
 <main>
     <h1 style="font-weight: 800; margin-bottom: 30px;">Gestão de Membros</h1>
@@ -191,7 +190,6 @@ $lista_membros = $stmt_m->fetchAll();
                     <th>Plano</th>
                     <th>Créditos</th>
                     <th>Perfil</th>
-                    <!-- COLUNAS SOLICITADAS -->
                     <th>Vencimento</th>
                     <th>Dias Restantes</th>
                     <th style="text-align:right">Ações</th>
@@ -199,17 +197,16 @@ $lista_membros = $stmt_m->fetchAll();
             </thead>
             <tbody>
                 <?php foreach($lista_membros as $m): 
-                    // Cálculo de dias restantes
                     $dias_restantes = "---";
                     $cor_dias = "var(--text-dim)";
                     
-                    if(!empty($m['data_validade']) && $m['data_validade'] != '0000-00-00'){
+                    if(!empty($m['data_validade'])){
                         $data_venc = new DateTime($m['data_validade']);
                         $hoje_dt = new DateTime(date('Y-m-d'));
                         $diff = $hoje_dt->diff($data_venc);
                         $dias_restantes = (int)$diff->format("%r%a");
                         
-                        if($dias_restantes <= 3) $cor_dias = "var(--danger)";
+                        if($dias_restantes < 0) $cor_dias = "var(--danger)";
                         elseif($dias_restantes <= 7) $cor_dias = "var(--warning)";
                         else $cor_dias = "var(--primary)";
                     }
@@ -223,8 +220,7 @@ $lista_membros = $stmt_m->fetchAll();
                     <td><b style="color: var(--text-main)"><?= $m['saldo_creditos'] ?></b></td>
                     <td><span style="color:<?= $m['perfil']=='VIP'?'var(--vip)':'var(--primary)'?>; font-weight:800;"><?= strtoupper($m['perfil']) ?></span></td>
                     
-                    <!-- EXIBIÇÃO DAS NOVAS COLUNAS -->
-                    <td style="font-weight: 600;"><?= (!empty($m['data_validade']) && $m['data_validade'] != '0000-00-00') ? date('d/m/Y', strtotime($m['data_validade'])) : '---' ?></td>
+                    <td style="font-weight: 600;"><?= (!empty($m['data_validade'])) ? date('d/m/Y', strtotime($m['data_validade'])) : '---' ?></td>
                     <td style="font-weight: 800; color: <?= $cor_dias ?>;"><?= $dias_restantes ?></td>
 
                     <td style="text-align:right; white-space:nowrap;">
@@ -248,7 +244,6 @@ $lista_membros = $stmt_m->fetchAll();
     Apostas são para maiores de 18 anos. Jogue com responsabilidade.
 </footer>
 
-<!-- MODAL EDITAR COM CAMPO DE DATA -->
 <div id="modalEditar">
     <div style="background:#fff; width:95%; max-width:600px; padding:35px; border-radius:24px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
         <h2 style="margin-bottom:25px; font-weight: 800;">Editar Membro</h2>
@@ -262,7 +257,6 @@ $lista_membros = $stmt_m->fetchAll();
                 <div class="input-group"><label>E-mail</label><input type="email" name="email" id="edit_email" required></div>
                 <div class="input-group"><label>Saldo Créditos</label><input type="number" name="saldo_creditos" id="edit_saldo_creditos" required></div>
                 
-                <!-- CAMPO DE DATA NO MODAL -->
                 <div class="input-group"><label>Vencimento do Plano</label><input type="date" name="data_validade" id="edit_data_validade"></div>
                 
                 <div class="input-group">
@@ -304,7 +298,7 @@ function abrirModalEditar(dados) {
     document.getElementById('edit_saldo_creditos').value = dados.saldo_creditos;
     document.getElementById('edit_perfil').value = dados.perfil;
     document.getElementById('edit_plano_interesse').value = dados.plano_interesse || 'Grátis';
-    document.getElementById('edit_data_validade').value = dados.data_validade; // Preenche a data
+    document.getElementById('edit_data_validade').value = dados.data_validade || ""; 
     document.getElementById('modalEditar').style.display = 'flex';
 }
 function fecharModal() { document.getElementById('modalEditar').style.display = 'none'; }
