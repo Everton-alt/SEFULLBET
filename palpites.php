@@ -227,6 +227,25 @@ $stat_v = getStats($pdo, 'VIP');
 </header>
 
     <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value"><?= $stat_g['total'] > 0 ? round(($stat_g['greens']/$stat_g['total'])*100) : 0 ?>%</div>
+            <div class="stat-total"><?= $stat_g['total'] ?> Palpites</div>
+            <div class="stat-label">Acerto Grátis</div>
+            <div class="stat-counts"><span style="color: #27ae60"><?= $stat_g['greens'] ?: 0 ?>Greens</span> / <span style="color: var(--danger)"><?= $stat_g['reds'] ?: 0 ?>Reds</span></div>
+        </div>
+        <div class="stat-card vip">
+            <div class="stat-value" style="color: #f39c12;"><?= $stat_v['total'] > 0 ? round(($stat_v['greens']/$stat_v['total'])*100) : 0 ?>%</div>
+            <div class="stat-total"><?= $stat_v['total'] ?> Palpites</div>
+            <div class="stat-label">Acerto VIP</div>
+            <div class="stat-counts"><span style="color: #27ae60"><?= $stat_v['greens'] ?: 0 ?>Greens</span> / <span style="color: var(--danger)"><?= $stat_v['reds'] ?: 0 ?>Reds</span></div>
+        </div>
+    </div>
+
+    <div class="action-box">
+        <div class="highlight-ring"></div>
+        <a href="analisador.php" class="btn-analisador">🔥 ANALISADOR SEFULLBET ⚡</a>
+    </div>
+
     <div class="section-title">🎯 Palpites Recentes</div>
     <div class="content-container">
         <?php foreach($lista_sinais as $s): 
@@ -264,6 +283,7 @@ $stat_v = getStats($pdo, 'VIP');
         <a href="?p=<?= $pagina_atual - 1 ?>&vp=<?= $v_pagina_atual ?>" class="pg-btn <?= $pagina_atual <= 1 ? 'disabled' : '' ?>"><i class="fas fa-chevron-left"></i> Ant. Palpites</a>
         <a href="?p=<?= $pagina_atual + 1 ?>&vp=<?= $v_pagina_atual ?>" class="pg-btn <?= $pagina_atual >= $total_paginas ? 'disabled' : '' ?>">Próx. Palpites <i class="fas fa-chevron-right"></i></a>
     </div>
+
 
     <!-- RODAPÉ SOLICITADO -->
     <footer>
