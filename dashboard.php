@@ -184,7 +184,7 @@ $stat_v = getStats($pdo, 'VIP');
         
         <a href="logout.php" class="nav-btn logout-btn" style="margin-top: 20px;"><i class="fas fa-sign-out-alt"></i> Sair da Conta</a>
     </div>
-<!-- HEADER -->
+
 <header>
     <div class="menu-icon" onClick="openNav()">☰</div>
     <div class="logo">SEFULL<span>BET</span></div>
@@ -195,14 +195,10 @@ $stat_v = getStats($pdo, 'VIP');
         </div>
         <div style="font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: flex-end;">
             <?php 
-                // Buscamos o plano que foi salvo no banco durante o cadastro
-                // Se estiver vazio, ele assume 'Grátis' para não dar erro de "null"
                 $exibir_plano = $user['plano_interesse'] ?? 'Grátis';
-
-                // Lógica de cores automática
-                $cor_badge = '#2ECC71'; // Verde padrão
-                if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f'; // Dourado
-                if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3'; // Azul
+                $cor_badge = '#2ECC71'; 
+                if ($exibir_plano == 'VIP') $cor_badge = '#f1c40f'; 
+                if (in_array($exibir_plano, ['Platinum', 'Admin', 'Supervisor'])) $cor_badge = '#0984e3'; 
             ?>
             <span style="color: <?= $cor_badge ?>; text-transform: uppercase;">
                 <i class="fa-solid fa-crown" style="font-size: 9px;"></i> 
@@ -211,7 +207,6 @@ $stat_v = getStats($pdo, 'VIP');
             <span style="color: var(--text-dim);">
                 Créditos: <b id="header-saldo" style="color: var(--primary);">
                     <?php 
-                        // Verificamos o perfil para créditos infinitos ou o saldo real
                         if (isset($perfil) && in_array($perfil, ['Admin', 'Supervisor', 'Platinum'])) {
                             echo '∞';
                         } else {
@@ -223,6 +218,7 @@ $stat_v = getStats($pdo, 'VIP');
         </div>
     </div>
 </header>
+
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-value"><?= $stat_g['total'] > 0 ? round(($stat_g['greens']/$stat_g['total'])*100) : 0 ?>%</div>
@@ -276,6 +272,12 @@ $stat_v = getStats($pdo, 'VIP');
         <?php endforeach; ?>
     </div>
 
+    <!-- PAGINAÇÃO DE PALPITES -->
+    <div class="pagination-box">
+        <a href="?p=<?= $pagina_atual - 1 ?>&vp=<?= $v_pagina_atual ?>" class="pg-btn <?= $pagina_atual <= 1 ? 'disabled' : '' ?>"><i class="fas fa-chevron-left"></i> Ant. Palpites</a>
+        <a href="?p=<?= $pagina_atual + 1 ?>&vp=<?= $v_pagina_atual ?>" class="pg-btn <?= $pagina_atual >= $total_paginas ? 'disabled' : '' ?>">Próx. Palpites <i class="fas fa-chevron-right"></i></a>
+    </div>
+
     <div class="section-title"><i class="fas fa-trophy" style="color: var(--warning)"></i> Últimas Vitórias</div>
     <div class="content-container">
         <?php foreach($lista_vitorias as $v): ?>
@@ -301,9 +303,10 @@ $stat_v = getStats($pdo, 'VIP');
         <?php endforeach; ?>
     </div>
 
+    <!-- PAGINAÇÃO DE VITÓRIAS -->
     <div class="pagination-box">
         <a href="?p=<?= $pagina_atual ?>&vp=<?= $v_pagina_atual - 1 ?>" class="pg-btn <?= $v_pagina_atual <= 1 ? 'disabled' : '' ?>"><i class="fas fa-chevron-left"></i> Ant. Vitórias</a>
-        <a href="?p=<?= $pagina_atual ?>&vp=<?= $v_pagina_atual + 1 ?>" class="pg-btn <?= $v_pagina_atual >= $v_total_paginas ? 'disabled' : '' ?>">Prox. Vitórias <i class="fas fa-chevron-right"></i></a>
+        <a href="?p=<?= $pagina_atual ?>&vp=<?= $v_pagina_atual + 1 ?>" class="pg-btn <?= $v_pagina_atual >= $v_total_paginas ? 'disabled' : '' ?>">Próx. Vitórias <i class="fas fa-chevron-right"></i></a>
     </div>
 
     <div id="vModal" class="v-modal-bg" onclick="fecharLeitura(event)">
