@@ -65,7 +65,10 @@ $stat_v = getStats($pdo, 'VIP');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sefullbet - Dashboard</title>
+    <title>Sefullbet - Aposta Completa em qualquer jogo!</title>
+    
+    <link rel="icon" type="https://everton-alt.github.io/APPBET/site.GIF" href="site.GIF">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -118,8 +121,11 @@ $stat_v = getStats($pdo, 'VIP');
         .section-title { padding: 20px 15px 10px; font-size: 0.85rem; font-weight: 800; color: #2d3436; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
         .content-container { padding: 0 10px; }
         .history-row { background: var(--card-bg); margin-bottom: 12px; border-radius: 15px; padding: 15px; border-left: 6px solid #dfe6e9; box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; overflow: hidden; }
+        
+        /* AJUSTE DE BORDAS SOLICITADO */
         .history-row.vip-row { border-left-color: var(--warning); }
-        .history-row.free-row { border-left-color: var(--accent-blue); }
+        .history-row.free-row { border-left-color: var(--primary); }
+        
         .row-top { display: flex; justify-content: space-between; font-size: 0.7rem; color: #b2bec3; margin-bottom: 10px; border-bottom: 1px solid #f1f1f1; padding-bottom: 6px; }
         .row-main { display: flex; justify-content: space-between; align-items: center; }
         .status-badge { font-size: 0.65rem; padding: 5px 10px; border-radius: 6px; font-weight: bold; text-transform: uppercase; }
@@ -153,7 +159,8 @@ $stat_v = getStats($pdo, 'VIP');
         .v-modal-text { font-size: 0.95rem; line-height: 1.6; color: var(--text-dim); white-space: pre-line; }
         .btn-close-v { background: var(--danger); color: #fff; border: none; padding: 12px; width: 100%; border-radius: 12px; font-weight: bold; margin-top: 20px; cursor: pointer; text-transform: uppercase; }
 
-        footer { text-align: center; padding: 40px 20px; font-size: 0.75rem; color: #b2bec3; background: #f8f9fa; margin-top: 30px; }
+        footer { text-align: center; padding: 40px 20px; font-size: 0.75rem; color: #b2bec3; background: #f8f9fa; margin-top: 30px; line-height: 1.6; border-top: 1px solid #eee; }
+        .footer-brand { color: var(--text-main); font-weight: 900; letter-spacing: 1px; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -224,19 +231,19 @@ $stat_v = getStats($pdo, 'VIP');
             <div class="stat-value"><?= $stat_g['total'] > 0 ? round(($stat_g['greens']/$stat_g['total'])*100) : 0 ?>%</div>
             <div class="stat-total"><?= $stat_g['total'] ?> Palpites</div>
             <div class="stat-label">Acerto Grátis</div>
-            <div class="stat-counts"><span style="color: #27ae60"><?= $stat_g['greens'] ?: 0 ?>G</span> / <span style="color: var(--danger)"><?= $stat_g['reds'] ?: 0 ?>R</span></div>
+            <div class="stat-counts"><span style="color: #27ae60"><?= $stat_g['greens'] ?: 0 ?>Greens</span> / <span style="color: var(--danger)"><?= $stat_g['reds'] ?: 0 ?>Reds</span></div>
         </div>
         <div class="stat-card vip">
             <div class="stat-value" style="color: #f39c12;"><?= $stat_v['total'] > 0 ? round(($stat_v['greens']/$stat_v['total'])*100) : 0 ?>%</div>
             <div class="stat-total"><?= $stat_v['total'] ?> Palpites</div>
             <div class="stat-label">Acerto VIP</div>
-            <div class="stat-counts"><span style="color: #27ae60"><?= $stat_v['greens'] ?: 0 ?>G</span> / <span style="color: var(--danger)"><?= $stat_v['reds'] ?: 0 ?>R</span></div>
+            <div class="stat-counts"><span style="color: #27ae60"><?= $stat_v['greens'] ?: 0 ?>Greens</span> / <span style="color: var(--danger)"><?= $stat_v['reds'] ?: 0 ?>Reds</span></div>
         </div>
     </div>
 
     <div class="action-box">
         <div class="highlight-ring"></div>
-        <a href="analisador.php" class="btn-analisador">🔥 ANALISADOR PRO ⚡</a>
+        <a href="analisador.php" class="btn-analisador">🔥 ANALISADOR SEFULLBET ⚡</a>
     </div>
 
     <div class="section-title">🎯 Palpites Recentes</div>
@@ -272,7 +279,6 @@ $stat_v = getStats($pdo, 'VIP');
         <?php endforeach; ?>
     </div>
 
-    <!-- PAGINAÇÃO DE PALPITES -->
     <div class="pagination-box">
         <a href="?p=<?= $pagina_atual - 1 ?>&vp=<?= $v_pagina_atual ?>" class="pg-btn <?= $pagina_atual <= 1 ? 'disabled' : '' ?>"><i class="fas fa-chevron-left"></i> Ant. Palpites</a>
         <a href="?p=<?= $pagina_atual + 1 ?>&vp=<?= $v_pagina_atual ?>" class="pg-btn <?= $pagina_atual >= $total_paginas ? 'disabled' : '' ?>">Próx. Palpites <i class="fas fa-chevron-right"></i></a>
@@ -303,11 +309,17 @@ $stat_v = getStats($pdo, 'VIP');
         <?php endforeach; ?>
     </div>
 
-    <!-- PAGINAÇÃO DE VITÓRIAS -->
     <div class="pagination-box">
         <a href="?p=<?= $pagina_atual ?>&vp=<?= $v_pagina_atual - 1 ?>" class="pg-btn <?= $v_pagina_atual <= 1 ? 'disabled' : '' ?>"><i class="fas fa-chevron-left"></i> Ant. Vitórias</a>
         <a href="?p=<?= $pagina_atual ?>&vp=<?= $v_pagina_atual + 1 ?>" class="pg-btn <?= $v_pagina_atual >= $v_total_paginas ? 'disabled' : '' ?>">Próx. Vitórias <i class="fas fa-chevron-right"></i></a>
     </div>
+
+    <!-- RODAPÉ SOLICITADO -->
+    <footer>
+        <span class="footer-brand">SEFULLBET</span>
+        © 2026 SeFullBet - Inteligência de Dados aplicada ao Esporte.<br>
+        Apostas são para maiores de 18 anos. Jogue com responsabilidade.
+    </footer>
 
     <div id="vModal" class="v-modal-bg" onclick="fecharLeitura(event)">
         <div class="v-modal-content">
