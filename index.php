@@ -233,30 +233,42 @@ $ultimas_vitorias = $stmt->fetchAll();
         </div>
     </section>
 
-    <!-- SEÇÃO DE VITÓRIAS RECENTES (DINÂMICA) -->
-    <section class="live-results">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 1200px; margin-inline: auto;">
-            <h4 style="font-size: 0.8rem; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">⚡ ÚLTIMOS GREENS</h4>
-            <span style="font-size: 0.7rem; color: #64748b;">RESULTADOS REAIS DO SISTEMA</span>
-        </div>
-        
-        <div class="wins-scroll">
-            <?php foreach($ultimas_vitorias as $win): ?>
-            <div class="win-card">
+<!-- SEÇÃO DE VITÓRIAS RECENTES -->
+<section class="live-results">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 1200px; margin-inline: auto;">
+        <h4 style="font-size: 0.8rem; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">
+            <i class="fas fa-trophy"></i> Últimas Vitórias
+        </h4>
+        <span style="font-size: 0.7rem; color: #64748b;">RESULTADOS REAIS DO SISTEMA</span>
+    </div>
+    
+    <div class="wins-scroll">
+        <?php foreach($lista_vitorias as $v): ?>
+        <div class="win-card" style="cursor: pointer;">
+            <!-- Exibe a miniatura cadastrada ou um ícone padrão se estiver vazio -->
+            <?php if(!empty($v['v_foto_miniatura'])): ?>
+                <img src="<?= htmlspecialchars($v['v_foto_miniatura']) ?>" 
+                     style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;">
+            <?php else: ?>
                 <i class="fas fa-check-circle"></i>
-                <div>
-                    <span><?= htmlspecialchars($win['p_mercado']) ?></span>
-                    <small><?= htmlspecialchars($win['p_time_casa']) ?> x <?= htmlspecialchars($win['p_time_fora']) ?></small>
-                </div>
-            </div>
-            <?php endforeach; ?>
-            
-            <?php if(empty($ultimas_vitorias)): ?>
-                <div style="color: #64748b; font-size: 0.8rem;">Aguardando novos resultados...</div>
             <?php endif; ?>
+            
+            <div>
+                <span style="display: block; font-weight: 700; font-size: 0.9rem;">
+                    <?= htmlspecialchars(mb_strimwidth($v['v_titulo'], 0, 30, "...")) ?>
+                </span>
+                <small style="color: #64748b; font-size: 0.7rem;">
+                    <?= $v['v_fixado'] ? '⭐ Destaque' : 'Green Confirmado' ?>
+                </small>
+            </div>
         </div>
-    </section>
+        <?php endforeach; ?>
 
+        <?php if(empty($lista_vitorias)): ?>
+            <div style="color: #64748b; font-size: 0.8rem;">Aguardando novos resultados...</div>
+        <?php endif; ?>
+    </div>
+</section>
     <section class="plans-container">
         <!-- O restante do código dos seus planos continua exatamente igual aqui -->
         <div class="feature-box">
