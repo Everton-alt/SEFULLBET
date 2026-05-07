@@ -257,8 +257,7 @@ try {
         <p>A primeira plataforma que não te dá apenas palpites, mas sim <b>análise de valor real</b>. Nosso sistema processa milhões de dados para encontrar as melhores oportinudades com base a ODD escolhida atual do jogo escolhi, pode ser o jogo da serie A ou serie D, conseguimos gerar as melhores entradas.</p>
         
         <div class="btn-group">
-            <a href="cadastro.html" class="btn-primary">COMEÇAR AGORA</a>
-            <a href="feed.html" class="btn-secondary">VER FEED AO VIVO</a>
+            <a href="cadastro.php" class="btn-primary">COMEÇAR AGORA, CADASTRE-SE!!!</a>
         </div>
     </section>
 
