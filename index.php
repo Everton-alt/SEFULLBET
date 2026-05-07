@@ -1,4 +1,20 @@
-<!DOCTYPE html>
+<?php
+require_once 'config.php'; // 🔗 Importa a ligação $pdo
+
+try {
+    // 📊 Procuramos os dados com os nomes de colunas que vimos na tua imagem
+    // Usamos img2 para a miniatura e titulo para o nome
+    $sql = "SELECT titulo, img2, fixado FROM vitorias ORDER BY fixado DESC, id DESC LIMIT 10";
+    $stmt = $pdo->query($sql);
+    $lista_vitorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // 🛡️ Se houver erro, criamos a lista vazia para evitar que o site "quebre"
+    $lista_vitorias = [];
+}
+?>
+    $query = $pdo->query("SELECT titulo, img2, fixado FROM vitorias ORDER BY fixado DESC, id DESC LIMIT 15");
+$lista_vitorias = $query->fetchAll(PDO::FETCH_ASSOC);
+    <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -227,19 +243,20 @@
     </section>
 
     <!-- SEÇÃO DE VITÓRIAS RECENTES (Integrada com o Banco) -->
-    <section class="live-results">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h4 style="font-size: 0.8rem; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">
-                <i class="fas fa-trophy"></i> Últimas Vitórias
-            </h4>
-            <span style="font-size: 0.7rem; color: #64748b;">RESULTADOS REAIS</span>
-        </div>
-        
-        <div class="wins-scroll">
+   <section class="live-results">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h4 style="font-size: 0.8rem; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">
+            <i class="fas fa-trophy"></i> Últimas Vitórias
+        </h4>
+        <span style="font-size: 0.7rem; color: #64748b;">RESULTADOS REAIS</span>
+    </div>
+    
+    <div class="wins-scroll">
+        <?php if(!empty($lista_vitorias)): ?>
             <?php foreach($lista_vitorias as $v): ?>
             <div class="win-card">
-                <?php if(!empty($v['v_foto_miniatura'])): ?>
-                    <img src="<?= htmlspecialchars($v['v_foto_miniatura']) ?>" 
+                <?php if(!empty($v['img2'])): ?>
+                    <img src="<?= htmlspecialchars($v['img2']) ?>" 
                          style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;">
                 <?php else: ?>
                     <div style="width: 45px; height: 45px; border-radius: 8px; background: rgba(0,255,136,0.1); display: flex; align-items: center; justify-content: center;">
@@ -249,28 +266,27 @@
                 
                 <div style="overflow: hidden;">
                     <span style="display: block; font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        <?= htmlspecialchars($v['v_titulo']) ?>
+                        <?= htmlspecialchars($v['titulo']) ?>
                     </span>
                     <small style="color: var(--primary); font-size: 0.7rem; font-weight: 600;">
-                        <?= $v['v_fixado'] ? '⭐ DESTAQUE' : '✅ GREEN CONFIRMADO' ?>
+                        <?= (!empty($v['fixado']) && $v['fixado'] == true) ? '⭐ DESTAQUE' : '✅ GREEN CONFIRMADO' ?>
                     </small>
                 </div>
             </div>
             <?php endforeach; ?>
+        <?php else: ?>
+            <div style="color: #64748b; font-size: 0.8rem;">Aguardando novos resultados...</div>
+        <?php endif; ?>
+    </div>
 
-            <?php if(empty($lista_vitorias)): ?>
-                <div style="color: #64748b; font-size: 0.8rem;">Aguardando novos resultados...</div>
-            <?php endif; ?>
+    <div class="feature-box">
+        <div class="feature-icon"><i class="fas fa-brain"></i></div>
+        <div>
+            <h3 style="color:var(--primary); margin-bottom:10px; font-size:1.3rem;">Analisador Sob Demanda</h3>
+            <p style="color:#94a3b8;">Diferente de grupos de sinais comuns promessas, aqui <b>você escolhe o jogo</b>. Insira qualquer partida e receba em segundos os 3 melhores mercados baseados nas ODDS informadas que o jogo está pagando.</p>
         </div>
-
-        <div class="feature-box">
-            <div class="feature-icon"><i class="fas fa-brain"></i></div>
-            <div>
-                <h3 style="color:var(--primary); margin-bottom:10px; font-size:1.3rem;">Analisador Sob Demanda</h3>
-                <p style="color:#94a3b8;">Diferente de grupos de sinais comuns promessas, aqui <b>você escolhe o jogo</b>. Insira qualquer partida e receba em segundos os 3 melhores mercados baseados nas ODDS informadas que o jogo está pagando.</p>
-            </div>
-        </div>
-    </section>
+    </div>
+</section>
 
     <section class="plans-container">
         <div class="grid-plans">
