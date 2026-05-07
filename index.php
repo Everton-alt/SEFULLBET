@@ -6,14 +6,14 @@ try {
     // Usamos img2 para a miniatura e titulo para o nome
     $sql = "SELECT titulo, img2, fixado FROM vitorias ORDER BY fixado DESC, id DESC LIMIT 10";
     $stmt = $pdo->query($sql);
-    $lista_vitorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $vitorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     // 🛡️ Se houver erro, criamos a lista vazia para evitar que o site "quebre"
-    $lista_vitorias = [];
+    $vitorias = [];
 }
 ?>
     $query = $pdo->query("SELECT titulo, img2, fixado FROM vitorias ORDER BY fixado DESC, id DESC LIMIT 15");
-$lista_vitorias = $query->fetchAll(PDO::FETCH_ASSOC);
+$vitorias = $query->fetchAll(PDO::FETCH_ASSOC);
     <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -252,8 +252,8 @@ $lista_vitorias = $query->fetchAll(PDO::FETCH_ASSOC);
     </div>
     
     <div class="wins-scroll">
-        <?php if(!empty($lista_vitorias)): ?>
-            <?php foreach($lista_vitorias as $v): ?>
+        <?php if(!empty($vitorias)): ?>
+            <?php foreach($vitorias as $v): ?>
             <div class="win-card">
                 <?php if(!empty($v['img2'])): ?>
                     <img src="<?= htmlspecialchars($v['img2']) ?>" 
