@@ -2,15 +2,18 @@
 require_once 'config.php';
 
 try {
-    // 🔍 Agora usamos v_vitorias e os prefixos v_ nas colunas
-    $sql = "SELECT v_titulo, v_foto_miniatura, v_fixado FROM v_vitorias ORDER BY v_fixado DESC, v_id DESC LIMIT 10";
+    // 🔍 Busca os dados das vitórias para o carrossel e modal
+    $sql = "SELECT v_id, v_titulo, v_foto_principal, v_foto_miniatura, v_texto_completo, v_fixado 
+            FROM v_vitorias 
+            ORDER BY v_fixado DESC, v_id DESC 
+            LIMIT 10";
     $stmt = $pdo->query($sql);
     $lista_vitorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $lista_vitorias = [];
 }
 ?>
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
@@ -84,24 +87,15 @@ try {
         
         .hero p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 45px; max-width: 750px; margin-inline: auto; }
 
-        /* SEÇÃO DE VITÓRIAS (NOVO) */
-        .live-results {
-            max-width: 1200px;
-            margin: 0 auto 60px;
-            padding: 0 5%;
-        }
-
+        /* CARROSSEL DE VITÓRIAS */
         .wins-scroll {
             display: flex;
             gap: 15px;
             overflow-x: auto;
-            padding: 10px 0 20px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--primary) transparent;
+            padding: 10px 5% 30px;
+            scrollbar-width: none;
         }
-
-        .wins-scroll::-webkit-scrollbar { height: 4px; }
-        .wins-scroll::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+        .wins-scroll::-webkit-scrollbar { display: none; }
 
         .win-card {
             background: var(--card-bg);
@@ -112,10 +106,10 @@ try {
             display: flex;
             align-items: center;
             gap: 12px;
+            cursor: pointer;
             transition: 0.3s;
         }
-
-        .win-card:hover { border-color: var(--primary); background: rgba(0,255,136,0.02); }
+        .win-card:hover { border-color: var(--primary); background: rgba(0,255,136,0.02); transform: translateY(-3px); }
 
         /* BOTÕES */
         .btn-group { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
@@ -212,48 +206,27 @@ try {
             font-size: 0.8rem; font-weight: 900; 
         }
 
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px);
+            z-index: 2000; display: none; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--card-bg); padding: 30px; border-radius: 24px;
+            max-width: 550px; width: 90%; border: 1px solid var(--primary);
+            position: relative; max-height: 90vh; overflow-y: auto; color: white;
+        }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 30px; cursor: pointer; color: #64748b; }
+        .modal-images img { width: 100%; border-radius: 12px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.1); }
+        .modal-text-body { font-size: 1rem; color: #cbd5e1; line-height: 1.6; white-space: pre-wrap; }
+
         footer { padding: 80px 5%; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); color: #64748b; }
 
         @media (max-width: 768px) { 
             .feature-box { flex-direction: column; text-align: center; padding: 30px; } 
             .hero h1 { font-size: 2.8rem; }
             .card-plan.highlight { transform: scale(1); }
-            .modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 20px;
-    max-width: 600px;
-    width: 90%;
-    border: 1px solid var(--primary);
-    position: relative;
-    color: white;
-}
-
-.close-modal {
-    position: absolute;
-    top: 15px; right: 20px;
-    font-size: 30px;
-    cursor: pointer;
-    color: #64748b;
-}
-
-.modal-images img {
-    width: 100%;
-    border-radius: 10px;
-    margin: 10px 0;
-    
         }
     </style>
 </head>
@@ -274,34 +247,43 @@ try {
         </div>
     </section>
 
- <div class="wins-scroll">
-    <?php if(!empty($lista_vitorias)): ?>
-        <?php foreach($lista_vitorias as $v): ?>
-        <div class="win-card">
-            <?php if(!empty($v['v_foto_miniatura'])): ?>
-                <img src="<?= htmlspecialchars($v['v_foto_miniatura']) ?>" 
-                     style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;">
-            <?php else: ?>
-                <div style="width: 45px; height: 45px; border-radius: 8px; background: rgba(0,255,136,0.1); display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+    <div class="wins-scroll">
+        <?php if(!empty($lista_vitorias)): ?>
+            <?php foreach($lista_vitorias as $v): ?>
+            <div class="win-card" onclick="abrirModal('<?= addslashes($v['v_titulo']) ?>', '<?= $v['v_foto_principal'] ?>', '<?= $v['v_foto_miniatura'] ?>', '<?= addslashes($v['v_texto_completo']) ?>')">
+                <?php if(!empty($v['v_foto_miniatura'])): ?>
+                    <img src="<?= htmlspecialchars($v['v_foto_miniatura']) ?>" style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;">
+                <?php else: ?>
+                    <div style="width: 45px; height: 45px; border-radius: 8px; background: rgba(0,255,136,0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+                    </div>
+                <?php endif; ?>
+                
+                <div style="overflow: hidden;">
+                    <span style="display: block; font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <?= htmlspecialchars($v['v_titulo']) ?>
+                    </span>
+                    <small style="color: var(--primary); font-size: 0.7rem; font-weight: 600;">
+                        <?= ($v['v_fixado']) ? '⭐ DESTAQUE' : '✅ GREEN CONFIRMADO' ?>
+                    </small>
                 </div>
-            <?php endif; ?>
-            
-            <div style="overflow: hidden;">
-                <span style="display: block; font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    <?= htmlspecialchars($v['v_titulo']) ?>
-                </span>
-                <small style="color: var(--primary); font-size: 0.7rem; font-weight: 600;">
-                    <?= (!empty($v['v_fixado']) && $v['v_fixado'] == true) ? '⭐ DESTAQUE' : '✅ GREEN CONFIRMADO' ?>
-                </small>
+            </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div style="color: #64748b; font-size: 0.8rem; padding-left: 5%;">Aguardando novos resultados...</div>
+        <?php endif; ?>
+    </div>
+
+    <section class="hero" style="padding-top:0;">
+        <div class="feature-box">
+            <div class="feature-icon"><i class="fas fa-brain"></i></div>
+            <div>
+                <h3 style="color:var(--primary); margin-bottom:10px; font-size:1.3rem;">Analisador Sob Demanda</h3>
+                <p style="color:#94a3b8;">Diferente de grupos de sinais comuns promessas, aqui <b>você escolhe o jogo</b>. Insira qualquer partida e receba em segundos os 3 melhores mercados baseados nas ODDS informadas que o jogo está pagando.</p>
             </div>
         </div>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <div style="color: #64748b; font-size: 0.8rem;">Aguardando novos resultados...</div>
-    <?php endif; ?>
-</div>
-    
+    </section>
+
     <section class="plans-container">
         <div class="grid-plans">
             <div class="card-plan">
@@ -324,7 +306,7 @@ try {
                     <li><i class="fas fa-star" style="color:var(--vip);"></i> <b>30 Créditos de Análise/Mês do Analisador SEFULLBET</b></li>
                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Sinais VIP no Feed</li>
                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Gestão de Banca de forma simples com nosso sistema</li>
-                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Histórico de Greens</li>
+                    <li><i class="fas fa-star" style="color:var(--vip);"></i> Histórico de Greens</li>
                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Grupo Telegram</li>
                 </ul>
                 <a href="cadastro.html" class="btn-primary" style="text-align:center; background:var(--vip);">ASSINAR VIP</a>
@@ -336,10 +318,10 @@ try {
                 <ul class="features-list">
                     <li><i class="fas fa-infinity" style="color:var(--premium);"></i> <b>Análises Ilimitadas do Analisador SEFULLBET </b></li>
                     <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Todas as funções VIP</li>
-                     <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Gestão de Banca de forma simples com nosso sistema h</li>
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Histórico de Greens h</li>
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Grupo Telegram h</li>
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Suporte Prioritário h</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Gestão de Banca de forma simples</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Histórico de Greens</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Grupo Telegram</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Suporte Prioritário</li>
                 </ul>
                 <a href="cadastro.html" class="btn-primary" style="text-align:center; background:var(--premium);">GO PLATINUM</a>
             </div>
@@ -350,16 +332,37 @@ try {
         <div class="footer-brand" style="color:#fff; font-weight:900; font-size:1.4rem; margin-bottom:20px;">SEFULL<span>BET</span></div>
         <p>&copy; 2026 SeFullBet - Inteligência de Dados aplicada ao Esporte.<br>Lembre-se: Apostas são para maiores de 18 anos. Jogue com responsabilidade.</p>
     </footer>
-<div id="modalVitoria" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h2 id="modal-titulo"></h2>
-        <div class="modal-images">
-            <img id="modal-img1" src="" alt="Imagem Principal">
-            <img id="modal-img2" src="" alt="Miniatura">
+
+    <div id="modalVitoria" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="fecharModal()">&times;</span>
+            <h2 id="modal-titulo"></h2>
+            <div class="modal-images">
+                <img id="modal-img-main" src="" alt="Resultado">
+            </div>
+            <div id="modal-texto" class="modal-text-body"></div>
         </div>
-        <div id="modal-texto" class="modal-text-body"></div>
     </div>
-</div>
+
+    <script>
+        function abrirModal(titulo, imgPrincipal, imgMini, texto) {
+            document.getElementById('modal-titulo').innerText = titulo;
+            // Usa a foto principal, se não houver, usa a miniatura
+            document.getElementById('modal-img-main').src = imgPrincipal || imgMini || '';
+            document.getElementById('modal-texto').innerText = texto;
+            document.getElementById('modalVitoria').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharModal() {
+            document.getElementById('modalVitoria').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalVitoria');
+            if (event.target == modal) fecharModal();
+        }
+    </script>
 </body>
 </html>
