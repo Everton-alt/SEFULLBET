@@ -233,7 +233,7 @@ try {
 <body>
     <header>
         <div class="logo">SEFULL<span>BET</span></div>
-        <a href="login.html" class="btn-secondary" style="padding:12px 30px; font-size:0.85rem; border-radius:12px;">ÁREA DO MEMBRO</a>
+        <a href="login.php" class="btn-secondary" style="padding:12px 30px; font-size:0.85rem; border-radius:12px;">ÁREA DO MEMBRO ENTRAR NA CONTA.</a>
     </header>
 
     <section class="hero">
@@ -242,8 +242,7 @@ try {
         <p>A primeira plataforma que não te dá apenas palpites, mas sim <b>análise de valor real</b>. Nosso sistema processa milhões de dados para encontrar as melhores oportinudades com base a ODD escolhida atual do jogo escolhi, pode ser o jogo da serie A ou serie D, conseguimos gerar as melhores entradas.</p>
         
         <div class="btn-group">
-            <a href="cadastro.html" class="btn-primary">COMEÇAR AGORA</a>
-            <a href="feed.html" class="btn-secondary">VER FEED AO VIVO</a>
+            <a href="cadastro.php" class="btn-primary">COMEÇAR AGORA! FAÇA SEU CADASTRO GRÁTIS</a>
         </div>
     </section>
 
