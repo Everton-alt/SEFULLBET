@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="main-content">
         <div class="login-card">
             <div class="auth-header">
-                <h1>LOGIN <span>BET</span></h1>
+                <h1>LOGIN SEFULL <span>BET</span></h1>
                 <p>Acesse sua inteligência de dados</p>
             </div>
             
