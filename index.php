@@ -218,6 +218,42 @@ try {
             .feature-box { flex-direction: column; text-align: center; padding: 30px; } 
             .hero h1 { font-size: 2.8rem; }
             .card-plan.highlight { transform: scale(1); }
+            .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 20px;
+    max-width: 600px;
+    width: 90%;
+    border: 1px solid var(--primary);
+    position: relative;
+    color: white;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px; right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.modal-images img {
+    width: 100%;
+    border-radius: 10px;
+    margin: 10px 0;
+    
         }
     </style>
 </head>
@@ -314,5 +350,16 @@ try {
         <div class="footer-brand" style="color:#fff; font-weight:900; font-size:1.4rem; margin-bottom:20px;">SEFULL<span>BET</span></div>
         <p>&copy; 2026 SeFullBet - Inteligência de Dados aplicada ao Esporte.<br>Lembre-se: Apostas são para maiores de 18 anos. Jogue com responsabilidade.</p>
     </footer>
+<div id="modalVitoria" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 id="modal-titulo"></h2>
+        <div class="modal-images">
+            <img id="modal-img1" src="" alt="Imagem Principal">
+            <img id="modal-img2" src="" alt="Miniatura">
+        </div>
+        <div id="modal-texto" class="modal-text-body"></div>
+    </div>
+</div>
 </body>
 </html>
