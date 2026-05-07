@@ -313,7 +313,7 @@ try {
                     <li><i class="fas fa-check-circle"></i> Histórico de Greens</li>
                     <li><i class="fas fa-check-circle"></i> Grupo Telegram</li>
                 </ul>
-                <a href="cadastro.html" class="btn-secondary" style="text-align:center;">CRIAR CONTA</a>
+                <a href="cadastro.php" class="btn-secondary" style="text-align:center;">CRIAR CONTA</a>
             </div>
 
             <div class="card-plan highlight">
@@ -327,7 +327,7 @@ try {
                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Histórico de Greens</li>
                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Grupo Telegram</li>
                 </ul>
-                <a href="cadastro.html" class="btn-primary" style="text-align:center; background:var(--vip);">ASSINAR VIP</a>
+                <a href="cadastro.php" class="btn-primary" style="text-align:center; background:var(--vip);">ASSINAR VIP</a>
             </div>
 
             <div class="card-plan" style="border-color:var(--premium);">
@@ -341,7 +341,7 @@ try {
                     <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Grupo Telegram</li>
                     <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Suporte Prioritário</li>
                 </ul>
-                <a href="cadastro.html" class="btn-primary" style="text-align:center; background:var(--premium);">GO PLATINUM</a>
+                <a href="cadastro.php" class="btn-primary" style="text-align:center; background:var(--premium);">GO PLATINUM</a>
             </div>
         </div>
     </section>
