@@ -1,12 +1,3 @@
-<?php
-// 1. Conexão com o banco (ajuste o caminho se necessário)
-require_once 'config.php';
-
-// 2. Busca os últimos 5 sinais que deram "Green"
-$stmt = $pdo->prepare("SELECT * FROM sinais WHERE p_status = 'Green' ORDER BY id DESC LIMIT 5");
-$stmt->execute();
-$ultimas_vitorias = $stmt->fetchAll();
-?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -54,7 +45,7 @@ $ultimas_vitorias = $stmt->fetchAll();
 
         /* HERO SECTION */
         .hero { 
-            padding: 100px 5% 60px; 
+            padding: 100px 5% 40px; 
             text-align: center; 
             max-width: 1100px; 
             margin: 0 auto; 
@@ -80,6 +71,39 @@ $ultimas_vitorias = $stmt->fetchAll();
         .hero h1 span { background: linear-gradient(90deg, var(--primary), var(--premium)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .hero p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 45px; max-width: 750px; margin-inline: auto; }
+
+        /* SEÇÃO DE VITÓRIAS (NOVO) */
+        .live-results {
+            max-width: 1200px;
+            margin: 0 auto 60px;
+            padding: 0 5%;
+        }
+
+        .wins-scroll {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding: 10px 0 20px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+
+        .wins-scroll::-webkit-scrollbar { height: 4px; }
+        .wins-scroll::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        .win-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            min-width: 250px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+        }
+
+        .win-card:hover { border-color: var(--primary); background: rgba(0,255,136,0.02); }
 
         /* BOTÕES */
         .btn-group { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
@@ -112,37 +136,6 @@ $ultimas_vitorias = $stmt->fetchAll();
             text-transform: uppercase;
         }
         .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--primary); }
-
-        /* NOVO: SEÇÃO DE VITÓRIAS (GREENS) */
-        .live-results {
-            padding: 40px 5%;
-            background: rgba(255,255,255,0.02);
-            border-top: 1px solid rgba(255,255,255,0.05);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .wins-scroll {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            padding: 10px 0;
-            scrollbar-width: none; /* Firefox */
-        }
-        .wins-scroll::-webkit-scrollbar { display: none; } /* Chrome/Safari */
-
-        .win-card {
-            background: var(--card-bg);
-            border-left: 4px solid var(--primary);
-            padding: 15px 25px;
-            border-radius: 12px;
-            min-width: 250px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .win-card i { color: var(--primary); font-size: 1.2rem; }
-        .win-card span { font-size: 0.9rem; font-weight: 700; }
-        .win-card small { color: #64748b; font-size: 0.75rem; display: block; }
 
         /* FEATURE BOX GLASS */
         .feature-box { 
@@ -219,104 +212,106 @@ $ultimas_vitorias = $stmt->fetchAll();
 <body>
     <header>
         <div class="logo">SEFULL<span>BET</span></div>
-        <a href="login.php" class="btn-secondary" style="padding:12px 30px; font-size:0.85rem; border-radius:12px;">ÁREA DO MEMBRO</a>
+        <a href="login.html" class="btn-secondary" style="padding:12px 30px; font-size:0.85rem; border-radius:12px;">ÁREA DO MEMBRO</a>
     </header>
 
     <section class="hero">
-        <div class="hero-badge"><i class="fas fa-microchip"></i> ANALISADOR SEFULLBET</div>
+        <div class="hero-badge"><i class="fas fa-microchip"></i> ANALISADOR SEFULLBET ATIVO</div>
         <h1>Esqueça a Sorte. <br><span>Opere a Matemática.</span></h1>
-        <p>A primeira plataforma que não te dá apenas palpites, mas sim <b>análise de valor real</b>. Nosso sistema processa milhões de dados para encontrar as melhores oportinudades.</p>
+        <p>A primeira plataforma que não te dá apenas palpites, mas sim <b>análise de valor real</b>. Nosso sistema processa milhões de dados para encontrar as melhores oportinudades com base a ODD escolhida atual do jogo escolhi, pode ser o jogo da serie A ou serie D, conseguimos gerar as melhores entradas.</p>
         
         <div class="btn-group">
-            <a href="cadastro.php" class="btn-primary">COMEÇAR AGORA</a>
-            <a href="feed.php" class="btn-secondary">VER FEED AO VIVO</a>
+            <a href="cadastro.html" class="btn-primary">COMEÇAR AGORA</a>
+            <a href="feed.html" class="btn-secondary">VER FEED AO VIVO</a>
         </div>
     </section>
 
-<!-- SEÇÃO DE VITÓRIAS RECENTES -->
-<section class="live-results">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 1200px; margin-inline: auto;">
-        <h4 style="font-size: 0.8rem; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">
-            <i class="fas fa-trophy"></i> Últimas Vitórias
-        </h4>
-        <span style="font-size: 0.7rem; color: #64748b;">RESULTADOS REAIS DO SISTEMA</span>
-    </div>
-    
-    <div class="wins-scroll">
-        <?php foreach($lista_vitorias as $v): ?>
-        <div class="win-card" style="cursor: pointer;">
-            <!-- Exibe a miniatura cadastrada ou um ícone padrão se estiver vazio -->
-            <?php if(!empty($v['v_foto_miniatura'])): ?>
-                <img src="<?= htmlspecialchars($v['v_foto_miniatura']) ?>" 
-                     style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;">
-            <?php else: ?>
-                <i class="fas fa-check-circle"></i>
-            <?php endif; ?>
-            
-            <div>
-                <span style="display: block; font-weight: 700; font-size: 0.9rem;">
-                    <?= htmlspecialchars(mb_strimwidth($v['v_titulo'], 0, 30, "...")) ?>
-                </span>
-                <small style="color: #64748b; font-size: 0.7rem;">
-                    <?= $v['v_fixado'] ? '⭐ Destaque' : 'Green Confirmado' ?>
-                </small>
-            </div>
+    <!-- SEÇÃO DE VITÓRIAS RECENTES (Integrada com o Banco) -->
+    <section class="live-results">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h4 style="font-size: 0.8rem; letter-spacing: 2px; color: var(--primary); text-transform: uppercase;">
+                <i class="fas fa-trophy"></i> Últimas Vitórias
+            </h4>
+            <span style="font-size: 0.7rem; color: #64748b;">RESULTADOS REAIS</span>
         </div>
-        <?php endforeach; ?>
+        
+        <div class="wins-scroll">
+            <?php foreach($lista_vitorias as $v): ?>
+            <div class="win-card">
+                <?php if(!empty($v['v_foto_miniatura'])): ?>
+                    <img src="<?= htmlspecialchars($v['v_foto_miniatura']) ?>" 
+                         style="width: 45px; height: 45px; border-radius: 8px; object-fit: cover;">
+                <?php else: ?>
+                    <div style="width: 45px; height: 45px; border-radius: 8px; background: rgba(0,255,136,0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-check-circle" style="color: var(--primary);"></i>
+                    </div>
+                <?php endif; ?>
+                
+                <div style="overflow: hidden;">
+                    <span style="display: block; font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        <?= htmlspecialchars($v['v_titulo']) ?>
+                    </span>
+                    <small style="color: var(--primary); font-size: 0.7rem; font-weight: 600;">
+                        <?= $v['v_fixado'] ? '⭐ DESTAQUE' : '✅ GREEN CONFIRMADO' ?>
+                    </small>
+                </div>
+            </div>
+            <?php endforeach; ?>
 
-        <?php if(empty($lista_vitorias)): ?>
-            <div style="color: #64748b; font-size: 0.8rem;">Aguardando novos resultados...</div>
-        <?php endif; ?>
-    </div>
-</section>
-    <section class="plans-container">
-        <!-- O restante do código dos seus planos continua exatamente igual aqui -->
+            <?php if(empty($lista_vitorias)): ?>
+                <div style="color: #64748b; font-size: 0.8rem;">Aguardando novos resultados...</div>
+            <?php endif; ?>
+        </div>
+
         <div class="feature-box">
             <div class="feature-icon"><i class="fas fa-brain"></i></div>
             <div>
-                <h3 style="color:var(--primary); margin-bottom:10px; font-size:1.3rem;">Analisador Sefullbet</h3>
-                <p style="color:#94a3b8;">Diferente de grupos de sinais comuns, aqui <b>você escolhe o jogo</b>. Insira qualquer partida e receba em segundos os melhores mercados.</p>
+                <h3 style="color:var(--primary); margin-bottom:10px; font-size:1.3rem;">Analisador Sob Demanda</h3>
+                <p style="color:#94a3b8;">Diferente de grupos de sinais comuns promessas, aqui <b>você escolhe o jogo</b>. Insira qualquer partida e receba em segundos os 3 melhores mercados baseados nas ODDS informadas que o jogo está pagando.</p>
             </div>
         </div>
+    </section>
 
+    <section class="plans-container">
         <div class="grid-plans">
-            <!-- Card Grátis -->
             <div class="card-plan">
                 <h3 style="letter-spacing: 2px; font-weight: 800; opacity: 0.7;">GRÁTIS</h3>
                 <div class="price">R$ 0<span>/mês</span></div>
                 <ul class="features-list">
-                    <li><i class="fas fa-check-circle"></i> 1 Análise SEFULLBET</li>
-                    <li><i class="fas fa-check-circle"></i> Palpites diários</li>
+                    <li><i class="fas fa-check-circle"></i> 1 Análise do analisador SEFULLBET</li>
+                    <li><i class="fas fa-check-circle"></i> Acesso aos Palpites diários</li>
                     <li><i class="fas fa-check-circle"></i> Histórico de Greens</li>
                     <li><i class="fas fa-check-circle"></i> Grupo Telegram</li>
                 </ul>
-                <a href="cadastro.php" class="btn-secondary" style="text-align:center;">CRIAR CONTA</a>
+                <a href="cadastro.html" class="btn-secondary" style="text-align:center;">CRIAR CONTA</a>
             </div>
 
-            <!-- Card VIP GOLD -->
             <div class="card-plan highlight">
                 <div class="tag-promo">RECOMENDADO</div>
                 <h3 style="color:var(--vip); letter-spacing: 2px; font-weight: 800;">VIP GOLD</h3>
                 <div class="price">R$ 49<span>/mês</span></div>
                 <ul class="features-list">
-                    <li><i class="fas fa-star" style="color:var(--vip);"></i> <b>30 Créditos de Análise/Mês</b></li>
+                    <li><i class="fas fa-star" style="color:var(--vip);"></i> <b>30 Créditos de Análise/Mês do Analisador SEFULLBET</b></li>
                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Sinais VIP no Feed</li>
-                    <li><i class="fas fa-star" style="color:var(--vip);"></i> Gestão de Banca</li>
+                    <li><i class="fas fa-star" style="color:var(--vip);"></i> Gestão de Banca de forma simples com nosso sistema</li>
+                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Histórico de Greens</li>
                     <li><i class="fas fa-star" style="color:var(--vip);"></i> Grupo Telegram</li>
                 </ul>
-                <a href="cadastro.php" class="btn-primary" style="text-align:center; background:var(--vip);">ASSINAR VIP</a>
+                <a href="cadastro.html" class="btn-primary" style="text-align:center; background:var(--vip);">ASSINAR VIP</a>
             </div>
 
-            <!-- Card Platinum -->
             <div class="card-plan" style="border-color:var(--premium);">
                 <h3 style="color:var(--premium); letter-spacing: 2px; font-weight: 800;">PLATINUM</h3>
                 <div class="price">R$ 97<span>/mês</span></div>
                 <ul class="features-list">
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> <b>Análises Ilimitadas</b></li>
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Funções VIP + Platinum</li>
-                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Suporte Prioritário</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> <b>Análises Ilimitadas do Analisador SEFULLBET </b></li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Todas as funções VIP</li>
+                     <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Gestão de Banca de forma simples com nosso sistema h</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Histórico de Greens h</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Grupo Telegram h</li>
+                    <li><i class="fas fa-infinity" style="color:var(--premium);"></i> Suporte Prioritário h</li>
                 </ul>
-                <a href="cadastro.php" class="btn-primary" style="text-align:center; background:var(--premium);">GO PLATINUM</a>
+                <a href="cadastro.html" class="btn-primary" style="text-align:center; background:var(--premium);">GO PLATINUM</a>
             </div>
         </div>
     </section>
