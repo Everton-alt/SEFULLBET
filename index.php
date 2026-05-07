@@ -248,7 +248,7 @@ try {
 <body>
     <header>
         <div class="logo">SEFULL<span>BET</span></div>
-        <a href="login.html" class="btn-secondary" style="padding:12px 30px; font-size:0.85rem; border-radius:12px;">ÁREA DO MEMBRO</a>
+        <a href="login.php" class="btn-secondary" style="padding:12px 30px; font-size:0.85rem; border-radius:12px;">ÁREA DO MEMBRO</a>
     </header>
 
     <section class="hero">
