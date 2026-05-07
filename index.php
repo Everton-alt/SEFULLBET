@@ -87,12 +87,27 @@ try {
         
         .hero p { color: #94a3b8; font-size: 1.15rem; margin-bottom: 45px; max-width: 750px; margin-inline: auto; }
 
+        /* TÍTULO DAS VITÓRIAS */
+        .section-title {
+            padding: 0 5%;
+            max-width: 1200px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         /* CARROSSEL DE VITÓRIAS */
         .wins-scroll {
             display: flex;
             gap: 15px;
             overflow-x: auto;
-            padding: 10px 5% 30px;
+            padding: 0 5% 40px;
             scrollbar-width: none;
         }
         .wins-scroll::-webkit-scrollbar { display: none; }
@@ -233,7 +248,7 @@ try {
 <body>
     <header>
         <div class="logo">SEFULL<span>BET</span></div>
-        <a href="login.php" class="btn-secondary" style="padding:12px 30px; font-size:0.85rem; border-radius:12px;">ÁREA DO MEMBRO ENTRAR NA CONTA.</a>
+        <a href="login.html" class="btn-secondary" style="padding:12px 30px; font-size:0.85rem; border-radius:12px;">ÁREA DO MEMBRO</a>
     </header>
 
     <section class="hero">
@@ -242,9 +257,14 @@ try {
         <p>A primeira plataforma que não te dá apenas palpites, mas sim <b>análise de valor real</b>. Nosso sistema processa milhões de dados para encontrar as melhores oportinudades com base a ODD escolhida atual do jogo escolhi, pode ser o jogo da serie A ou serie D, conseguimos gerar as melhores entradas.</p>
         
         <div class="btn-group">
-            <a href="cadastro.php" class="btn-primary">COMEÇAR AGORA! FAÇA SEU CADASTRO GRÁTIS</a>
+            <a href="cadastro.html" class="btn-primary">COMEÇAR AGORA</a>
+            <a href="feed.html" class="btn-secondary">VER FEED AO VIVO</a>
         </div>
     </section>
+
+    <div class="section-title">
+        <i class="fas fa-trophy"></i> Resultados Recentes
+    </div>
 
     <div class="wins-scroll">
         <?php if(!empty($lista_vitorias)): ?>
@@ -335,7 +355,7 @@ try {
     <div id="modalVitoria" class="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="fecharModal()">&times;</span>
-            <h2 id="modal-titulo"></h2>
+            <h2 id="modal-titulo" style="margin-bottom: 20px; font-size: 1.4rem;"></h2>
             <div class="modal-images">
                 <img id="modal-img-main" src="" alt="Resultado">
             </div>
