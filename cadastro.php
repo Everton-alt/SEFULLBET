@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="modal-content">
             <div class="modal-body">
                 <h2>Termos e Condições de Uso</h2>
-                <p><b>1. Natureza do Serviço:</b> A SeFull Bet é uma plataforma de fornecimento de conteúdo informativo, estatístico e de análise probabilística baseada em algoritmos e dados históricos. Não somos uma casa de apostas, não aceitamos depósitos de valores e não intermediamos transações financeiras.</p><br>
+                <p><b>1. Natureza do Serviço:</b> A SeFull Bet é uma plataforma de fornecimento de conteúdo informativo, estatístico e de análise probabilística baseada em algoritmos e dados históricos. Não somos uma casa de apostas, vendemos a mensalidade e direito de usar nossa ferramenta de análise de ODDS, aceitamos depósitos dos valores descritos no site.</p><br>
                 <p><b>2. Isenção de Responsabilidade:</b> O usuário declara estar ciente de que o mercado de apostas esportivas envolve risco financeiro real. Ausência de Garantia: A SeFull Bet não garante lucros. A decisão final é de responsabilidade exclusiva do usuário.</p><br>
                 <p><b>3. Responsabilidade do Usuário:</b> Ao utilizar o site, o usuário compromete-se a: Ser maior de 18 anos; utilizar os dados apenas para fins informativos; assumir total responsabilidade civil e técnica por suas ações externas.</p><br>
                 <p><b>4. Limitação Jurídica:</b> En nenhuma circunstância a SeFull Bet será responsabilizada por Danos Indiretos, Falhas Técnicas ou Sanções Jurídicas locais aplicadas ao usuário.</p><br>
